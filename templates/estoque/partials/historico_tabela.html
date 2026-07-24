@@ -1,0 +1,97 @@
+<div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+        <thead>
+            <tr class="border-b border-hex_dark_border bg-hex_dark_bg/50 text-hex_gold uppercase tracking-wider text-xs font-semibold">
+                <th class="p-4">Data / Hora</th>
+                <th class="p-4">Insumo / Ingrediente</th>
+                <th class="p-4">Quantidade</th>
+                <th class="p-4">Tipo</th>
+                <th class="p-4">Responsável</th>
+                <th class="p-4">Observações / Justificativa</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-hex_dark_border text-sm text-hex_gold_light/90">
+            {% for mov in page_obj %}
+                <tr class="hover:bg-hex_dark_bg/30 transition-colors">
+                    <td class="p-4 font-mono text-xs text-hex_gold_dim/70">
+                        {{ mov.data_movimentacao|date:"d/m/Y H:i:s" }}
+                    </td>
+                    <td class="p-4 font-medium">{{ mov.ingrediente.nome }}</td>
+                    <td class="p-4 font-mono font-bold">
+                        {% if mov.tipo == 'ENTRADA' %}
+                            <span class="text-hex_success">+{{ mov.quantidade }}</span>
+                        {% else %}
+                            <span class="text-hex_danger">-{{ mov.quantidade }}</span>
+                        {% endif %}
+                        <span class="text-xs text-hex_gold_dim/50 font-normal"> {{ mov.ingrediente.unidade_medida }}</span>
+                    </td>
+                    <td class="p-4 text-xs font-semibold uppercase tracking-wider">
+                        {% if mov.tipo == 'ENTRADA' %}
+                            <span class="text-hex_success bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded">
+                                {{ mov.get_tipo_display }}
+                            </span>
+                        {% elif mov.tipo == 'SAIDA_VENDA' %}
+                            <span class="text-hex_blue bg-cyan-950/40 border border-cyan-500/30 px-2 py-0.5 rounded">
+                                {{ mov.get_tipo_display }}
+                            </span>
+                        {% elif mov.tipo == 'SAIDA_PERDA' %}
+                            <span class="text-hex_danger bg-red-950/40 border border-red-500/30 px-2 py-0.5 rounded">
+                                {{ mov.get_tipo_display }}
+                            </span>
+                        {% else %}
+                            <span class="text-hex_warning bg-amber-950/40 border border-amber-500/30 px-2 py-0.5 rounded">
+                                {{ mov.get_tipo_display }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 text-hex_gold_light/80 text-xs">
+                        {{ mov.responsavel.get_full_name|default:mov.responsavel.username|default:"Sistema" }}
+                    </td>
+                    <td class="p-4 text-xs text-hex_gold_dim/75 italic">
+                        {{ mov.observacao|default:"-" }}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" class="p-8 text-center text-hex_gold_dim/50">
+                        <div class="flex flex-col items-center justify-center space-y-2">
+                            <i data-lucide="info" class="w-8 h-8 text-hex_gold_dim/30"></i>
+                            <p class="font-medium">Nenhuma movimentação de auditoria encontrada.</p>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Paginação HTMX -->
+{% if page_obj.has_other_pages %}
+<div class="p-4 border-t border-hex_dark_border bg-hex_dark_bg/20 flex items-center justify-between">
+    <span class="text-xs text-hex_gold_dim/60">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+    </span>
+    
+    <div class="flex space-x-1">
+        {% if page_obj.has_previous %}
+            <button 
+                hx-get="{% url 'estoque_historico' %}?page={{ page_obj.previous_page_number }}&busca={{ busca }}&tipo={{ tipo_selecionado }}"
+                hx-target="#tabela-historico"
+                class="px-3 py-1.5 rounded text-xs font-semibold bg-hex_dark_bg border border-hex_gold/20 text-hex_gold hover:border-hex_blue hover:text-hex_blue transition-all"
+            >
+                Anterior
+            </button>
+        {% endif %}
+        
+        {% if page_obj.has_next %}
+            <button 
+                hx-get="{% url 'estoque_historico' %}?page={{ page_obj.next_page_number }}&busca={{ busca }}&tipo={{ tipo_selecionado }}"
+                hx-target="#tabela-historico"
+                class="px-3 py-1.5 rounded text-xs font-semibold bg-hex_dark_bg border border-hex_gold/20 text-hex_gold hover:border-hex_blue hover:text-hex_blue transition-all"
+            >
+                Próxima
+            </button>
+        {% endif %}
+    </div>
+</div>
+{% endif %}

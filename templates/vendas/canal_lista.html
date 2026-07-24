@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Canais de Venda - LOL BURGUER{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
+    <div>
+        <h1 class="text-2xl font-bold title-hex text-hex_gold flex items-center space-x-2">
+            <i data-lucide="sliders" class="w-6 h-6 text-hex_gold"></i>
+            <span>Canais de Venda</span>
+        </h1>
+        <p class="text-sm text-hex_gold_dim/70 mt-1">Gerencie os canais de recebimento de pedidos e suas respectivas comissões e taxas fixas.</p>
+    </div>
+    
+    <a href="{% url 'canal_criar' %}" class="bg-gradient-to-r from-hex_gold to-hex_gold_dim hover:from-hex_blue hover:to-hex_blue_dark text-hex_dark_bg hover:text-white font-bold py-2.5 px-4 rounded transition-all uppercase tracking-wider text-xs flex items-center justify-center space-x-2 border border-hex_gold/40 shadow-hex-gold hover:shadow-hex-blue">
+        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+        <span>Adicionar Canal</span>
+    </a>
+</div>
+
+<div class="bg-hex_dark_card border border-hex_dark_border rounded shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b border-hex_dark_border bg-hex_dark_bg/50 text-hex_gold uppercase tracking-wider text-xs font-semibold">
+                    <th class="p-4">Nome do Canal</th>
+                    <th class="p-4">Comissão (%)</th>
+                    <th class="p-4">Taxa Fixa por Pedido</th>
+                    <th class="p-4">Prazo de Repasse</th>
+                    <th class="p-4 text-center">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-hex_dark_border text-sm text-hex_gold_light/90">
+                {% for canal in canais %}
+                    <tr class="hover:bg-hex_dark_bg/30 transition-colors">
+                        <td class="p-4 font-bold">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 rounded-full" style="background-color: {% if canal.nome == 'iFood Delivery' %}#EA1D2C{% elif 'UaiRango' in canal.nome %}#FF8C00{% else %}#0AC8B9{% endif %};"></span>
+                                <span class="text-white font-bold">{{ canal.nome }}</span>
+                            </div>
+                            <!-- Sub-taxas por modalidade -->
+                            <div class="mt-2 pl-5 space-y-1">
+                                {% for tp in canal.taxas_pagamento.all %}
+                                    <span class="inline-block text-[10px] font-mono px-2 py-0.5 rounded bg-hex_dark_bg border border-hex_gold/20 text-hex_gold_light mr-1">
+                                        {{ tp.get_forma_pagamento_display }}: <strong>{{ tp.taxa_comissao|stringformat:".2f" }}%</strong>
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td class="p-4 font-mono font-semibold text-hex_gold">
+                            {{ canal.taxa_comissao|stringformat:".2f" }}%
+                        </td>
+                        <td class="p-4 font-mono text-hex_gold_light">
+                            R$ {{ canal.taxa_fixa|floatformat:2 }}
+                        </td>
+                        <td class="p-4 text-hex_gold_dim/70">
+                            {{ canal.dias_repasse }} dias
+                        </td>
+                        <td class="p-4 text-center">
+                            <a href="{% url 'canal_editar' canal.id %}" class="text-hex_blue hover:text-white p-1 rounded hover:bg-hex_dark_bg transition-all inline-block" title="Editar">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="p-8 text-center text-hex_gold_dim/50 italic">
+                            Nenhum canal de venda cadastrado.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

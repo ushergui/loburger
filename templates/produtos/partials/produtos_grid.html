@@ -1,0 +1,79 @@
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+    {% for prod in produtos %}
+        <div class="bg-hex_dark_card border {% if prod.status %}border-hex_dark_border hover:border-hex_gold/40 shadow-md hover:shadow-hex-gold{% else %}border-hex_danger/20 opacity-60{% endif %} rounded overflow-hidden flex flex-col justify-between transition-all duration-300 relative group">
+            
+            {% if not prod.status %}
+                <div class="absolute top-3 right-3 z-10 bg-hex_danger/80 border border-hex_danger text-white text-xxs font-bold uppercase tracking-widest px-2 py-0.5 rounded">
+                    Esgotado
+                </div>
+            {% endif %}
+
+            <!-- Imagem e Cabeçalho -->
+            <div>
+                <div class="h-48 bg-hex_dark_bg flex items-center justify-center relative overflow-hidden">
+                    {% if prod.foto %}
+                        <img src="{{ prod.foto.url }}" alt="{{ prod.nome }}" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+                    {% else %}
+                        <!-- Placeholder visual lindo temático -->
+                        <div class="flex flex-col items-center justify-center text-hex_gold_dim/30">
+                            <i data-lucide="sandwich" class="w-12 h-12"></i>
+                            <span class="text-xxs uppercase tracking-widest mt-1">Sem imagem</span>
+                        </div>
+                    {% endif %}
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-hex_dark_card to-transparent h-10"></div>
+                </div>
+
+                <div class="p-4 pt-1">
+                    <span class="text-xxs uppercase tracking-wider text-hex_blue font-semibold">{{ prod.get_categoria_display }}</span>
+                    <h2 class="text-lg font-bold text-hex_gold title-hex mt-0.5 group-hover:text-white transition-colors">{{ prod.nome }}</h2>
+                    <p class="text-xs text-hex_gold_dim/60 mt-1 line-clamp-2 h-8">{{ prod.descricao|default:"Sem descrição." }}</p>
+                    
+                    <div class="h-px bg-gradient-to-r from-transparent via-hex_gold/20 to-transparent my-3"></div>
+
+                    <!-- Informação de Custos -->
+                    <div class="flex items-center justify-between text-xs mb-3">
+                        <span class="text-hex_gold_dim/60 uppercase tracking-wider text-xxs">Custo de Produção:</span>
+                        <span class="font-mono font-bold text-hex_gold_light">R$ {{ prod.custo_total|floatformat:2 }}</span>
+                    </div>
+
+                    <!-- Preços por Canal -->
+                    <div class="space-y-1.5 bg-hex_dark_bg/40 p-2.5 rounded border border-hex_dark_border text-xs">
+                        <span class="text-xxs uppercase tracking-wider text-hex_blue/70 font-semibold block mb-1">Preços de Venda:</span>
+                        {% for preco in prod.precos_canais.all %}
+                            <div class="flex justify-between items-center">
+                                <span class="text-hex_gold_dim/70">{{ preco.canal.nome }}:</span>
+                                <span class="font-mono text-hex_gold_light font-medium">R$ {{ preco.preco }}</span>
+                            </div>
+                        {% empty %}
+                            <p class="text-xxs text-hex_danger/70 italic">Sem preços cadastrados.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões de Ação na base do card -->
+            <div class="p-4 border-t border-hex_dark_border bg-hex_dark_bg/20 flex items-center justify-between gap-2">
+                <a href="{% url 'ficha_tecnica_montar' prod.id %}" class="flex-1 bg-hex_dark_bg hover:bg-hex_gold/10 border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white font-bold py-1.5 px-2 rounded text-xxs uppercase tracking-wider transition-all text-center flex items-center justify-center space-x-1" title="Ficha Técnica / Montagem">
+                    <i data-lucide="chef-hat" class="w-3.5 h-3.5"></i>
+                    <span>Receita</span>
+                </a>
+                <div class="flex space-x-1">
+                    <a href="{% url 'produto_editar' prod.id %}" class="text-hex_blue hover:text-white p-1.5 rounded hover:bg-hex_dark_bg border border-hex_dark_border hover:border-hex_blue/40 transition-all" title="Editar">
+                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                    </a>
+                    <a href="{% url 'produto_excluir' prod.id %}" class="text-hex_danger hover:text-white p-1.5 rounded hover:bg-hex_dark_bg border border-hex_dark_border hover:border-hex_danger/40 transition-all" title="Excluir">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-span-full bg-hex_dark_card border border-hex_dark_border rounded p-12 text-center text-hex_gold_dim/50">
+            <div class="flex flex-col items-center justify-center space-y-2">
+                <i data-lucide="info" class="w-12 h-12 text-hex_gold_dim/30"></i>
+                <p class="font-medium text-lg">Nenhum produto temático cadastrado.</p>
+                <p class="text-xs">Cadastre um novo campeão do cardápio para começar.</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>

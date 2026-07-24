@@ -1,0 +1,153 @@
+<!-- Seletor de Canal de Venda -->
+<div class="p-4 border-b border-hex_dark_border space-y-4 bg-hex_dark_bg/20">
+    <div>
+        <label for="carrinho_canal" class="block text-[10px] uppercase tracking-wider text-hex_blue mb-1">Canal de Venda</label>
+        <select 
+            name="canal" 
+            id="carrinho_canal" 
+            class="w-full bg-hex_dark_bg border border-hex_gold/20 rounded py-1.5 px-2.5 text-xs text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
+            hx-post="{% url 'pedido_criar' %}"
+            hx-vals='{"atualizar_canal": "1"}'
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+            hx-target="#carrinho-conteudo"
+            hx-trigger="change"
+        >
+            {% for cn in canais %}
+                <option value="{{ cn.id }}" {% if cn.id == carrinho.canal_id %}selected{% endif %}>{{ cn.nome }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Formulário principal para fechar o pedido no banco -->
+    <form method="post" action="{% url 'pedido_criar' %}" class="space-y-4">
+        {% csrf_token %}
+        <input type="hidden" name="finalizar_pedido" value="1">
+        
+        <div>
+            <label for="cliente_nome" class="block text-[10px] uppercase tracking-wider text-hex_blue mb-1">Nome do Cliente (Invocador)</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-hex_gold_dim/55">
+                    <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                </span>
+                <input 
+                    type="text" 
+                    name="cliente_nome" 
+                    id="cliente_nome" 
+                    class="w-full bg-hex_dark_bg border border-hex_gold/20 rounded py-1.5 pl-8 pr-2 text-xs text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
+                    placeholder="Ex: Lux, Ezreal..."
+                    value="{{ carrinho.cliente_nome }}"
+                >
+            </div>
+        </div>
+</div>
+
+<!-- Listagem dos Itens no Carrinho (Scrollable) -->
+<div class="flex-1 overflow-y-auto p-4 space-y-3">
+    {% for item in produtos_carrinho %}
+        <div class="bg-hex_dark_bg/30 border border-hex_dark_border/60 p-2.5 rounded flex items-center justify-between text-xs space-x-3">
+            <div class="flex-1 min-w-0">
+                <p class="font-semibold text-hex_gold_light truncate">{{ item.produto.nome }}</p>
+                <p class="text-[10px] text-hex_gold_dim/50 font-mono mt-0.5">R$ {{ item.preco }} x {{ item.quantidade }}</p>
+            </div>
+            
+            <!-- Controle de Quantidade via HTMX -->
+            <div class="flex items-center space-x-1.5 shrink-0 bg-hex_dark_bg/60 border border-hex_gold/20 rounded p-0.5">
+                <button 
+                    type="button"
+                    hx-post="{% url 'pedido_criar' %}"
+                    hx-vals='{"alterar_qtd": "1", "produto_id": "{{ item.produto.id }}", "quantidade": "{{ item.quantidade|add:-1 }}"}'
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                    hx-target="#carrinho-conteudo"
+                    class="w-5 h-5 flex items-center justify-center text-hex_gold hover:text-white rounded hover:bg-hex_dark_bg/90 transition-all font-bold"
+                >
+                    -
+                </button>
+                <span class="w-4 text-center font-mono font-bold text-white text-xs">{{ item.quantidade }}</span>
+                <button 
+                    type="button"
+                    hx-post="{% url 'pedido_criar' %}"
+                    hx-vals='{"alterar_qtd": "1", "produto_id": "{{ item.produto.id }}", "quantidade": "{{ item.quantidade|add:1 }}"}'
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                    hx-target="#carrinho-conteudo"
+                    class="w-5 h-5 flex items-center justify-center text-hex_gold hover:text-white rounded hover:bg-hex_dark_bg/90 transition-all font-bold"
+                >
+                    +
+                </button>
+            </div>
+
+            <!-- Botão Excluir -->
+            <button 
+                type="button"
+                hx-post="{% url 'pedido_criar' %}"
+                hx-vals='{"remover_item": "1", "produto_id": "{{ item.produto.id }}"}'
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                hx-target="#carrinho-conteudo"
+                class="text-hex_danger hover:text-white p-1 rounded hover:bg-hex_dark_bg/50 shrink-0"
+                title="Remover item"
+            >
+                <i data-lucide="trash" class="w-4 h-4"></i>
+            </button>
+        </div>
+    {% empty %}
+        <div class="h-full flex flex-col items-center justify-center text-center text-hex_gold_dim/40 py-12">
+            <i data-lucide="shopping-bag" class="w-8 h-8 opacity-35 mb-2"></i>
+            <p class="text-xs uppercase tracking-wider">Carrinho Vazio</p>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Rodapé do Carrinho com Estimativa Financeira -->
+{% if produtos_carrinho %}
+<div class="border-t border-hex_gold/30 bg-hex_dark_bg/50 p-4 space-y-3 font-mono text-xs">
+    
+    <!-- Faturamento / Subtotal -->
+    <div class="flex justify-between items-center text-hex_gold_light">
+        <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/60">Subtotal Bruto:</span>
+        <span class="font-bold text-sm">R$ {{ totais.bruto }}</span>
+    </div>
+
+    <!-- Taxas Canal -->
+    <div class="flex justify-between items-center text-hex_gold_dim/70">
+        <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/50">Taxas Estimadas:</span>
+        <span>- R$ {{ totais.taxas }}</span>
+    </div>
+
+    <!-- Custo de Produção total -->
+    <div class="flex justify-between items-center text-hex_gold_dim/70">
+        <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/50">Custo Insumos:</span>
+        <span>- R$ {{ totais.custo }}</span>
+    </div>
+
+    <!-- Divisor sutil -->
+    <div class="h-px bg-hex_dark_border/50"></div>
+
+    <!-- Lucro Líquido Real e Margem -->
+    <div class="flex justify-between items-center">
+        <div>
+            <span class="text-xxs uppercase tracking-wider text-hex_blue block font-semibold">Lucro Líquido Est.:</span>
+            <span class="text-[10px] text-hex_gold_dim/50">(Margem: {{ totais.margem }}%)</span>
+        </div>
+        <div class="text-right">
+            <span class="font-bold text-base {% if totais.lucro < 0 %}text-hex_danger{% else %}text-hex_success{% endif %}">
+                R$ {{ totais.lucro }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Botão Finalizar -->
+    <div class="pt-2">
+        <button 
+            type="submit" 
+            class="w-full bg-gradient-to-r from-hex_gold to-hex_gold_dim hover:from-hex_blue hover:to-hex_blue_dark text-hex_dark_bg hover:text-white font-bold py-2.5 px-4 rounded transition-all uppercase tracking-wider text-xs border border-hex_gold/40 shadow-hex-gold hover:shadow-hex-blue flex items-center justify-center space-x-1.5"
+        >
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Confirmar Pedido</span>
+        </button>
+    </div>
+</div>
+{% endif %}
+</form>
+
+<script>
+    lucide.createIcons();
+</script>

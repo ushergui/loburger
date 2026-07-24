@@ -1,0 +1,89 @@
+<div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse text-xs">
+        <thead>
+            <tr class="border-b border-hex_dark_border text-hex_gold uppercase tracking-wider text-[10px] font-semibold bg-hex_dark_bg/40">
+                <th class="py-3.5 px-4">Data Pagamento</th>
+                <th class="py-3.5 px-4">Descrição</th>
+                <th class="py-3.5 px-4">Tipo</th>
+                <th class="py-3.5 px-4">Categoria</th>
+                <th class="py-3.5 px-4 text-right">Valor</th>
+                <th class="py-3.5 px-4 text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-hex_dark_border text-hex_gold_light/90">
+            {% if page_obj %}
+                {% for desp in page_obj %}
+                    <tr class="hover:bg-hex_dark_bg/30 transition-colors">
+                        <td class="py-3 px-4 font-mono">{{ desp.data_pagamento|date:"d/m/Y" }}</td>
+                        <td class="py-3 px-4 font-medium text-white">{{ desp.descricao }}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider {% if desp.tipo == 'FIXO' %}bg-blue-950/40 text-hex_blue border border-hex_blue/20{% else %}bg-amber-950/40 text-amber-500 border border-amber-500/20{% endif %}">
+                                {{ desp.get_tipo_display }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">{{ desp.get_categoria_display }}</td>
+                        <td class="py-3 px-4 text-right font-mono font-bold text-hex_gold">R$ {{ desp.valor }}</td>
+                        <td class="py-3 px-4 text-center">
+                            <div class="flex items-center justify-center space-x-2">
+                                <a href="{% url 'despesa_editar' desp.id %}" class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white p-1 rounded transition-all" title="Editar despesa">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                </a>
+                                <a href="{% url 'despesa_excluir' desp.id %}" class="bg-hex_dark_bg border border-hex_danger/30 hover:border-hex_danger text-hex_danger hover:text-white p-1 rounded transition-all" title="Excluir despesa">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                
+                <!-- Linha do Total Geral Filtrado -->
+                <tr class="bg-hex_dark_bg/60 font-bold border-t border-hex_gold/20">
+                    <td colspan="4" class="py-4 px-4 text-right uppercase tracking-wider text-hex_gold text-[10px]">Total Acumulado:</td>
+                    <td class="py-4 px-4 text-right font-mono text-sm text-hex_gold">R$ {{ total_filtrado }}</td>
+                    <td></td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="py-8 text-center text-hex_gold_dim/50 uppercase tracking-widest text-xs">
+                        Nenhuma despesa ou custo lançado para os filtros aplicados.
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Paginação -->
+{% if page_obj.has_other_pages %}
+<div class="p-4 border-t border-hex_dark_border flex items-center justify-between">
+    <div class="text-xxs text-hex_gold_dim/50 uppercase tracking-wider">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+    </div>
+    
+    <div class="flex items-center space-x-1">
+        {% if page_obj.has_previous %}
+            <button 
+                hx-get="?page={{ page_obj.previous_page_number }}&busca={{ busca }}&tipo={{ tipo_selecionado }}&categoria={{ categoria_selecionada }}"
+                hx-target="#tabela-despesas"
+                class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white px-2 py-1 rounded text-xxs uppercase tracking-wider transition-all"
+            >
+                Anterior
+            </button>
+        {% endif %}
+        
+        {% if page_obj.has_next %}
+            <button 
+                hx-get="?page={{ page_obj.next_page_number }}&busca={{ busca }}&tipo={{ tipo_selecionado }}&categoria={{ categoria_selecionada }}"
+                hx-target="#tabela-despesas"
+                class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white px-2 py-1 rounded text-xxs uppercase tracking-wider transition-all"
+            >
+                Próxima
+            </button>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<script>
+    lucide.createIcons();
+</script>

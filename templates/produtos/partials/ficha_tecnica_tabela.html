@@ -1,0 +1,54 @@
+<div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+        <thead>
+            <tr class="border-b border-hex_dark_border bg-hex_dark_bg/30 text-hex_gold uppercase tracking-wider text-xxs font-semibold">
+                <th class="p-3">Ingrediente</th>
+                <th class="p-3 text-right">Qtd</th>
+                <th class="p-3 text-right">Custo Unit.</th>
+                <th class="p-3 text-right">Custo Parcial</th>
+                <th class="p-3 text-center">Remover</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-hex_dark_border text-xs text-hex_gold_light/90">
+            {% for item in produto.ficha_tecnica.all %}
+                <tr class="hover:bg-hex_dark_bg/20 transition-colors">
+                    <td class="p-3 font-medium">{{ item.ingrediente.nome }}</td>
+                    <td class="p-3 text-right font-mono font-semibold">{{ item.quantidade }} {{ item.ingrediente.unidade_medida }}</td>
+                    <td class="p-3 text-right font-mono text-hex_gold_dim/60">R$ {{ item.ingrediente.custo_unitario|floatformat:4 }}</td>
+                    <td class="p-3 text-right font-mono text-hex_gold font-semibold">R$ {{ item.custo_item|floatformat:2 }}</td>
+                    <td class="p-3 text-center">
+                        <button 
+                            hx-post="{% url 'ficha_tecnica_remover_ingrediente' produto.id item.id %}" 
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                            hx-target="#tabela-ficha-tecnica"
+                            class="text-hex_danger hover:text-white p-1 rounded hover:bg-hex_dark_bg transition-all"
+                            title="Remover Ingrediente"
+                        >
+                            <i data-lucide="x-circle" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5" class="p-6 text-center text-hex_gold_dim/50 italic">
+                        Nenhum ingrediente adicionado à receita ainda.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="border-t border-hex_gold/30 bg-hex_dark_bg/40 font-bold text-sm text-hex_gold">
+                <td colspan="3" class="p-4 uppercase tracking-wider text-xs">Custo Total de Produção:</td>
+                <td class="p-4 text-right font-mono text-lg text-white">R$ {{ produto.custo_total|floatformat:2 }}</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<!-- Dispara um evento global para que o outro lado da tela (Preços e Margens) também atualize o custo de produção de forma reativa -->
+<script>
+    // Quando a tabela é recarregada, recarregamos as margens de preço
+    // simulando uma atualização do painel de preços via HTMX
+    htmx.trigger('#tabela-precos-canais', 'recalcular-margem');
+</script>

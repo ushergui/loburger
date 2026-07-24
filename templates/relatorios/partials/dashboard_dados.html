@@ -1,0 +1,283 @@
+<!-- Banner de Identificação do Período & Ações -->
+<div class="bg-hex_dark_card border border-hex_dark_border p-4 rounded shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded bg-hex_dark_bg border border-hex_gold/30 flex items-center justify-center text-hex_gold shrink-0">
+            <i data-lucide="calendar" class="w-5 h-5"></i>
+        </div>
+        <div>
+            <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/60 font-mono">Relatório Gerencial do Período:</span>
+            <h2 class="text-lg font-bold title-hex text-hex_gold flex items-center space-x-2">
+                <span>{{ label_periodo }}</span>
+                {% if periodo == 'mes_atual' %}
+                    <span class="text-[10px] uppercase font-mono tracking-widest text-hex_blue bg-hex_blue/10 border border-hex_blue/30 px-2 py-0.5 rounded">Mês Vigente</span>
+                {% endif %}
+            </h2>
+        </div>
+    </div>
+
+    <!-- Navegador de Meses Rápido & Exportar CSV -->
+    <div class="flex flex-wrap items-center gap-2">
+        <button 
+            hx-get="{% url 'dashboard' %}?mes={{ mes_anterior_val }}" 
+            hx-target="#dashboard-dados"
+            class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white px-3 py-1.5 rounded text-xs uppercase tracking-wider font-semibold font-mono flex items-center space-x-1 transition-all"
+            title="Navegar para Mês Anterior"
+        >
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            <span>Mês Anterior</span>
+        </button>
+        
+        <button 
+            hx-get="{% url 'dashboard' %}?mes={{ mes_proximo_val }}" 
+            hx-target="#dashboard-dados"
+            class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white px-3 py-1.5 rounded text-xs uppercase tracking-wider font-semibold font-mono flex items-center space-x-1 transition-all"
+            title="Navegar para Próximo Mês"
+        >
+            <span>Próximo Mês</span>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+
+        <a 
+            href="{% url 'exportar_csv' %}?mes={{ mes_selecionado }}&periodo={{ periodo }}" 
+            class="bg-hex_gold/15 hover:bg-hex_gold border border-hex_gold text-hex_gold_light hover:text-hex_dark_bg px-4 py-1.5 rounded text-xs uppercase tracking-wider font-bold font-mono flex items-center space-x-2 transition-all shadow-hex-gold"
+            title="Baixar planilha CSV com os lançamentos deste mês"
+        >
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Exportar CSV</span>
+        </a>
+    </div>
+</div>
+
+<!-- Scorecard KPIs (Scoreboard) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+    
+    <!-- Faturamento Bruto -->
+    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md relative overflow-hidden group hover:border-hex_gold/45 transition-colors">
+        <div class="absolute -right-2 -bottom-2 opacity-10 text-hex_gold group-hover:scale-110 transition-transform">
+            <i data-lucide="banknote" class="w-20 h-20"></i>
+        </div>
+        <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/60 block">Faturamento Bruto</span>
+        <h2 class="text-2xl font-bold font-mono text-hex_gold_light mt-1.5">R$ {{ faturamento|floatformat:2 }}</h2>
+        <p class="text-[10px] text-hex_blue mt-1">Total cobrado de clientes</p>
+    </div>
+
+    <!-- Pedidos Concluídos -->
+    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md relative overflow-hidden group hover:border-hex_blue/45 transition-colors">
+        <div class="absolute -right-2 -bottom-2 opacity-10 text-hex_blue group-hover:scale-110 transition-transform">
+            <i data-lucide="clipboard-check" class="w-20 h-20"></i>
+        </div>
+        <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/60 block">Pedidos Finalizados</span>
+        <h2 class="text-2xl font-bold font-mono text-white mt-1.5">{{ num_pedidos }}</h2>
+        <p class="text-[10px] text-hex_gold_dim/50 mt-1">Volume de vendas (Concluídos)</p>
+    </div>
+
+    <!-- Ticket Médio -->
+    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md relative overflow-hidden group hover:border-hex_gold/45 transition-colors">
+        <div class="absolute -right-2 -bottom-2 opacity-10 text-hex_gold group-hover:scale-110 transition-transform">
+            <i data-lucide="arrow-up-right" class="w-20 h-20"></i>
+        </div>
+        <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/60 block">Ticket Médio</span>
+        <h2 class="text-2xl font-bold font-mono text-hex_gold mt-1.5">R$ {{ ticket|floatformat:2 }}</h2>
+        <p class="text-[10px] text-hex_gold_dim/50 mt-1">Média gasta por pedido</p>
+    </div>
+
+    <!-- Custos e Taxas -->
+    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md relative overflow-hidden group hover:border-hex_danger/45 transition-colors">
+        <div class="absolute -right-2 -bottom-2 opacity-10 text-hex_danger group-hover:scale-110 transition-transform">
+            <i data-lucide="percent" class="w-20 h-20"></i>
+        </div>
+        <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/60 block">Custos (Operacionais + Fixos)</span>
+        <h2 class="text-2xl font-bold font-mono text-hex_gold_light mt-1.5">R$ {{ custo_total_kpi|floatformat:2 }}</h2>
+        <p class="text-[10px] text-hex_danger/80 mt-1">Taxas: R$ {{ taxas|floatformat:2 }} | Insumos: R$ {{ custo|floatformat:2 }} | Despesas: R$ {{ despesas_total|floatformat:2 }}</p>
+    </div>
+
+    <!-- Lucro Líquido Real (Scoreboard Destaque) -->
+    <div class="bg-hex_dark_card border border-hex_success/45 p-5 rounded shadow-hex-blue relative overflow-hidden group hover:shadow-lg transition-all">
+        <div class="absolute -right-2 -bottom-2 opacity-10 text-hex_success group-hover:scale-110 transition-transform">
+            <i data-lucide="gem" class="w-20 h-20"></i>
+        </div>
+        <span class="text-xxs uppercase tracking-wider text-hex_blue block font-semibold">Lucro Líquido Real</span>
+        <h2 class="text-2xl font-bold font-mono {% if lucro >= 0 %}text-hex_success{% else %}text-hex_danger{% endif %} mt-1.5">
+            R$ {{ lucro|floatformat:2 }}
+        </h2>
+        <p class="text-[10px] text-hex_gold_light/70 mt-1">Lucro limpo após taxas, insumos e despesas</p>
+    </div>
+</div>
+
+<!-- Gráficos Principais (Chart.js) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- Gráfico 1: Histórico de Faturamento e Lucro (Linha) -->
+    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md lg:col-span-2">
+        <h3 class="text-xs uppercase tracking-widest text-hex_gold font-bold mb-4 flex items-center space-x-1.5">
+            <i data-lucide="trending-up" class="w-4 h-4 text-hex_gold"></i>
+            <span>Histórico de Faturamento e Lucro Diário</span>
+        </h3>
+        <div class="h-64 relative">
+            <canvas id="chartFaturamento"></canvas>
+        </div>
+    </div>
+
+    <!-- Gráfico 2: Vendas por Canal (Rosca) -->
+    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md">
+        <h3 class="text-xs uppercase tracking-widest text-hex_blue font-bold mb-4 flex items-center space-x-1.5">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-hex_blue"></i>
+            <span>Participação por Canal de Venda</span>
+        </h3>
+        <div class="h-64 relative flex items-center justify-center">
+            <canvas id="chartCanais"></canvas>
+        </div>
+    </div>
+
+    <!-- Gráfico 3: Ranking dos Campeões (Barras) -->
+    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md">
+        <h3 class="text-xs uppercase tracking-widest text-hex_gold font-bold mb-4 flex items-center space-x-1.5">
+            <i data-lucide="award" class="w-4 h-4 text-hex_gold"></i>
+            <span>Ranking dos Campeões (Top Vendas)</span>
+        </h3>
+        <div class="h-64 relative">
+            <canvas id="chartProdutos"></canvas>
+        </div>
+    </div>
+
+    <!-- Margens de Lucro por Lanche ("Engenharia de Cardápio") -->
+    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md lg:col-span-2">
+        <h3 class="text-xs uppercase tracking-widest text-hex_blue font-bold mb-4 flex items-center space-x-1.5">
+            <i data-lucide="line-chart" class="w-4 h-4 text-hex_blue"></i>
+            <span>Margem de Lucro Bruta dos Produtos</span>
+        </h3>
+        <div class="overflow-x-auto text-xs font-mono">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-hex_dark_border text-hex_gold uppercase tracking-wider text-[10px] font-semibold">
+                        <th class="pb-3">Lanche (Campeão)</th>
+                        <th class="pb-3 text-right">Preço Médio</th>
+                        <th class="pb-3 text-right">Custo Insumo</th>
+                        <th class="pb-3 text-right">Margem (R$)</th>
+                        <th class="pb-3 text-right">Margem (%)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-hex_dark_border text-hex_gold_light/90">
+                    {% for item in produtos_margem %}
+                        <tr class="hover:bg-hex_dark_bg/30 transition-colors">
+                            <td class="py-2.5 font-sans font-medium text-white">{{ item.nome }}</td>
+                            <td class="py-2.5 text-right">R$ {{ item.preco_medio|floatformat:2 }}</td>
+                            <td class="py-2.5 text-right text-hex_gold_dim/70">R$ {{ item.custo|floatformat:2 }}</td>
+                            <td class="py-2.5 text-right font-bold text-hex_gold">R$ {{ item.lucro_bruto|floatformat:2 }}</td>
+                            <td class="py-2.5 text-right font-bold {% if item.margem_pct >= 40 %}text-hex_success{% elif item.margem_pct >= 20 %}text-hex_warning{% else %}text-hex_danger{% endif %}">
+                                {{ item.margem_pct }}%
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Script de Inicialização dos Gráficos com Chart.js -->
+<script>
+    (function() {
+        lucide.createIcons();
+
+        // 1. Gráfico de Faturamento Diário (Linha)
+        const ctxFat = document.getElementById('chartFaturamento').getContext('2d');
+        let existingChartFat = Chart.getChart("chartFaturamento");
+        if (existingChartFat) existingChartFat.destroy();
+
+        new Chart(ctxFat, {
+            type: 'line',
+            data: {
+                labels: {{ chart_dias_labels|safe }},
+                datasets: [
+                    {
+                        label: 'Faturamento Bruto (R$)',
+                        data: {{ chart_dias_valores|safe }},
+                        borderColor: '#C8AA6E',
+                        backgroundColor: 'rgba(200, 170, 110, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Lucro Líquido Real (R$)',
+                        data: {{ chart_dias_lucro|safe }},
+                        borderColor: '#0AC8B9',
+                        backgroundColor: 'rgba(10, 200, 185, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#F0E6D2', font: { family: 'Inter' } } }
+                },
+                scales: {
+                    x: { grid: { color: '#1E2835' }, ticks: { color: '#A0B0B9' } },
+                    y: { grid: { color: '#1E2835' }, ticks: { color: '#A0B0B9' } }
+                }
+            }
+        });
+
+        // 2. Gráfico de Canais (Rosca)
+        const ctxCan = document.getElementById('chartCanais').getContext('2d');
+        let existingChartCan = Chart.getChart("chartCanais");
+        if (existingChartCan) existingChartCan.destroy();
+
+        new Chart(ctxCan, {
+            type: 'doughnut',
+            data: {
+                labels: {{ chart_canais_labels|safe }},
+                datasets: [{
+                    data: {{ chart_canais_valores|safe }},
+                    backgroundColor: ['#C8AA6E', '#EA1D2C', '#FF8C00', '#0AC8B9', '#005A82'],
+                    borderColor: '#010A13',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        position: 'bottom',
+                        labels: { color: '#F0E6D2', font: { family: 'Inter' } } 
+                    }
+                }
+            }
+        });
+
+        // 3. Gráfico de Ranking de Lanches (Barras)
+        const ctxProd = document.getElementById('chartProdutos').getContext('2d');
+        let existingChartProd = Chart.getChart("chartProdutos");
+        if (existingChartProd) existingChartProd.destroy();
+
+        new Chart(ctxProd, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_produtos_labels|safe }},
+                datasets: [{
+                    label: 'Unidades Vendidas',
+                    data: {{ chart_produtos_valores|safe }},
+                    backgroundColor: 'rgba(10, 200, 185, 0.65)',
+                    borderColor: '#0AC8B9',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(30, 40, 53, 0.3)' }, ticks: { color: '#A0B0B9', font: { size: 10 } } },
+                    y: { grid: { color: '#1E2835' }, ticks: { color: '#A0B0B9' } }
+                }
+            }
+        });
+
+    })();
+</script>

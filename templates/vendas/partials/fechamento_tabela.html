@@ -1,0 +1,139 @@
+<style>
+    input.no-spinners::-webkit-outer-spin-button,
+    input.no-spinners::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input.no-spinners[type=number] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+    }
+</style>
+
+<div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse text-sm">
+        <thead>
+            <!-- Linha 1 do Cabeçalho: Grupos por Plataforma -->
+            <tr class="border-b border-hex_dark_border text-hex_gold uppercase tracking-wider text-xs font-bold bg-hex_dark_bg/80">
+                <th class="py-3 px-4 w-64" rowspan="2">Item do Cardápio</th>
+                
+                <!-- UaiRango -->
+                <th class="py-2.5 px-2 text-center border-l border-r border-hex_dark_border bg-amber-950/20 text-amber-400 font-bold" colspan="4">
+                    UaiRango Delivery (8% a 11,5%)
+                </th>
+
+                <!-- iFood -->
+                <th class="py-2.5 px-2 text-center border-r border-hex_dark_border bg-red-950/20 text-red-400 font-bold" colspan="3">
+                    iFood Delivery (12% a 15,2%)
+                </th>
+
+                <!-- Aplicativo online -->
+                <th class="py-2.5 px-2 text-center bg-teal-950/20 text-hex_blue font-bold" colspan="2">
+                    Aplicativo Online Próprio (0% a 3,2%)
+                </th>
+            </tr>
+            
+            <!-- Linha 2 do Cabeçalho: Modalidades de Pagamento por Plataforma -->
+            <tr class="border-b border-hex_dark_border text-hex_gold uppercase tracking-wider text-[11px] font-mono font-bold bg-hex_dark_bg/60">
+                <!-- UaiRango Modalidades -->
+                <th class="py-2 px-1 text-center border-l border-hex_dark_border" title="Online no App (11.5%)">Online (11,5%)</th>
+                <th class="py-2 px-1 text-center" title="Pix Maquininha (8.0%)">Pix Ent. (8%)</th>
+                <th class="py-2 px-1 text-center" title="Dinheiro na Entrega (8.0%)">Dinh. (8%)</th>
+                <th class="py-2 px-1 text-center border-r border-hex_dark_border" title="Cartão na Entrega (11.2%)">Cartão (11,2%)</th>
+
+                <!-- iFood Modalidades -->
+                <th class="py-2 px-1 text-center" title="Online / Cartão iFood (15.2%)">Online (15,2%)</th>
+                <th class="py-2 px-1 text-center" title="Pix Maquininha (12.0%)">Pix Ent. (12%)</th>
+                <th class="py-2 px-1 text-center border-r border-hex_dark_border" title="Dinheiro na Entrega (12.0%)">Dinh. (12%)</th>
+
+                <!-- App Próprio Modalidades -->
+                <th class="py-2 px-1 text-center" title="Pix ou Dinheiro (0.0%)">Pix/Dinh (0%)</th>
+                <th class="py-2 px-1 text-center" title="Cartão Maquininha (3.2%)">Cartão (3,2%)</th>
+            </tr>
+        </thead>
+        
+        <tbody class="divide-y divide-hex_dark_border text-hex_gold_light/90">
+            {% if produtos %}
+                {% for prod in produtos %}
+                    <tr class="hover:bg-hex_blue/15 border-l-2 border-l-transparent hover:border-l-hex_gold transition-all duration-200 group">
+                        <!-- Nome e Categoria -->
+                        <td class="py-3 px-4 font-sans align-middle text-left">
+                            <div class="flex items-center space-x-3">
+                                {% if prod.foto %}
+                                    <img src="{{ prod.foto.url }}" alt="{{ prod.nome }}" class="w-9 h-9 rounded object-cover object-top border border-hex_gold/30 group-hover:scale-105 group-hover:border-hex_gold transition-all">
+                                {% else %}
+                                    <div class="w-9 h-9 rounded bg-hex_dark_bg border border-hex_gold/20 flex items-center justify-center text-hex_gold shrink-0 group-hover:border-hex_gold group-hover:bg-hex_dark_bg/80 transition-all">
+                                        {% if prod.categoria == 'BURGER' %}
+                                            <i data-lucide="sandwich" class="w-5 h-5"></i>
+                                        {% elif prod.categoria == 'BEBIDA' %}
+                                            <i data-lucide="cup-soda" class="w-5 h-5"></i>
+                                        {% elif prod.categoria == 'COMBO' %}
+                                            <i data-lucide="package" class="w-5 h-5"></i>
+                                        {% else %}
+                                            <i data-lucide="utensils" class="w-5 h-5"></i>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <span class="font-bold text-white block text-sm group-hover:text-hex_gold transition-colors">{{ prod.nome }}</span>
+                                    <span class="text-[11px] uppercase tracking-wider text-hex_gold_dim/70 font-semibold block group-hover:text-hex_blue transition-colors">{{ prod.get_categoria_display }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        {% for canal in canais %}
+                            <!-- Loop de Canais -->
+                            {% if 'UaiRango' in canal.nome %}
+                                <!-- Inputs UaiRango (Online, Pix, Dinheiro, Cartão) -->
+                                <td class="py-2.5 px-1.5 border-l border-hex_dark_border text-center align-middle">
+                                    <input type="number" min="0" name="qtd_{{ prod.id }}_{{ canal.id }}_ONLINE" class="w-full max-w-[70px] min-h-[40px] mx-auto block bg-hex_dark_bg/90 border border-hex_gold/35 rounded-md py-1.5 px-2 text-center text-base font-extrabold text-white focus:outline-none focus:border-hex_blue focus:bg-hex_blue/25 focus:text-white font-mono no-spinners transition-all group-hover:border-hex_gold/60 shadow-inner" placeholder="0" value="{% with k=prod.id|stringformat:'s' %}{% for pid, d in vendas_gravadas.items %}{% if pid == prod.id %}{% for ch, val in d.items %}{% if ch == canal.id|stringformat:'s'|add:'_ONLINE' %}{{ val }}{% endif %}{% endfor %}{% endif %}{% endfor %}{% endwith %}">
+                                </td>
+                                <td class="py-2.5 px-1.5 text-center align-middle">
+                                    <input type="number" min="0" name="qtd_{{ prod.id }}_{{ canal.id }}_PIX_ENTREGA" class="w-full max-w-[70px] min-h-[40px] mx-auto block bg-hex_dark_bg/90 border border-hex_gold/35 rounded-md py-1.5 px-2 text-center text-base font-extrabold text-white focus:outline-none focus:border-hex_blue focus:bg-hex_blue/25 focus:text-white font-mono no-spinners transition-all group-hover:border-hex_gold/60 shadow-inner" placeholder="0" value="{% for pid, d in vendas_gravadas.items %}{% if pid == prod.id %}{% for ch, val in d.items %}{% if ch == canal.id|stringformat:'s'|add:'_PIX_ENTREGA' %}{{ val }}{% endif %}{% endfor %}{% endif %}{% endfor %}">
+                                </td>
+                                <td class="py-2.5 px-1.5 text-center align-middle">
+                                    <input type="number" min="0" name="qtd_{{ prod.id }}_{{ canal.id }}_DINHEIRO_ENTREGA" class="w-full max-w-[70px] min-h-[40px] mx-auto block bg-hex_dark_bg/90 border border-hex_gold/35 rounded-md py-1.5 px-2 text-center text-base font-extrabold text-white focus:outline-none focus:border-hex_blue focus:bg-hex_blue/25 focus:text-white font-mono no-spinners transition-all group-hover:border-hex_gold/60 shadow-inner" placeholder="0" value="{% for pid, d in vendas_gravadas.items %}{% if pid == prod.id %}{% for ch, val in d.items %}{% if ch == canal.id|stringformat:'s'|add:'_DINHEIRO_ENTREGA' %}{{ val }}{% endif %}{% endfor %}{% endif %}{% endfor %}">
+                                </td>
+                                <td class="py-2.5 px-1.5 border-r border-hex_dark_border text-center align-middle">
+                                    <input type="number" min="0" name="qtd_{{ prod.id }}_{{ canal.id }}_CARTAO_ENTREGA" class="w-full max-w-[70px] min-h-[40px] mx-auto block bg-hex_dark_bg/90 border border-hex_gold/35 rounded-md py-1.5 px-2 text-center text-base font-extrabold text-white focus:outline-none focus:border-hex_blue focus:bg-hex_blue/25 focus:text-white font-mono no-spinners transition-all group-hover:border-hex_gold/60 shadow-inner" placeholder="0" value="{% for pid, d in vendas_gravadas.items %}{% if pid == prod.id %}{% for ch, val in d.items %}{% if ch == canal.id|stringformat:'s'|add:'_CARTAO_ENTREGA' %}{{ val }}{% endif %}{% endfor %}{% endif %}{% endfor %}">
+                                </td>
+
+                            {% elif 'iFood' in canal.nome %}
+                                <!-- Inputs iFood (Online, Pix, Dinheiro) -->
+                                <td class="py-2.5 px-1.5 text-center align-middle">
+                                    <input type="number" min="0" name="qtd_{{ prod.id }}_{{ canal.id }}_ONLINE" class="w-full max-w-[70px] min-h-[40px] mx-auto block bg-hex_dark_bg/90 border border-hex_gold/35 rounded-md py-1.5 px-2 text-center text-base font-extrabold text-white focus:outline-none focus:border-hex_blue focus:bg-hex_blue/25 focus:text-white font-mono no-spinners transition-all group-hover:border-hex_gold/60 shadow-inner" placeholder="0" value="{% for pid, d in vendas_gravadas.items %}{% if pid == prod.id %}{% for ch, val in d.items %}{% if ch == canal.id|stringformat:'s'|add:'_ONLINE' %}{{ val }}{% endif %}{% endfor %}{% endif %}{% endfor %}">
+                                </td>
+                                <td class="py-2.5 px-1.5 text-center align-middle">
+                                    <input type="number" min="0" name="qtd_{{ prod.id }}_{{ canal.id }}_PIX_ENTREGA" class="w-full max-w-[70px] min-h-[40px] mx-auto block bg-hex_dark_bg/90 border border-hex_gold/35 rounded-md py-1.5 px-2 text-center text-base font-extrabold text-white focus:outline-none focus:border-hex_blue focus:bg-hex_blue/25 focus:text-white font-mono no-spinners transition-all group-hover:border-hex_gold/60 shadow-inner" placeholder="0" value="{% for pid, d in vendas_gravadas.items %}{% if pid == prod.id %}{% for ch, val in d.items %}{% if ch == canal.id|stringformat:'s'|add:'_PIX_ENTREGA' %}{{ val }}{% endif %}{% endfor %}{% endif %}{% endfor %}">
+                                </td>
+                                <td class="py-2.5 px-1.5 border-r border-hex_dark_border text-center align-middle">
+                                    <input type="number" min="0" name="qtd_{{ prod.id }}_{{ canal.id }}_DINHEIRO_ENTREGA" class="w-full max-w-[70px] min-h-[40px] mx-auto block bg-hex_dark_bg/90 border border-hex_gold/35 rounded-md py-1.5 px-2 text-center text-base font-extrabold text-white focus:outline-none focus:border-hex_blue focus:bg-hex_blue/25 focus:text-white font-mono no-spinners transition-all group-hover:border-hex_gold/60 shadow-inner" placeholder="0" value="{% for pid, d in vendas_gravadas.items %}{% if pid == prod.id %}{% for ch, val in d.items %}{% if ch == canal.id|stringformat:'s'|add:'_DINHEIRO_ENTREGA' %}{{ val }}{% endif %}{% endfor %}{% endif %}{% endfor %}">
+                                </td>
+
+                            {% else %}
+                                <!-- Inputs Aplicativo online (Pix/Dinheiro, Cartão) -->
+                                <td class="py-2.5 px-1.5 text-center align-middle">
+                                    <input type="number" min="0" name="qtd_{{ prod.id }}_{{ canal.id }}_PIX_ENTREGA" class="w-full max-w-[70px] min-h-[40px] mx-auto block bg-hex_dark_bg/90 border border-hex_gold/35 rounded-md py-1.5 px-2 text-center text-base font-extrabold text-white focus:outline-none focus:border-hex_blue focus:bg-hex_blue/25 focus:text-white font-mono no-spinners transition-all group-hover:border-hex_gold/60 shadow-inner" placeholder="0" value="{% for pid, d in vendas_gravadas.items %}{% if pid == prod.id %}{% for ch, val in d.items %}{% if ch == canal.id|stringformat:'s'|add:'_PIX_ENTREGA' %}{{ val }}{% endif %}{% endfor %}{% endif %}{% endfor %}">
+                                </td>
+                                <td class="py-2.5 px-1.5 text-center align-middle">
+                                    <input type="number" min="0" name="qtd_{{ prod.id }}_{{ canal.id }}_CARTAO_ENTREGA" class="w-full max-w-[70px] min-h-[40px] mx-auto block bg-hex_dark_bg/90 border border-hex_gold/35 rounded-md py-1.5 px-2 text-center text-base font-extrabold text-white focus:outline-none focus:border-hex_blue focus:bg-hex_blue/25 focus:text-white font-mono no-spinners transition-all group-hover:border-hex_gold/60 shadow-inner" placeholder="0" value="{% for pid, d in vendas_gravadas.items %}{% if pid == prod.id %}{% for ch, val in d.items %}{% if ch == canal.id|stringformat:'s'|add:'_CARTAO_ENTREGA' %}{{ val }}{% endif %}{% endfor %}{% endif %}{% endfor %}">
+                                </td>
+                            {% endif %}
+                        {% endfor %}
+
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="10" class="py-8 text-center text-hex_gold_dim/50 uppercase tracking-widest text-xs">
+                        Nenhum item do cardápio encontrado para a pesquisa.
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>

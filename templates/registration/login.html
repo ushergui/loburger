@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOL BURGUER - Login Hextech</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        hex_dark_bg: '#0A1428',
+                        hex_dark_card: '#0A1E2C',
+                        hex_gold: '#C89B3C',
+                        hex_gold_light: '#F0E6D2',
+                        hex_blue: '#0AC8B9',
+                        hex_danger: '#C62828'
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'Marcellus', 'serif'],
+                        inter: ['Inter', 'Rubik', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'hex-gold': '0 0 20px rgba(200, 155, 60, 0.3)',
+                        'hex-blue': '0 0 20px rgba(10, 200, 185, 0.3)'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Marcellus&display=swap" rel="stylesheet">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0A1428;
+            background-image: radial-gradient(circle at center, #0A1E2C 0%, #0A1428 100%);
+            color: #F0E6D2;
+        }
+        .title-hex {
+            font-family: 'Marcellus', serif;
+            letter-spacing: 0.15em;
+        }
+        /* Chamfered corners effect */
+        .hex-card {
+            border: 1px solid rgba(200, 155, 60, 0.4);
+            clip-path: polygon(10px 0%, calc(100% - 10px) 0%, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0% calc(100% - 10px), 0% 10px);
+        }
+    </style>
+</head>
+<body class="h-full flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-hex_dark_card p-8 rounded shadow-hex-gold hex-card relative">
+        <!-- Top decorative gem -->
+        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rotate-45 border border-hex_gold flex items-center justify-center bg-hex_dark_card shadow-hex-gold">
+            <div class="w-2 h-2 bg-hex_blue rotate-45"></div>
+        </div>
+
+        <div class="text-center mb-8 pt-2 flex flex-col items-center">
+            <!-- Imagem Logo Hextech -->
+            <img src="/media/produtos/logo.png" alt="LOL BURGUER Logo" class="w-32 h-28 object-contain mb-3 filter drop-shadow-[0_0_12px_rgba(200,155,60,0.55)]">
+            <h1 class="text-3xl font-bold title-hex text-hex_gold mb-2">LOL BURGUER</h1>
+            <p class="text-xs uppercase tracking-widest text-hex_blue">Portal de Gestão & Operações</p>
+            <div class="h-0.5 w-full bg-gradient-to-r from-transparent via-hex_gold/50 to-transparent mt-4"></div>
+        </div>
+
+        {% if form.errors %}
+            <div class="mb-6 p-4 bg-hex_danger/20 border border-hex_danger/50 text-hex_gold_light text-sm rounded flex items-center space-x-2">
+                <i data-lucide="alert-circle" class="w-5 h-5 text-hex_danger shrink-0"></i>
+                <span>Usuário ou senha incorretos. Por favor, tente novamente.</span>
+            </div>
+        {% endif %}
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div>
+                <label for="username" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">Nome de Usuário</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold/60">
+                        <i data-lucide="user" class="w-4 h-4"></i>
+                    </span>
+                    <input 
+                        type="text" 
+                        name="username" 
+                        id="username" 
+                        required 
+                        class="w-full bg-hex_dark_bg/60 border border-hex_gold/30 rounded py-2.5 pl-10 pr-4 text-hex_gold_light placeholder-hex_gold_light/30 focus:outline-none focus:border-hex_blue focus:ring-1 focus:ring-hex_blue transition-all"
+                        placeholder="Invocador..."
+                    >
+                </div>
+            </div>
+
+            <div>
+                <label for="password" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">Senha de Acesso</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold/60">
+                        <i data-lucide="lock" class="w-4 h-4"></i>
+                    </span>
+                    <input 
+                        type="password" 
+                        name="password" 
+                        id="password" 
+                        required 
+                        class="w-full bg-hex_dark_bg/60 border border-hex_gold/30 rounded py-2.5 pl-10 pr-4 text-hex_gold_light placeholder-hex_gold_light/30 focus:outline-none focus:border-hex_blue focus:ring-1 focus:ring-hex_blue transition-all"
+                        placeholder="••••••••"
+                    >
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button 
+                    type="submit" 
+                    class="w-full bg-gradient-to-r from-hex_gold to-hex_gold/80 hover:from-hex_blue hover:to-hex_blue_dark text-hex_dark_bg hover:text-white font-bold py-3 px-4 rounded transition-all uppercase tracking-wider text-sm shadow-md hover:shadow-hex-blue border border-hex_gold/40 hover:border-hex_blue/50"
+                >
+                    Entrar no Sistema
+                </button>
+            </div>
+        </form>
+        
+        <div class="mt-8 text-center text-xs text-hex_gold_light/40 border-t border-hex_gold/10 pt-4">
+            <p>LOL BURGUER • Sistema Interno de Uso Restrito</p>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<style>
+    /* Esconde setinhas nativas (spinners) do input type="number" no Chrome, Safari, Edge, Opera */
+    input.no-spinners::-webkit-outer-spin-button,
+    input.no-spinners::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    /* Firefox */
+    input.no-spinners[type=number] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+    }
+</style>
+
+<div 
+    id="tabela-precos-canais" 
+    hx-get="{% url 'produto_precos_parcial' produto.id %}" 
+    hx-trigger="recalcular-margem from:body"
+    class="space-y-4"
+>
+    {% for item in precos_canais_ricos %}
+        {% with p_obj=item.preco_obj %}
+        <div class="bg-hex_dark_bg/40 border {% if p_obj and p_obj.lucro_liquido < 0 %}border-hex_danger/45 bg-red-950/10{% else %}border-hex_dark_border{% endif %} p-4 rounded flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            
+            <!-- Canal e Regras -->
+            <div class="flex-1">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: {% if item.canal.nome == 'iFood Delivery' %}#EA1D2C{% elif 'UaiRango' in item.canal.nome %}#FF8C00{% else %}#C89B3C{% endif %};"></span>
+                    <h3 class="font-bold text-hex_gold_light text-sm">{{ item.canal.nome }}</h3>
+                </div>
+                <p class="text-xxs text-hex_gold_dim/60 mt-1 uppercase tracking-wider">
+                    Repasse: {{ item.canal.dias_repasse }} dias • Taxa: {{ item.canal.taxa_comissao|stringformat:".2f" }}% + R$ {{ item.canal.taxa_fixa }}
+                </p>
+            </div>
+            
+            <!-- Form de ajuste rápido do preço -->
+            <form 
+                hx-post="{% url 'ficha_tecnica_montar' produto.id %}" 
+                hx-target="#tabela-precos-canais"
+                hx-swap="outerHTML"
+                class="flex items-center space-x-2 w-full md:w-auto"
+            >
+                {% csrf_token %}
+                <input type="hidden" name="update_preco" value="1">
+                <input type="hidden" name="canal" value="{{ item.canal.id }}">
+                
+                <div class="relative w-32">
+                    <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-hex_gold_dim/50 text-xs">R$</span>
+                    <input 
+                        type="number" 
+                        name="preco" 
+                        step="0.01" 
+                        required 
+                        class="w-full bg-hex_dark_bg border border-hex_gold/20 rounded py-1.5 pl-7 pr-2.5 text-xs text-hex_gold_light focus:outline-none focus:border-hex_blue text-right font-mono no-spinners"
+                        placeholder="0,00"
+                        value="{% if p_obj %}{{ p_obj.preco }}{% endif %}"
+                    >
+                </div>
+                
+                <button type="submit" class="bg-hex_blue hover:bg-hex_blue_dark text-white p-1.5 rounded transition-all" title="Atualizar preço">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                </button>
+            </form>
+
+            <!-- Margens Calculadas -->
+            <div class="w-full md:w-48 grid grid-cols-2 gap-2 text-right border-t md:border-t-0 md:border-l border-hex_dark_border pt-2 md:pt-0 md:pl-4 text-xs font-mono">
+                {% if p_obj %}
+                    <div>
+                        <span class="text-xxs text-hex_gold_dim/60 block uppercase tracking-wider">Taxa Canal</span>
+                        <span class="text-hex_gold_light/70">- R$ {{ p_obj.taxa_valor }}</span>
+                    </div>
+                    <div>
+                        <span class="text-xxs text-hex_gold_dim/60 block uppercase tracking-wider">Lucro Líq.</span>
+                        <span class="font-bold {% if p_obj.lucro_liquido < 0 %}text-hex_danger{% else %}text-hex_success{% endif %}">
+                            R$ {{ p_obj.lucro_liquido }}
+                        </span>
+                    </div>
+                    <div class="col-span-2 mt-1">
+                        <span class="text-xxs text-hex_gold_dim/60 block uppercase tracking-wider">Margem Líquida</span>
+                        <span class="font-bold text-sm {% if p_obj.margem_lucro_pct >= 40 %}text-hex_success{% elif p_obj.margem_lucro_pct >= 20 %}text-hex_warning{% else %}text-hex_danger{% endif %}">
+                            {{ p_obj.margem_lucro_pct }}%
+                        </span>
+                    </div>
+                {% else %}
+                    <div class="col-span-2 text-center text-hex_danger/85 py-1 uppercase tracking-widest text-xxs font-semibold">
+                        Sem preço definido
+                    </div>
+                {% endif %}
+            </div>
+            
+        </div>
+        {% endwith %}
+    {% endfor %}
+</div>
+
+<script>
+    lucide.createIcons();
+</script>

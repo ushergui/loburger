@@ -1,0 +1,74 @@
+<div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+        <thead>
+            <tr class="border-b border-hex_dark_border bg-hex_dark_bg/50 text-hex_gold uppercase tracking-wider text-xs font-semibold">
+                <th class="p-4">Nome do Insumo</th>
+                <th class="p-4">Categoria</th>
+                <th class="p-4">Estoque Atual</th>
+                <th class="p-4">Estoque Mínimo</th>
+                <th class="p-4">Status de Estoque</th>
+                <th class="p-4">Custo Unitário</th>
+                <th class="p-4 text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-hex_dark_border text-sm text-hex_gold_light/90">
+            {% for ing in ingredientes %}
+                <tr class="hover:bg-hex_dark_bg/30 transition-colors">
+                    <td class="p-4 font-medium">{{ ing.nome }}</td>
+                    <td class="p-4 text-xs">
+                        <span class="bg-hex_dark_bg border border-hex_gold/20 px-2 py-0.5 rounded text-hex_gold_dim uppercase">
+                            {{ ing.get_categoria_display }}
+                        </span>
+                    </td>
+                    <td class="p-4 font-mono font-bold {% if ing.status_estoque == 'CRITICO' %}text-hex_danger{% elif ing.status_estoque == 'BAIXO' %}text-hex_warning{% else %}text-white{% endif %}">
+                        {{ ing.estoque_atual }} {{ ing.unidade_medida }}
+                    </td>
+                    <td class="p-4 font-mono text-hex_gold_dim/60">{{ ing.estoque_minimo }} {{ ing.unidade_medida }}</td>
+                    <td class="p-4">
+                        {% if ing.status_estoque == 'CRITICO' %}
+                            <a href="{% url 'estoque_ajustar' %}?ingrediente_id={{ ing.id }}" class="bg-red-950/40 border border-red-500/50 text-red-400 px-2.5 py-1 rounded text-xs font-semibold uppercase tracking-wider animate-pulse flex items-center w-fit space-x-1 hover:bg-red-900/60 transition-all hover:scale-105" title="Clique para Lançar Entrada">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                <span>Zerado / Crítico</span>
+                                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 ml-1"></i>
+                            </a>
+                        {% elif ing.status_estoque == 'BAIXO' %}
+                            <a href="{% url 'estoque_ajustar' %}?ingrediente_id={{ ing.id }}" class="bg-amber-950/40 border border-amber-500/50 text-amber-400 px-2.5 py-1 rounded text-xs font-semibold uppercase tracking-wider flex items-center w-fit space-x-1 hover:bg-amber-900/60 transition-all hover:scale-105" title="Clique para Lançar Entrada">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                <span>Abaixo do Mínimo</span>
+                                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 ml-1"></i>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'estoque_ajustar' %}?ingrediente_id={{ ing.id }}" class="bg-emerald-950/40 border border-emerald-500/50 text-emerald-400 px-2.5 py-1 rounded text-xs font-semibold uppercase tracking-wider flex items-center w-fit space-x-1 hover:bg-emerald-900/60 transition-all hover:scale-105" title="Clique para Lançar Ajuste/Entrada">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                <span>Adequado</span>
+                                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 ml-1"></i>
+                            </a>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 font-mono text-hex_gold_dim/70">
+                        R$ {{ ing.custo_unitario|floatformat:4 }} <span class="text-xs">/ {{ ing.unidade_medida }}</span>
+                    </td>
+                    <td class="p-4 flex items-center justify-center space-x-2">
+                        <a href="{% url 'ingrediente_editar' ing.id %}" class="text-hex_gold hover:text-white border border-hex_gold/30 hover:border-hex_gold rounded px-3 py-1 text-xs uppercase tracking-wider transition-all bg-hex_dark_bg/50" title="Editar cadastro e estoque inicial">
+                            Ajustar Cadastro
+                        </a>
+                        <a href="{% url 'estoque_ajustar' %}?ingrediente_id={{ ing.id }}" class="text-hex_blue hover:text-white border border-hex_blue/30 hover:border-hex_blue rounded p-1 hover:bg-hex_dark_bg transition-all" title="Lançar Entrada/Ajuste">
+                            <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                        </a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="p-8 text-center text-hex_gold_dim/50">
+                        <div class="flex flex-col items-center justify-center space-y-2">
+                            <i data-lucide="info" class="w-8 h-8 text-hex_gold_dim/30"></i>
+                            <p class="font-medium">Nenhum ingrediente com estoque cadastrado.</p>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+

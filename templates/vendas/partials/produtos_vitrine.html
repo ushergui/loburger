@@ -1,0 +1,40 @@
+<div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 pb-6">
+    {% for prod in produtos %}
+        <button 
+            hx-post="{% url 'pedido_criar' %}"
+            hx-vals='{"adicionar_item": "1", "produto_id": "{{ prod.id }}"}'
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+            hx-target="#carrinho-conteudo"
+            class="bg-hex_dark_card border border-hex_dark_border hover:border-hex_blue text-left rounded overflow-hidden p-3 flex flex-col justify-between transition-all duration-200 group focus:outline-none hover:shadow-hex-blue active:scale-95"
+        >
+            <div class="w-full">
+                <!-- Miniatura -->
+                <div class="w-full h-28 bg-hex_dark_bg rounded overflow-hidden mb-2.5 flex items-center justify-center relative">
+                    {% if prod.foto %}
+                        <img src="{{ prod.foto.url }}" alt="{{ prod.nome }}" class="w-full h-full object-cover object-top">
+                    {% else %}
+                        <i data-lucide="sandwich" class="w-8 h-8 text-hex_gold_dim/30"></i>
+                    {% endif %}
+                    <div class="absolute bottom-1 right-1 bg-hex_dark_card/80 border border-hex_gold/25 px-1 py-0.5 rounded text-[10px] text-hex_gold uppercase font-mono tracking-wider">
+                        {{ prod.get_categoria_display|slice:":3" }}
+                    </div>
+                </div>
+                <h3 class="font-bold text-xs text-hex_gold_light group-hover:text-hex_blue transition-colors line-clamp-1 leading-tight">{{ prod.nome }}</h3>
+                <p class="text-[10px] text-hex_gold_dim/55 mt-1 line-clamp-2 h-7 leading-normal">{{ prod.descricao|default:"Sem descrição." }}</p>
+            </div>
+            
+            <div class="mt-2.5 pt-2 border-t border-hex_dark_border/50 w-full flex items-center justify-between text-xxs font-mono">
+                <span class="text-hex_gold_dim/40 uppercase">Custo:</span>
+                <span class="font-bold text-hex_gold">R$ {{ prod.custo_total|floatformat:2 }}</span>
+            </div>
+        </button>
+    {% empty %}
+        <div class="col-span-full py-12 text-center text-hex_gold_dim/50 italic text-sm">
+            Nenhum produto cadastrado ou disponível.
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+    lucide.createIcons();
+</script>

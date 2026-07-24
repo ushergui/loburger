@@ -1,0 +1,11 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('exportar-csv/', views.exportar_csv, name='exportar_csv'),
+    path('despesas/', views.despesa_listar, name='despesa_listar'),
+    path('despesas/novo/', views.despesa_criar, name='despesa_criar'),
+    path('despesas/<int:id>/editar/', views.despesa_editar, name='despesa_editar'),
+    path('despesas/<int:id>/excluir/', views.despesa_excluir, name='despesa_excluir'),
+]

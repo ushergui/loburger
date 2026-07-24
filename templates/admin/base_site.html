@@ -1,0 +1,112 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | {{ site_title|default:'LOL BURGUER Admin' }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}" style="color: #C89B3C; font-family: 'Marcellus', 'Cinzel', serif; letter-spacing: 0.05em; display: flex; align-items: center;">
+        <span style="border: 1px solid #C89B3C; width: 14px; height: 14px; transform: rotate(45deg); display: inline-block; margin-right: 8px; background: #0A1E2C;"></span>
+        LOL BURGUER <span style="font-size: 0.6em; color: #0AC8B9; margin-left: 6px; text-transform: uppercase; font-family: sans-serif; tracking: 0.1em;">Admin Hextech</span>
+    </a>
+</h1>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Customização Hextech do Django Admin */
+    #header {
+        background: #0A1E2C !important;
+        border-bottom: 2px solid #C89B3C !important;
+        color: #F0E6D2 !important;
+    }
+    #header a:link, #header a:visited {
+        color: #CDBE91 !important;
+    }
+    #header a:hover {
+        color: #0AC8B9 !important;
+    }
+    div.breadcrumbs {
+        background: #0A1428 !important;
+        border-bottom: 1px solid #1E2E4A !important;
+        color: #CDBE91 !important;
+    }
+    div.breadcrumbs a {
+        color: #0AC8B9 !important;
+    }
+    .module h2, .module caption, .section h2 {
+        background: #0A1E2C !important;
+        color: #C89B3C !important;
+        border-bottom: 1px solid rgba(200, 155, 60, 0.3) !important;
+    }
+    .button, input[type=submit], input[type=button], .submit-row input, a.button {
+        background: #C89B3C !important;
+        border: 1px solid #CDBE91 !important;
+        color: #0A1428 !important;
+        font-weight: bold !important;
+        border-radius: 2px !important;
+    }
+    .button:hover, input[type=submit]:hover, input[type=button]:hover, .submit-row input:hover, a.button:hover {
+        background: #0AC8B9 !important;
+        color: white !important;
+        border-color: #0397AB !important;
+    }
+    .button.default, input[type=submit].default {
+        background: #0AC8B9 !important;
+        border: 1px solid #0397AB !important;
+        color: white !important;
+    }
+    .button.default:hover, input[type=submit].default:hover {
+        background: #0397AB !important;
+    }
+    #changelist-filter a:hover, #changelist-filter li.selected a {
+        color: #0AC8B9 !important;
+    }
+    #content-main {
+        background: #0A1428 !important;
+    }
+    #container {
+        background: #0A1428 !important;
+        color: #F0E6D2 !important;
+    }
+    #changelist-filter {
+        background: #0A1E2C !important;
+        border-left: 1px solid #1E2E4A !important;
+    }
+    #changelist-filter h2 {
+        background: #0A1E2C !important;
+        color: #C89B3C !important;
+        border-bottom: 1px solid #1E2E4A !important;
+    }
+    .module {
+        background: #0A1E2C !important;
+        border: 1px solid #1E2E4A !important;
+    }
+    /* Estilizando tabelas do admin */
+    #changelist table thead th {
+        background: #0A1E2C !important;
+        color: #C89B3C !important;
+        border-bottom: 1px solid #1E2E4A !important;
+    }
+    #changelist table tbody tr.row1 {
+        background: #0A1428 !important;
+    }
+    #changelist table tbody tr.row2 {
+        background: #0A1E2C !important;
+    }
+    #changelist table tbody tr:hover {
+        background: #1E2E4A !important;
+        color: white !important;
+    }
+    a:link, a:visited {
+        color: #0AC8B9 !important;
+    }
+    a:hover {
+        color: #0397AB !important;
+    }
+    .model-usuario td.field-username a {
+        color: #C89B3C !important;
+        font-weight: bold !important;
+    }
+</style>
+{% endblock %}

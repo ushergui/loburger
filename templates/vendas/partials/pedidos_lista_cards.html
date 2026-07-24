@@ -1,0 +1,44 @@
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    {% for pedido in page_obj %}
+        {% include "vendas/partials/pedido_card_item.html" with pedido=pedido %}
+    {% empty %}
+        <div class="col-span-full bg-hex_dark_card border border-hex_dark_border rounded p-12 text-center text-hex_gold_dim/50">
+            <div class="flex flex-col items-center justify-center space-y-2">
+                <i data-lucide="info" class="w-12 h-12 text-hex_gold_dim/30"></i>
+                <p class="font-medium text-lg">Nenhum pedido encontrado nesta fila.</p>
+                <p class="text-xs">Lance uma nova venda no caixa para vê-la aqui.</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Paginação HTMX -->
+{% if page_obj.has_other_pages %}
+<div class="mt-6 p-4 border border-hex_dark_border bg-hex_dark_card rounded flex items-center justify-between">
+    <span class="text-xs text-hex_gold_dim/60">
+        Mostrando página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+    </span>
+    
+    <div class="flex space-x-1">
+        {% if page_obj.has_previous %}
+            <button 
+                hx-get="{% url 'pedido_listar' %}?page={{ page_obj.previous_page_number }}&status={{ status_selecionado }}&busca={{ busca }}"
+                hx-target="#lista-pedidos"
+                class="px-3 py-1.5 rounded text-xs font-semibold bg-hex_dark_bg border border-hex_gold/20 text-hex_gold hover:border-hex_blue hover:text-hex_blue transition-all"
+            >
+                Anterior
+            </button>
+        {% endif %}
+        
+        {% if page_obj.has_next %}
+            <button 
+                hx-get="{% url 'pedido_listar' %}?page={{ page_obj.next_page_number }}&status={{ status_selecionado }}&busca={{ busca }}"
+                hx-target="#lista-pedidos"
+                class="px-3 py-1.5 rounded text-xs font-semibold bg-hex_dark_bg border border-hex_gold/20 text-hex_gold hover:border-hex_blue hover:text-hex_blue transition-all"
+            >
+                Próxima
+            </button>
+        {% endif %}
+    </div>
+</div>
+{% endif %}

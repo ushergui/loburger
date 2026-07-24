@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Cardápio de Campeões - LOL BURGUER{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
+    <div>
+        <h1 class="text-2xl font-bold title-hex text-hex_gold flex items-center space-x-2">
+            <i data-lucide="sandwich" class="w-6 h-6 text-hex_gold"></i>
+            <span>Cardápio (Campeões)</span>
+        </h1>
+        <p class="text-sm text-hex_gold_dim/70 mt-1">Gerencie os lanches, bebidas, combos e seus respectivos preços de venda por canal.</p>
+    </div>
+    
+    <a href="{% url 'produto_criar' %}" class="bg-gradient-to-r from-hex_gold to-hex_gold_dim hover:from-hex_blue hover:to-hex_blue_dark text-hex_dark_bg hover:text-white font-bold py-2.5 px-4 rounded transition-all uppercase tracking-wider text-xs flex items-center justify-center space-x-2 border border-hex_gold/40 shadow-hex-gold hover:shadow-hex-blue">
+        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+        <span>Adicionar Item</span>
+    </a>
+</div>
+
+<!-- Filtros de Busca -->
+<div class="bg-hex_dark_card border border-hex_dark_border p-4 rounded mb-6 flex flex-col md:flex-row gap-4">
+    <div class="flex-1">
+        <label for="busca" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-1.5">Buscar Lanche</label>
+        <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold/60">
+                <i data-lucide="search" class="w-4 h-4"></i>
+            </span>
+            <input 
+                type="text" 
+                name="busca" 
+                id="busca" 
+                class="w-full bg-hex_dark_bg/60 border border-hex_gold/30 rounded py-2 pl-10 pr-4 text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
+                placeholder="Pesquisar por nome ou descrição..."
+                hx-get="{% url 'produto_listar' %}"
+                hx-trigger="keyup changed delay:300ms, search"
+                hx-target="#produtos-grid"
+                hx-include="[name='categoria']"
+                value="{{ busca }}"
+            >
+        </div>
+    </div>
+    
+    <div class="w-full md:w-64">
+        <label for="categoria" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-1.5">Categoria</label>
+        <select 
+            name="categoria" 
+            id="categoria" 
+            class="w-full bg-hex_dark_bg/60 border border-hex_gold/30 rounded py-2 px-3 text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
+            hx-get="{% url 'produto_listar' %}"
+            hx-target="#produtos-grid"
+            hx-include="[name='busca']"
+        >
+            <option value="">Todas as Categorias</option>
+            {% for cat_val, cat_lbl in categorias %}
+                <option value="{{ cat_val }}" {% if cat_val == categoria_selecionada %}selected{% endif %}>{{ cat_lbl }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+<!-- Grid de Produtos com ID para HTMX -->
+<div id="produtos-grid">
+    {% include "produtos/partials/produtos_grid.html" %}
+</div>
+{% endblock %}

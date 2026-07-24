@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Painel de Pedidos - LOL BURGUER{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
+    <div>
+        <h1 class="text-2xl font-bold title-hex text-hex_gold flex items-center space-x-2">
+            <i data-lucide="clipboard-list" class="w-6 h-6 text-hex_gold"></i>
+            <span>Painel de Pedidos e Vendas</span>
+        </h1>
+        <p class="text-sm text-hex_gold_dim/70 mt-1">Gerencie a fila de produção da cozinha e o histórico de vendas do caixa.</p>
+    </div>
+    
+    <a href="{% url 'pedido_criar' %}" class="bg-gradient-to-r from-hex_gold to-hex_gold_dim hover:from-hex_blue hover:to-hex_blue_dark text-hex_dark_bg hover:text-white font-bold py-2.5 px-4 rounded transition-all uppercase tracking-wider text-xs flex items-center justify-center space-x-2 border border-hex_gold/40 shadow-hex-gold hover:shadow-hex-blue">
+        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+        <span>Lançar Venda</span>
+    </a>
+</div>
+
+<!-- Filtros Rápidos / Status Abas -->
+<div class="bg-hex_dark_card border border-hex_dark_border p-3.5 rounded mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+    
+    <!-- Abas de Status com Alpine.js/HTMX -->
+    <div class="flex flex-wrap gap-1.5 w-full md:w-auto">
+        <button 
+            hx-get="{% url 'pedido_listar' %}" 
+            hx-target="#lista-pedidos"
+            hx-include="[name='busca']"
+            class="px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all border {% if not status_selecionado %}bg-hex_dark_bg border-hex_gold text-hex_gold{% else %}bg-transparent border-transparent text-hex_gold_dim/80 hover:text-white{% endif %}"
+        >
+            Todos
+        </button>
+        {% for st_val, st_lbl in status_choices %}
+            <button 
+                hx-get="{% url 'pedido_listar' %}?status={{ st_val }}" 
+                hx-target="#lista-pedidos"
+                hx-include="[name='busca']"
+                class="px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all border {% if status_selecionado == st_val %}bg-hex_dark_bg border-hex_gold text-hex_gold{% else %}bg-transparent border-transparent text-hex_gold_dim/80 hover:text-white{% endif %}"
+            >
+                {{ st_lbl }}
+            </button>
+        {% endfor %}
+    </div>
+
+    <!-- Campo de Busca por ID ou Cliente -->
+    <div class="relative w-full md:w-64">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold/60">
+            <i data-lucide="search" class="w-4 h-4"></i>
+        </span>
+        <input 
+            type="text" 
+            name="busca" 
+            id="busca" 
+            class="w-full bg-hex_dark_bg/60 border border-hex_gold/30 rounded py-1.5 pl-9 pr-3 text-xs text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
+            placeholder="Buscar ID ou Invocador..."
+            hx-get="{% url 'pedido_listar' %}"
+            hx-trigger="keyup changed delay:300ms, search"
+            hx-target="#lista-pedidos"
+            hx-include="{% if status_selecionado %}?status={{ status_selecionado }}{% endif %}"
+            value="{{ busca }}"
+        >
+    </div>
+</div>
+
+<!-- Grid de Pedidos com ID para Atualização HTMX -->
+<div id="lista-pedidos" class="flex-1">
+    {% include "vendas/partials/pedidos_lista_cards.html" %}
+</div>
+{% endblock %}

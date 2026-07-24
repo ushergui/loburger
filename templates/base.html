@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LOL BURGUER - Gestão Hextech{% endblock %}</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/media/favicon.ico">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        hex_dark_bg: '#010A13',
+                        hex_dark_card: '#09141D',
+                        hex_dark_border: '#1E2835',
+                        hex_gold: '#C8AA6E',
+                        hex_gold_light: '#F0E6D2',
+                        hex_gold_dim: '#A0B0B9',
+                        hex_blue: '#0AC8B9',
+                        hex_blue_dark: '#005A82',
+                        hex_danger: '#E84057',
+                        hex_success: '#00BBA3',
+                        hex_warning: '#E9A400'
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'Marcellus', 'serif'],
+                        inter: ['Inter', 'Rubik', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'hex-gold': '0 0 15px rgba(200, 170, 110, 0.25)',
+                        'hex-blue': '0 0 15px rgba(10, 200, 185, 0.25)',
+                        'hex-glow': '0 0 10px var(--tw-shadow-color)'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Marcellus & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Marcellus&display=swap" rel="stylesheet">
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', 'Rubik', sans-serif;
+            background-color: #010A13;
+            background-image: radial-gradient(ellipse at 50% 0%, #0B1D2C 0%, #04101A 45%, #010A13 100%);
+            color: #F0E6D2;
+        }
+        .title-hex {
+            font-family: 'Marcellus', 'Cinzel', serif;
+            letter-spacing: 0.1em;
+        }
+        /* Custom scrollbar matching Hextech / LoL Client theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #010A13;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #C8AA6E;
+            border-radius: 4px;
+            border: 2px solid #010A13;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #F0E6D2;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="h-full flex flex-col overflow-hidden" x-data="{ mobileSidebarOpen: false }">
+
+    <!-- Top navigation bar (Estilo LoL Client TopBar) -->
+    <header class="bg-hex_dark_bg/95 border-b border-hex_gold/30 px-4 py-3 flex items-center justify-between z-20 shadow-lg backdrop-blur-sm">
+        <div class="flex items-center space-x-3">
+            <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="text-hex_gold hover:text-white lg:hidden focus:outline-none">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+            <div class="flex items-center space-x-3">
+                <!-- Imagem Logo Hextech -->
+                <img src="/media/produtos/logo.png" alt="LOL BURGUER Logo" class="w-9 h-9 object-contain filter drop-shadow-[0_0_8px_rgba(200,170,110,0.5)]">
+                <span class="text-xl font-bold title-hex text-hex_gold tracking-wider">LOL BURGUER</span>
+                <span class="hidden md:inline-block text-xs font-mono uppercase tracking-widest text-hex_blue border border-hex_blue/40 bg-hex_blue/10 px-2 py-0.5 rounded">
+                    Gestão Delivery
+                </span>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            {% if user.is_authenticated %}
+                <div class="text-right hidden sm:block">
+                    <p class="text-sm font-bold text-hex_gold_light">{{ user.get_full_name|default:user.username }}</p>
+                    <p class="text-xs text-hex_blue uppercase tracking-wider font-semibold">{{ user.get_role_display }}</p>
+                </div>
+                <!-- Moldura de Invocador estilo LoL Client -->
+                <div class="w-10 h-10 border-2 border-hex_gold rounded flex items-center justify-center bg-hex_dark_card shadow-[0_0_10px_rgba(200,170,110,0.3)]">
+                    <span class="text-hex_gold font-bold title-hex text-sm">{{ user.username|slice:":2"|upper }}</span>
+                </div>
+                <a href="{% url 'logout' %}" class="text-hex_gold_dim hover:text-hex_gold p-1.5 rounded hover:bg-hex_dark_card transition-all" title="Sair do Sistema">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                </a>
+            {% else %}
+                <span class="text-xs uppercase text-hex_gold_dim font-mono">Sem autenticação</span>
+            {% endif %}
+        </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden min-h-0">
+        
+        <!-- Sidebar Navigation (Estilo Painel Lateral LoL Client) -->
+        {% if user.is_authenticated %}
+        <aside 
+            :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+            class="fixed inset-y-0 left-0 pt-16 lg:pt-0 lg:static w-64 bg-hex_dark_card/95 border-r border-hex_dark_border flex flex-col justify-between transition-transform duration-300 ease-in-out z-10 lg:z-0 backdrop-blur-sm"
+        >
+            <div class="flex-1 overflow-y-auto px-3 py-6 space-y-7">
+                
+                <!-- Sessão Principal -->
+                <div>
+                    <h3 class="text-[11px] uppercase text-hex_gold/60 font-bold tracking-widest mb-3 px-3 title-hex flex items-center space-x-1.5">
+                        <span class="text-hex_gold text-xs">◆</span>
+                        <span>Operação</span>
+                    </h3>
+                    <nav class="space-y-1">
+                        <a href="{% url 'pedido_criar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'pedido_criar' %}bg-[#0B1D2C] text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="shopping-cart" class="w-4 h-4 text-hex_gold"></i>
+                            <span>Novo Pedido</span>
+                        </a>
+                        <a href="{% url 'pedido_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'pedido_listar' %}bg-[#0B1D2C] text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="clipboard-list" class="w-4 h-4 text-hex_gold"></i>
+                            <span>Painel de Pedidos</span>
+                        </a>
+                        <a href="{% url 'fechamento_diario' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'fechamento_diario' %}bg-[#0B1D2C] text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="calendar-check" class="w-4 h-4 text-hex_gold"></i>
+                            <span>Fechamento Diário</span>
+                        </a>
+                        <a href="{% url 'estoque_resumo' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'estoque_resumo' %}bg-[#0B1D2C] text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="package" class="w-4 h-4 text-hex_gold"></i>
+                            <span>Estoque Atual</span>
+                        </a>
+                        <a href="{% url 'estoque_ajustar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'estoque_ajustar' %}bg-[#0B1D2C] text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="arrow-up-right" class="w-4 h-4 text-hex_gold"></i>
+                            <span>Lançar Entrada/Ajuste</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- Sessão Administrativa (Apenas Gestão) -->
+                {% if user.role == 'GESTAO' %}
+                <div>
+                    <h3 class="text-[11px] uppercase text-hex_blue font-bold tracking-widest mb-3 px-3 title-hex flex items-center space-x-1.5">
+                        <span class="text-hex_blue text-xs">◆</span>
+                        <span>Gestão Hextech</span>
+                    </h3>
+                    <nav class="space-y-1">
+                        <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'dashboard' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="layout-dashboard" class="w-4 h-4 text-hex_blue"></i>
+                            <span>Dashboard KPIs</span>
+                        </a>
+                        <a href="{% url 'despesa_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'despesa_listar' or 'despesa_criar' in request.resolver_match.url_name or 'despesa_editar' in request.resolver_match.url_name %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="wallet" class="w-4 h-4 text-hex_blue"></i>
+                            <span>Custos & Despesas</span>
+                        </a>
+                        <a href="{% url 'ingrediente_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'ingrediente_listar' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="chef-hat" class="w-4 h-4 text-hex_blue"></i>
+                            <span>Ingredientes / Insumos</span>
+                        </a>
+                        <a href="{% url 'produto_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'produto_listar' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="sandwich" class="w-4 h-4 text-hex_blue"></i>
+                            <span>Cardápio (Campeões)</span>
+                        </a>
+                        <a href="{% url 'estoque_historico' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'estoque_historico' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="history" class="w-4 h-4 text-hex_blue"></i>
+                            <span>Movimentações Estoque</span>
+                        </a>
+                        <a href="{% url 'canal_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'canal_listar' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="sliders" class="w-4 h-4 text-hex_blue"></i>
+                            <span>Canais de Venda</span>
+                        </a>
+                    </nav>
+                </div>
+                {% endif %}
+
+                <!-- Ajuda e Suporte -->
+                <div>
+                    <h3 class="text-[11px] uppercase text-hex_gold/60 font-bold tracking-widest mb-3 px-3 title-hex flex items-center space-x-1.5">
+                        <span class="text-hex_gold text-xs">◆</span>
+                        <span>Suporte</span>
+                    </h3>
+                    <nav class="space-y-1">
+                        <a href="{% url 'tutorial' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'tutorial' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="book-open-check" class="w-4 h-4 text-hex_blue"></i>
+                            <span>Manual / Tutorial</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Rodapé da sidebar -->
+            <div class="p-3.5 border-t border-hex_dark_border bg-hex_dark_bg/50 text-[11px] font-mono text-hex_gold_dim/60">
+                <p class="flex items-center space-x-1.5">
+                    <span class="w-2 h-2 rounded-full bg-hex_success animate-pulse inline-block"></span>
+                    <span>Status: <strong class="text-hex_success font-semibold">ONLINE</strong></span>
+                </p>
+                <p class="mt-0.5">LOL BURGUER ERP v1.0</p>
+            </div>
+        </aside>
+        
+        <!-- Background Overlay for Mobile Sidebar -->
+        <div 
+            x-show="mobileSidebarOpen" 
+            @click="mobileSidebarOpen = false" 
+            class="fixed inset-0 bg-black/60 z-0 lg:hidden"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+        ></div>
+        {% endif %}
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col overflow-y-auto min-h-0 p-4 md:p-6 lg:p-8 relative">
+            
+            <!-- Linha decorativa dourada Hextech superior -->
+            <div class="h-0.5 bg-gradient-to-r from-transparent via-hex_gold to-transparent mb-6 opacity-60"></div>
+            
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
+
+    <!-- Notification Toast System using Alpine.js -->
+    <div 
+        x-data="{ 
+            toasts: [], 
+            addToast(message, type = 'success') {
+                const id = Date.now();
+                this.toasts.push({ id, message, type });
+                setTimeout(() => { this.removeToast(id) }, 4000);
+            },
+            removeToast(id) {
+                this.toasts = this.toasts.filter(t => t.id !== id);
+            }
+        }"
+        @toast.window="addToast($event.detail.message, $event.detail.type)"
+        class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 max-w-sm w-full pointer-events-none"
+    >
+        <template x-for="toast in toasts" :key="toast.id">
+            <div 
+                x-transition:enter="transition ease-out duration-300 transform translate-y-2 opacity-0"
+                x-transition:enter-end="transform translate-y-0 opacity-100"
+                x-transition:leave="transition ease-in duration-200 transform translate-y-2 opacity-0"
+                class="pointer-events-auto p-4 rounded shadow-lg flex items-center justify-between border space-x-3"
+                :class="{
+                    'bg-hex_dark_card border-hex_success text-hex_gold_light': toast.type === 'success',
+                    'bg-hex_dark_card border-hex_danger text-hex_gold_light': toast.type === 'error',
+                    'bg-hex_dark_card border-hex_warning text-hex_gold_light': toast.type === 'warning' || toast.type === 'alert'
+                }"
+            >
+                <div class="flex items-center space-x-2">
+                    <!-- Icon based on type -->
+                    <template x-if="toast.type === 'success'">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-hex_success"></i>
+                    </template>
+                    <template x-if="toast.type === 'error'">
+                        <i data-lucide="x-circle" class="w-5 h-5 text-hex_danger"></i>
+                    </template>
+                    <template x-if="toast.type === 'warning' || toast.type === 'alert'">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 text-hex_warning"></i>
+                    </template>
+                    <span class="text-sm font-medium" x-text="toast.message"></span>
+                </div>
+                <button @click="removeToast(toast.id)" class="text-hex_gold_dim hover:text-white focus:outline-none">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </template>
+    </div>
+
+    <!-- Django Messages integration with Toast System -->
+    {% if messages %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            {% for message in messages %}
+                let type = 'success';
+                {% if 'error' in message.tags or 'danger' in message.tags %}
+                    type = 'error';
+                {% elif 'warning' in message.tags or 'alert' in message.tags %}
+                    type = 'warning';
+                {% endif %}
+                window.dispatchEvent(new CustomEvent('toast', { 
+                    detail: { message: "{{ message|escapejs }}", type: type } 
+                }));
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
+
+    <!-- Global Lucide Icon Initialization -->
+    <script>
+        lucide.createIcons();
+        
+        // Listen to HTMX swaps to re-initialize lucide icons
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

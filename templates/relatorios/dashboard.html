@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Executivo - LOL BURGUER{% endblock %}
+
+{% block extra_head %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0 gap-4">
+    <div>
+        <h1 class="text-2xl font-bold title-hex text-hex_gold flex items-center space-x-2">
+            <i data-lucide="layout-dashboard" class="w-6 h-6 text-hex_gold"></i>
+            <span>Painel Gerencial / Relatório Mensal</span>
+        </h1>
+        <p class="text-sm text-hex_gold_dim/70 mt-1">
+            Análise consolidada de faturamento bruto, custos fixos e variáveis, e lucro líquido real do mês.
+        </p>
+    </div>
+    
+    <!-- Filtros de Período e Navegação de Meses Reativos via HTMX -->
+    <div class="flex flex-wrap items-center gap-2 bg-hex_dark_card border border-hex_dark_border p-2 rounded shadow-md">
+        
+        <!-- Navegador Mês a Mês (◄ Anterior | Mês Atual | Próximo ►) -->
+        <div class="flex items-center bg-hex_dark_bg border border-hex_gold/30 rounded overflow-hidden">
+            <button 
+                hx-get="{% url 'dashboard' %}?mes={{ mes_anterior_val }}" 
+                hx-target="#dashboard-dados"
+                class="px-2.5 py-1.5 text-xs text-hex_gold hover:text-white hover:bg-hex_gold/20 transition-all border-r border-hex_gold/20 flex items-center space-x-1"
+                title="Ir para Mês Anterior"
+            >
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                <span class="hidden sm:inline font-mono">Anterior</span>
+            </button>
+            
+            <button 
+                hx-get="{% url 'dashboard' %}?periodo=mes_atual" 
+                hx-target="#dashboard-dados"
+                class="px-3 py-1.5 text-xs font-bold text-hex_gold_light hover:text-hex_gold uppercase tracking-wider transition-all flex items-center space-x-1 bg-hex_gold/10"
+                title="Ver Mês Atual"
+            >
+                <i data-lucide="calendar" class="w-3.5 h-3.5 text-hex_gold"></i>
+                <span>Mês Vigente</span>
+            </button>
+
+            <button 
+                hx-get="{% url 'dashboard' %}?mes={{ mes_proximo_val }}" 
+                hx-target="#dashboard-dados"
+                class="px-2.5 py-1.5 text-xs text-hex_gold hover:text-white hover:bg-hex_gold/20 transition-all border-l border-hex_gold/20 flex items-center space-x-1"
+                title="Ir para Próximo Mês"
+            >
+                <span class="hidden sm:inline font-mono">Próximo</span>
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Seletor Rápido de Mês (Dropdown) -->
+        <div class="relative">
+            <select 
+                name="mes" 
+                hx-get="{% url 'dashboard' %}" 
+                hx-target="#dashboard-dados"
+                class="bg-hex_dark_bg border border-hex_gold/30 rounded py-1.5 px-3 text-xs text-hex_gold font-bold focus:outline-none focus:border-hex_blue transition-all cursor-pointer"
+            >
+                {% for op in opcoes_meses %}
+                    <option value="{{ op.value }}" {% if op.value == mes_selecionado %}selected{% endif %}>
+                        {{ op.label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Períodos Rápidos Complementares -->
+        <div class="flex items-center space-x-1 border-l border-hex_dark_border pl-2">
+            <button 
+                hx-get="{% url 'dashboard' %}?periodo=hoje" 
+                hx-target="#dashboard-dados"
+                class="px-2 py-1.5 rounded text-xs font-semibold text-hex_gold_dim hover:text-hex_gold hover:bg-hex_dark_bg transition-all"
+                title="Visualizar apenas hoje"
+            >
+                Hoje
+            </button>
+            <button 
+                hx-get="{% url 'dashboard' %}?periodo=30" 
+                hx-target="#dashboard-dados"
+                class="px-2 py-1.5 rounded text-xs font-semibold text-hex_gold_dim hover:text-hex_gold hover:bg-hex_dark_bg transition-all"
+                title="Últimos 30 dias"
+            >
+                30d
+            </button>
+            <button 
+                hx-get="{% url 'dashboard' %}?periodo=todos" 
+                hx-target="#dashboard-dados"
+                class="px-2 py-1.5 rounded text-xs font-semibold text-hex_gold_dim hover:text-hex_gold hover:bg-hex_dark_bg transition-all"
+                title="Todos os tempos"
+            >
+                Tudo
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Container Principal com ID para Atualização HTMX -->
+<div id="dashboard-dados" class="space-y-6">
+    {% include "relatorios/partials/dashboard_dados.html" %}
+</div>
+{% endblock %}

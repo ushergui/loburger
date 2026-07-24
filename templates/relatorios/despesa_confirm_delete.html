@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Despesa - LOL BURGUER{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center space-x-2">
+    <a href="{% url 'despesa_listar' %}" class="text-hex_gold hover:text-white transition-colors" title="Voltar para a listagem">
+        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+    </a>
+    <div>
+        <h1 class="text-2xl font-bold title-hex text-hex_danger">Confirmar Exclusão de Despesa</h1>
+        <p class="text-xs uppercase tracking-wider text-hex_blue">Módulo Financeiro / Exclusão de Lançamento</p>
+    </div>
+</div>
+
+<div class="max-w-md bg-hex_dark_card border border-hex_danger/40 p-6 rounded shadow-md">
+    <div class="flex items-start space-x-3 text-hex_danger mb-4">
+        <i data-lucide="alert-triangle" class="w-6 h-6 shrink-0 mt-0.5"></i>
+        <div>
+            <h2 class="text-base font-bold uppercase tracking-wider">Atenção! Esta ação é irreversível.</h2>
+            <p class="text-xs text-hex_gold_dim/70 mt-1">Você está prestes a excluir permanentemente o seguinte lançamento do fluxo de caixa:</p>
+        </div>
+    </div>
+    
+    <div class="bg-hex_dark_bg/60 border border-hex_dark_border p-4 rounded mb-6 font-mono text-xs text-hex_gold_light">
+        <div class="flex justify-between mb-1.5">
+            <span class="text-hex_gold_dim/60 uppercase">Descrição:</span>
+            <span class="font-bold text-white">{{ despesa.descricao }}</span>
+        </div>
+        <div class="flex justify-between mb-1.5">
+            <span class="text-hex_gold_dim/60 uppercase">Categoria:</span>
+            <span>{{ despesa.get_categoria_display }}</span>
+        </div>
+        <div class="flex justify-between mb-1.5">
+            <span class="text-hex_gold_dim/60 uppercase">Vencimento/Pagamento:</span>
+            <span>{{ despesa.data_pagamento|date:"d/m/Y" }}</span>
+        </div>
+        <div class="flex justify-between border-t border-hex_dark_border pt-1.5 mt-1.5 font-bold">
+            <span class="text-hex_gold_dim/60 uppercase">Valor:</span>
+            <span class="text-hex_gold text-sm">R$ {{ despesa.valor }}</span>
+        </div>
+    </div>
+
+    <form method="POST" class="flex items-center justify-end space-x-3">
+        {% csrf_token %}
+        <a href="{% url 'despesa_listar' %}" class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white font-semibold py-2 px-4 rounded transition-all uppercase tracking-wider text-[10px]">
+            Cancelar
+        </a>
+        <button type="submit" class="bg-hex_danger hover:bg-red-700 text-white font-bold py-2 px-5 rounded transition-all uppercase tracking-wider text-[10px] border border-hex_danger/30">
+            Confirmar Exclusão
+        </button>
+    </form>
+</div>
+{% endblock %}

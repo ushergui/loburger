@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Auditoria de Movimentação - LOL BURGUER{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold title-hex text-hex_gold flex items-center space-x-2">
+        <i data-lucide="history" class="w-6 h-6 text-hex_gold"></i>
+        <span>Histórico de Movimentações (Auditoria)</span>
+    </h1>
+    <p class="text-sm text-hex_gold_dim/70 mt-1">Monitore todas as entradas e saídas físicas de insumos com detalhamento e justificativas.</p>
+</div>
+
+<!-- Filtros de Busca -->
+<div class="bg-hex_dark_card border border-hex_dark_border p-4 rounded mb-6 flex flex-col md:flex-row gap-4">
+    <div class="flex-1">
+        <label for="busca" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-1.5">Buscar Movimentação</label>
+        <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold/60">
+                <i data-lucide="search" class="w-4 h-4"></i>
+            </span>
+            <input 
+                type="text" 
+                name="busca" 
+                id="busca" 
+                class="w-full bg-hex_dark_bg/60 border border-hex_gold/30 rounded py-2 pl-10 pr-4 text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
+                placeholder="Pesquisar por ingrediente, observação..."
+                hx-get="{% url 'estoque_historico' %}"
+                hx-trigger="keyup changed delay:300ms, search"
+                hx-target="#tabela-historico"
+                hx-include="[name='tipo']"
+                value="{{ busca }}"
+            >
+        </div>
+    </div>
+    
+    <div class="w-full md:w-64">
+        <label for="tipo" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-1.5">Tipo de Movimentação</label>
+        <select 
+            name="tipo" 
+            id="tipo" 
+            class="w-full bg-hex_dark_bg/60 border border-hex_gold/30 rounded py-2 px-3 text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
+            hx-get="{% url 'estoque_historico' %}"
+            hx-target="#tabela-historico"
+            hx-include="[name='busca']"
+        >
+            <option value="">Todos os Tipos</option>
+            {% for tipo_val, tipo_lbl in tipos %}
+                <option value="{{ tipo_val }}" {% if tipo_val == tipo_selecionado %}selected{% endif %}>{{ tipo_lbl }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+<!-- Tabela de Auditoria -->
+<div id="tabela-historico" class="bg-hex_dark_card border border-hex_dark_border rounded shadow-md overflow-hidden">
+    {% include "estoque/partials/historico_tabela.html" %}
+</div>
+{% endblock %}

@@ -1,0 +1,142 @@
+<div 
+    id="pedido-card-{{ pedido.id }}" 
+    class="bg-hex_dark_card border rounded overflow-hidden flex flex-col justify-between transition-all duration-300 relative
+    {% if pedido.status == 'RECEBIDO' %}border-hex_gold_dim/35 shadow-md hover:shadow-hex-gold
+    {% elif pedido.status == 'PREPARO' %}border-hex_blue/40 shadow-md hover:shadow-hex-blue
+    {% elif pedido.status == 'CONCLUIDO' %}border-hex_success/30 opacity-90
+    {% else %}border-hex_danger/20 opacity-50 bg-hex_dark_bg/30{% endif %}"
+    x-data="{ confirmandoCancelamento: false }"
+>
+    <!-- Cabeçalho do Card -->
+    <div class="p-4 pb-3 border-b border-hex_dark_border bg-hex_dark_bg/20">
+        <div class="flex items-center justify-between">
+            <span class="font-mono font-bold text-sm text-hex_gold_light">Pedido #{{ pedido.id }}</span>
+            <!-- Badge do Canal -->
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider text-white"
+                  style="background-color: {% if pedido.canal.nome == 'iFood Delivery' %}#EA1D2C{% elif 'UaiRango' in pedido.canal.nome %}#FF8C00{% else %}#C89B3C{% endif %};">
+                {{ pedido.canal.nome }}
+            </span>
+        </div>
+        
+        <div class="flex justify-between items-center mt-2.5">
+            <span class="text-xs font-semibold text-white truncate max-w-[150px]" title="{{ pedido.cliente_nome }}">
+                <i data-lucide="user" class="w-3.5 h-3.5 inline mr-1 text-hex_blue"></i>
+                {{ pedido.cliente_nome|default:"Cliente Avulso" }}
+            </span>
+            <span class="text-[10px] text-hex_gold_dim/60 font-mono">
+                {{ pedido.data_criacao|date:"d/m H:i" }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Lista de Itens do Pedido -->
+    <div class="p-4 flex-1 space-y-2 bg-hex_dark_bg/10 min-h-[90px]">
+        {% for item in pedido.itens.all %}
+            <div class="flex items-start justify-between text-xs">
+                <div class="min-w-0 flex-1">
+                    <p class="font-medium text-hex_gold_light text-xs">
+                        <span class="font-mono text-hex_blue font-bold mr-1.5">{{ item.quantidade }}x</span>
+                        {{ item.produto.nome }}
+                    </p>
+                </div>
+                <span class="font-mono text-hex_gold_dim/70 ml-2">R$ {{ item.valor_total }}</span>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Seção Financeira (Respeitando Permissões) -->
+    <div class="p-4 pt-2 border-t border-hex_dark_border/60 bg-hex_dark_bg/30 font-mono text-xs">
+        <div class="flex justify-between items-center text-hex_gold_light">
+            <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/50">Valor Bruto:</span>
+            <span class="font-bold">R$ {{ pedido.valor_bruto }}</span>
+        </div>
+        
+        {% if user.role == 'GESTAO' %}
+            <div class="flex justify-between items-center text-[10px] text-hex_gold_dim/70 mt-1">
+                <span>Taxas Canal:</span>
+                <span>- R$ {{ pedido.taxas_canal }}</span>
+            </div>
+            <div class="flex justify-between items-center text-[10px] text-hex_gold_dim/70 mt-0.5">
+                <span>Custo Insumos:</span>
+                <span>- R$ {{ pedido.custo_ingredientes }}</span>
+            </div>
+            <div class="h-px bg-hex_dark_border/40 my-2"></div>
+            <div class="flex justify-between items-center">
+                <span class="text-xxs uppercase tracking-wider text-hex_blue font-bold">Lucro Líquido:</span>
+                <span class="font-bold {% if pedido.lucro_liquido < 0 %}text-hex_danger{% else %}text-hex_success{% endif %}">
+                    R$ {{ pedido.lucro_liquido }}
+                </span>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Rodapé de Ações de Transição de Status -->
+    <div class="p-3 border-t border-hex_dark_border bg-hex_dark_bg/40">
+        
+        <!-- Estado Normal -->
+        <div x-show="!confirmandoCancelamento" class="flex items-center justify-between gap-2">
+            {% if pedido.status == 'RECEBIDO' %}
+                <form hx-post="{% url 'pedido_atualizar_status' pedido.id %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#pedido-card-{{ pedido.id }}" hx-swap="outerHTML" class="flex-1">
+                    <input type="hidden" name="status" value="PREPARO">
+                    <button type="submit" class="w-full bg-hex_blue hover:bg-hex_blue_dark text-white font-bold py-1.5 px-2 rounded text-xxs uppercase tracking-wider transition-all flex items-center justify-center space-x-1">
+                        <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                        <span>Iniciar Preparo</span>
+                    </button>
+                </form>
+            {% elif pedido.status == 'PREPARO' %}
+                <form hx-post="{% url 'pedido_atualizar_status' pedido.id %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#pedido-card-{{ pedido.id }}" hx-swap="outerHTML" class="flex-1">
+                    <input type="hidden" name="status" value="CONCLUIDO">
+                    <button type="submit" class="w-full bg-hex_success hover:bg-emerald-600 text-white font-bold py-1.5 px-2 rounded text-xxs uppercase tracking-wider transition-all flex items-center justify-center space-x-1 animate-pulse">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                        <span>Pronto / Servir</span>
+                    </button>
+                </form>
+            {% else %}
+                <!-- Concluído ou Cancelado -->
+                <span class="text-xxs uppercase tracking-widest text-hex_gold_dim/55 font-bold flex items-center space-x-1 py-1">
+                    <i data-lucide="info" class="w-3.5 h-3.5"></i>
+                    <span>Status: {{ pedido.get_status_display }}</span>
+                </span>
+            {% endif %}
+            
+            {% if pedido.status != 'CANCELADO' and pedido.status != 'CONCLUIDO' %}
+                <button 
+                    @click="confirmandoCancelamento = true" 
+                    type="button" 
+                    class="text-hex_danger hover:text-white p-1 rounded hover:bg-hex_dark_bg border border-hex_dark_border hover:border-hex_danger/40 transition-all"
+                    title="Cancelar Pedido"
+                >
+                    <i data-lucide="slash" class="w-4 h-4"></i>
+                </button>
+            {% endif %}
+        </div>
+        
+        <!-- Confirmação local de Cancelamento (Alpine.js) -->
+        <div x-show="confirmandoCancelamento" class="text-center py-0.5" x-cloak>
+            <p class="text-[10px] text-hex_danger font-bold uppercase tracking-wider mb-2">Cancelar este pedido?</p>
+            <div class="flex justify-center space-x-2">
+                <button 
+                    @click="confirmandoCancelamento = false" 
+                    type="button" 
+                    class="px-2.5 py-1 rounded text-[10px] font-semibold text-hex_gold hover:text-white uppercase tracking-wider"
+                >
+                    Não
+                </button>
+                <form hx-post="{% url 'pedido_atualizar_status' pedido.id %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#pedido-card-{{ pedido.id }}" hx-swap="outerHTML">
+                    <input type="hidden" name="status" value="CANCELADO">
+                    <button 
+                        type="submit" 
+                        class="bg-hex_danger hover:bg-red-700 text-white font-bold py-1 px-2.5 rounded text-[10px] uppercase tracking-wider transition-all"
+                    >
+                        Sim, Cancelar
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>

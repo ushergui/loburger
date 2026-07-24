@@ -1,0 +1,21 @@
+<div class="border border-hex_gold/30 bg-hex_dark_card rounded shadow-hex-blue max-h-60 overflow-y-auto divide-y divide-hex_dark_border/50">
+    {% for ing in ingredientes %}
+        <button 
+            type="button"
+            class="w-full text-left px-4 py-2.5 hover:bg-hex_dark_bg text-xs text-hex_gold_light hover:text-hex_blue transition-colors flex justify-between items-center"
+            @click="
+                ingrediente_id = '{{ ing.id }}';
+                busca_texto = '{{ ing.nome }} ({{ ing.unidade_medida }})';
+                unidade_compra = '{{ ing.unidade_compra }}';
+                dropdown_open = false;
+            "
+        >
+            <span class="font-semibold">{{ ing.nome }}</span>
+            <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/60 font-mono">({{ ing.get_unidade_medida_display }})</span>
+        </button>
+    {% empty %}
+        <div class="p-4 text-center text-xs text-hex_gold_dim/40 italic">
+            Nenhum insumo encontrado com este nome.
+        </div>
+    {% endfor %}
+</div>

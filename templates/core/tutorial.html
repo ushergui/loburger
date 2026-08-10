@@ -3,7 +3,7 @@
 {% block title %}Tutorial & Manual de Operações - LOL BURGUER{% endblock %}
 
 {% block content %}
-<div x-data="{ search: '' }" class="space-y-6">
+<div x-data="{ search: '' }" class="space-y-8 pb-10">
 
     <!-- Cabeçalho Principal com Busca Interativa -->
     <div class="bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg relative overflow-hidden">
@@ -14,14 +14,14 @@
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
                 <span class="text-xs uppercase font-mono tracking-widest text-hex_blue border border-hex_blue/40 bg-hex_blue/10 px-2.5 py-1 rounded">
-                    Guia Oficial do Operador & Gestor
+                    Guia Oficial do Gestor
                 </span>
                 <h1 class="text-3xl font-bold title-hex text-hex_gold mt-2 flex items-center space-x-3">
                     <i data-lucide="graduation-cap" class="w-8 h-8 text-hex_gold"></i>
-                    <span>Manual de Operações LOL BURGUER</span>
+                    <span>Manual de Operações Visuais</span>
                 </h1>
                 <p class="text-sm text-hex_gold_dim/80 mt-1 max-w-2xl">
-                    Aprenda passo a passo como registrar pedidos, realizar o fechamento diário em lote, controlar o estoque físico, lançar despesas fixas/variáveis e interpretar o relatório mensal.
+                    Aprenda visualmente como registrar o fechamento diário, controlar o estoque físico, lançar despesas fixas e analisar os relatórios.
                 </p>
             </div>
 
@@ -35,7 +35,7 @@
                         type="text" 
                         id="search-tutorial"
                         x-model="search" 
-                        placeholder="Digite palavras-chave (ex: estoque, iFood, despesa, editar...)" 
+                        placeholder="Ex: estoque, ifood, despesa..." 
                         class="w-full bg-hex_dark_bg border border-hex_gold/40 rounded py-2.5 px-4 pr-10 text-xs text-white placeholder-hex_gold_dim/40 focus:outline-none focus:border-hex_blue focus:ring-1 focus:ring-hex_blue transition-all"
                     >
                     <button x-show="search.length > 0" @click="search = ''" class="absolute right-3 top-2.5 text-hex_gold_dim hover:text-white">
@@ -47,417 +47,304 @@
     </div>
 
     <!-- Mensagem se nenhum tutorial for encontrado -->
-    <div x-show="search.length > 0 && $el.nextElementSibling.querySelectorAll('.tutorial-card:not([style*=\'display: none\'])').length === 0" class="bg-hex_dark_card border border-hex_danger/40 p-8 rounded text-center text-hex_gold_dim">
+    <div x-show="search.length > 0 && $el.nextElementSibling.querySelectorAll('.tutorial-section:not([style*=\'display: none\'])').length === 0" class="bg-hex_dark_card border border-hex_danger/40 p-8 rounded text-center text-hex_gold_dim">
         <i data-lucide="alert-circle" class="w-10 h-10 text-hex_danger mx-auto mb-2"></i>
         <p class="font-bold text-white">Nenhum tópico encontrado para "<span x-text="search"></span>"</p>
-        <p class="text-xs mt-1">Tente buscar por termos como: <em>vendas, estoque, despesa, fechamento, insumo, cancelar</em>.</p>
+        <p class="text-xs mt-1">Tente buscar por termos como: <em>estoque, despesa, fechamento, insumo</em>.</p>
     </div>
 
-    <!-- Lista de Tutoriais (Grid) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Lista de Tutoriais (Stack) -->
+    <div class="space-y-12">
 
-        <!-- 1. Novo Pedido em Tempo Real -->
-        <div 
-            x-show="!search || 'novo pedido balcao delivery carrinho cliente caixa venda seletor'.toLowerCase().includes(search.toLowerCase())"
-            class="tutorial-card bg-hex_dark_card border border-hex_dark_border hover:border-hex_gold/40 p-5 rounded shadow-md flex flex-col justify-between transition-all group"
-        >
-            <div>
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-xxs uppercase font-mono tracking-wider text-hex_gold border border-hex_gold/30 bg-hex_gold/10 px-2 py-0.5 rounded">
-                        Módulo de Operação
-                    </span>
-                    <a href="{% url 'pedido_criar' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                        <span>Ir para tela</span>
-                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                    </a>
-                </div>
-                <h3 class="text-lg font-bold text-hex_gold title-hex flex items-center space-x-2">
-                    <i data-lucide="shopping-cart" class="w-5 h-5 text-hex_gold"></i>
-                    <span>1. Lançar Novo Pedido em Tempo Real</span>
-                </h3>
-                <p class="text-xs text-hex_gold_dim/70 mt-2 leading-relaxed">
-                    Utilizado no momento em que a venda acontece ou chega do aplicativo de delivery.
-                </p>
-
-                <!-- Passos -->
-                <div class="mt-4 space-y-2 text-xs">
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_gold text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">1</span>
-                        <p class="text-hex_gold_light">Clique sobre o <strong>Lanche/Produto</strong> no cardápio visual para adicioná-lo ao carrinho do lado direito.</p>
+        <!-- 1. Fechamento Diário em Lote -->
+        <div x-show="!search || 'fechamento diario lote vendas caixa dia desconto motoboy entregas reabrir'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-1/3">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_gold border border-hex_gold/30 bg-hex_gold/10 px-2 py-0.5 rounded">
+                            Produtividade
+                        </span>
+                        <a href="{% url 'fechamento_diario' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
+                            <span>Abrir Tela</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
                     </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_gold text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">2</span>
-                        <p class="text-hex_gold_light">Selecione o <strong>Canal de Venda</strong> (iFood, UaiRango ou Aplicativo Online) e a <strong>Forma de Pagamento</strong> (PIX, Cartão, Dinheiro).</p>
-                    </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_gold text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">3</span>
-                        <p class="text-hex_gold_light">Informe o nome do cliente e clique em <strong>Concluir Pedido</strong>. O sistema efetua a <strong>baixa automática de estoque</strong> via ficha técnica!</p>
+                    <h3 class="text-xl font-bold text-hex_gold title-hex flex items-center space-x-2">
+                        <i data-lucide="calendar-check" class="w-6 h-6 text-hex_gold"></i>
+                        <span>Fechamento Diário em Lote</span>
+                    </h3>
+                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
+                        Ideal para digitar todas as vendas do dia de uma só vez no final do expediente.
+                    </p>
+                    <div class="mt-6 space-y-4 text-sm">
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">1</span>
+                            <p class="text-hex_gold_light mt-0.5">Escolha a <strong>Data de Referência</strong> no topo da tela.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">2</span>
+                            <p class="text-hex_gold_light mt-0.5">Digite as quantidades vendidas de cada lanche nas colunas.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">3</span>
+                            <p class="text-hex_gold_light mt-0.5">Clique em <strong>Gravar Fechamento</strong>. O estoque e financeiro são atualizados juntos!</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- 2. Painel de Pedidos & Cozinha -->
-        <div 
-            x-show="!search || 'painel pedidos cozinha status cancelar estorno preparo concluido'.toLowerCase().includes(search.toLowerCase())"
-            class="tutorial-card bg-hex_dark_card border border-hex_dark_border hover:border-hex_blue/40 p-5 rounded shadow-md flex flex-col justify-between transition-all group"
-        >
-            <div>
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-xxs uppercase font-mono tracking-wider text-hex_blue border border-hex_blue/30 bg-hex_blue/10 px-2 py-0.5 rounded">
-                        Módulo de Cozinha
-                    </span>
-                    <a href="{% url 'pedido_listar' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                        <span>Ir para tela</span>
-                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                    </a>
-                </div>
-                <h3 class="text-lg font-bold text-hex_blue title-hex flex items-center space-x-2">
-                    <i data-lucide="clipboard-list" class="w-5 h-5 text-hex_blue"></i>
-                    <span>2. Painel de Pedidos da Cozinha</span>
-                </h3>
-                <p class="text-xs text-hex_gold_dim/70 mt-2 leading-relaxed">
-                    Acompanhamento visual em cartões de todos os pedidos do dia, alteração de status e cancelamentos com estorno.
-                </p>
-
-                <!-- Passos -->
-                <div class="mt-4 space-y-2 text-xs">
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_blue text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">1</span>
-                        <p class="text-hex_gold_light">Visualize os pedidos organizados do mais recente para o mais antigo com itens e observações.</p>
-                    </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_blue text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">2</span>
-                        <p class="text-hex_gold_light">Avance o status de <strong>RECEBIDO ➔ EM PREPARO ➔ CONCLUÍDO</strong> conforme a cozinha entrega o lanche.</p>
-                    </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_danger text-white font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">!</span>
-                        <p class="text-hex_gold_light">Se clicar em <strong>CANCELAR</strong>, o sistema <strong>devolve automaticamente</strong> todos os insumos ao estoque físico!</p>
-                    </div>
+                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2 relative overflow-hidden group">
+                    <img src="/media/tutorial/fechamento.png" alt="Tela de Fechamento" class="w-full h-auto rounded shadow-inner opacity-90 group-hover:opacity-100 transition-opacity">
                 </div>
             </div>
         </div>
 
-        <!-- 3. Fechamento Diário em Lote -->
-        <div 
-            x-show="!search || 'fechamento diario lote vendas caixa dia desconto motoboy entregas reabrir'.toLowerCase().includes(search.toLowerCase())"
-            class="tutorial-card bg-hex_dark_card border border-hex_dark_border hover:border-hex_gold/40 p-5 rounded shadow-md flex flex-col justify-between transition-all group"
-        >
-            <div>
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-xxs uppercase font-mono tracking-wider text-hex_gold border border-hex_gold/30 bg-hex_gold/10 px-2 py-0.5 rounded">
-                        Produtividade Máxima
-                    </span>
-                    <a href="{% url 'fechamento_diario' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                        <span>Ir para tela</span>
-                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                    </a>
+        <!-- 2. Estoque Físico e Alertas -->
+        <div x-show="!search || 'estoque atual insumos materias criticoc baixo gramas kg litros balanço'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-1/3">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_blue border border-hex_blue/30 bg-hex_blue/10 px-2 py-0.5 rounded">
+                            Gestão de Estoque
+                        </span>
+                        <a href="{% url 'estoque_resumo' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
+                            <span>Abrir Tela</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
+                    </div>
+                    <h3 class="text-xl font-bold text-hex_blue title-hex flex items-center space-x-2">
+                        <i data-lucide="package" class="w-6 h-6 text-hex_blue"></i>
+                        <span>Controle de Estoque & Alertas</span>
+                    </h3>
+                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
+                        Monitoramento do saldo de cada carne, queijo e embalagem.
+                    </p>
+                    <div class="mt-6 space-y-4 text-sm">
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_blue text-hex_dark_bg font-bold flex items-center justify-center shrink-0">1</span>
+                            <p class="text-hex_gold_light mt-0.5">Acompanhe as quantidades atuais deduzidas após cada fechamento.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_warning text-hex_dark_bg font-bold flex items-center justify-center shrink-0">2</span>
+                            <p class="text-hex_gold_light mt-0.5">Badges alertam quando o insumo atingir o limite configurado (Baixo/Crítico).</p>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="text-lg font-bold text-hex_gold title-hex flex items-center space-x-2">
-                    <i data-lucide="calendar-check" class="w-5 h-5 text-hex_gold"></i>
-                    <span>3. Fechamento Diário em Lote</span>
-                </h3>
-                <p class="text-xs text-hex_gold_dim/70 mt-2 leading-relaxed">
-                    Ideal para digitar todas as vendas do dia de uma só vez no final do expediente, com colunas por canal de venda.
-                </p>
-
-                <!-- Passos -->
-                <div class="mt-4 space-y-2 text-xs">
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_gold text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">1</span>
-                        <p class="text-hex_gold_light">Escolha a <strong>Data de Referência</strong> no topo da tela (pode ser hoje ou qualquer dia anterior).</p>
-                    </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_gold text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">2</span>
-                        <p class="text-hex_gold_light">Digite as quantidades vendidas de cada lanche nas colunas do <strong>Aplicativo Online, iFood e UaiRango</strong>.</p>
-                    </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_gold text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">3</span>
-                        <p class="text-hex_gold_light">Informe descontos ou entregas de motoboy e clique em <strong>Gravar Fechamento Diário</strong>. O estoque e o financeiro são atualizados juntos!</p>
-                    </div>
+                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2">
+                    <img src="/media/tutorial/estoque.png" alt="Estoque" class="w-full h-auto rounded shadow-inner opacity-90 hover:opacity-100 transition-opacity">
                 </div>
             </div>
         </div>
 
-        <!-- 4. Estoque Físico e Alertas -->
-        <div 
-            x-show="!search || 'estoque atual insumos materias criticoc baixo gramas kg litros balanço'.toLowerCase().includes(search.toLowerCase())"
-            class="tutorial-card bg-hex_dark_card border border-hex_dark_border hover:border-hex_blue/40 p-5 rounded shadow-md flex flex-col justify-between transition-all group"
-        >
-            <div>
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-xxs uppercase font-mono tracking-wider text-hex_blue border border-hex_blue/30 bg-hex_blue/10 px-2 py-0.5 rounded">
-                        Módulo de Estoque
-                    </span>
-                    <a href="{% url 'estoque_resumo' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                        <span>Ir para tela</span>
-                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                    </a>
-                </div>
-                <h3 class="text-lg font-bold text-hex_blue title-hex flex items-center space-x-2">
-                    <i data-lucide="package" class="w-5 h-5 text-hex_blue"></i>
-                    <span>4. Controle de Estoque Atual & Alertas</span>
-                </h3>
-                <p class="text-xs text-hex_gold_dim/70 mt-2 leading-relaxed">
-                    Monitoramento em tempo real do saldo de cada carne, pão, queijo, bacon e embalagem da lanchonete.
-                </p>
-
-                <!-- Passos -->
-                <div class="mt-4 space-y-2 text-xs">
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_blue text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">1</span>
-                        <p class="text-hex_gold_light">Acompanhe as quantidades em <strong>g, kg, un, ml</strong> com atualização automática a cada venda realizada.</p>
+        <!-- 3. Entrada e Ajuste de Insumos -->
+        <div x-show="!search || 'entrada compra fornecedor ajuste perda balanco estoque abastecer'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-1/3">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_gold border border-hex_gold/30 bg-hex_gold/10 px-2 py-0.5 rounded">
+                            Lançamentos de Compras
+                        </span>
+                        <a href="{% url 'estoque_ajustar' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
+                            <span>Abrir Tela</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
                     </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_warning text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">⚠️</span>
-                        <p class="text-hex_gold_light">Badges em amarelo <strong>BAIXO</strong> ou vermelho <strong>CRÍTICO</strong> alertam quando o insumo atingir o limite configurado.</p>
-                    </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_blue text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">2</span>
-                        <p class="text-hex_gold_light">Clique na badge do insumo crítico para ir direto à tela de lançamento de compras!</p>
+                    <h3 class="text-xl font-bold text-hex_gold title-hex flex items-center space-x-2">
+                        <i data-lucide="arrow-up-right" class="w-6 h-6 text-hex_gold"></i>
+                        <span>Lançar Compras & Ajustes</span>
+                    </h3>
+                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
+                        Registra o abastecimento ao comprar matérias-primas.
+                    </p>
+                    <div class="mt-6 space-y-4 text-sm">
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">1</span>
+                            <p class="text-hex_gold_light mt-0.5">Selecione o Insumo.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">2</span>
+                            <p class="text-hex_gold_light mt-0.5">Escolha <strong>ENTRADA POR COMPRA</strong>.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">3</span>
+                            <p class="text-hex_gold_light mt-0.5">Digite a quantidade. O sistema recalcula o <strong>custo unitário</strong>.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- 5. Entrada e Ajuste de Insumos -->
-        <div 
-            x-show="!search || 'entrada compra fornecedor ajuste perda balanco estoque abastecer'.toLowerCase().includes(search.toLowerCase())"
-            class="tutorial-card bg-hex_dark_card border border-hex_dark_border hover:border-hex_gold/40 p-5 rounded shadow-md flex flex-col justify-between transition-all group"
-        >
-            <div>
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-xxs uppercase font-mono tracking-wider text-hex_gold border border-hex_gold/30 bg-hex_gold/10 px-2 py-0.5 rounded">
-                        Gestão de Compras
-                    </span>
-                    <a href="{% url 'estoque_ajustar' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                        <span>Ir para tela</span>
-                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                    </a>
-                </div>
-                <h3 class="text-lg font-bold text-hex_gold title-hex flex items-center space-x-2">
-                    <i data-lucide="arrow-up-right" class="w-5 h-5 text-hex_gold"></i>
-                    <span>5. Lançar Entrada de Compras / Ajuste</span>
-                </h3>
-                <p class="text-xs text-hex_gold_dim/70 mt-2 leading-relaxed">
-                    Registra o abastecimento da cozinha quando você compra matérias-primas ou faz contagem de balanço.
-                </p>
-
-                <!-- Passos -->
-                <div class="mt-4 space-y-2 text-xs">
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_gold text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">1</span>
-                        <p class="text-hex_gold_light">Selecione o <strong>Ingrediente</strong> que deseja abastecer (ex: Hambúrguer 170g Angus).</p>
-                    </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_gold text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">2</span>
-                        <p class="text-hex_gold_light">Escolha o tipo: <strong>ENTRADA POR COMPRA</strong> (adiciona ao saldo) ou <strong>AJUSTE MANUAL</strong>.</p>
-                    </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_gold text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">3</span>
-                        <p class="text-hex_gold_light">Digite a quantidade comprada e o valor total. O sistema recalcula o <strong>custo unitário automático</strong>!</p>
-                    </div>
+                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2">
+                    <img src="/media/tutorial/estoque_ajuste.png" alt="Ajuste" class="w-full h-auto rounded shadow-inner opacity-90 hover:opacity-100 transition-opacity">
                 </div>
             </div>
         </div>
 
-        <!-- 6. Dashboard KPIs & Relatório Mensal -->
-        <div 
-            x-show="!search || 'dashboard relatorio mensal kpi lucro faturamento despesas graficos excel csv mes'.toLowerCase().includes(search.toLowerCase())"
-            class="tutorial-card bg-hex_dark_card border border-hex_dark_border hover:border-hex_blue/40 p-5 rounded shadow-md flex flex-col justify-between transition-all group"
-        >
-            <div>
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-xxs uppercase font-mono tracking-wider text-hex_blue border border-hex_blue/30 bg-hex_blue/10 px-2 py-0.5 rounded">
-                        Gestão Financeira
-                    </span>
-                    <a href="{% url 'dashboard' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                        <span>Ir para tela</span>
-                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                    </a>
-                </div>
-                <h3 class="text-lg font-bold text-hex_blue title-hex flex items-center space-x-2">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5 text-hex_blue"></i>
-                    <span>6. Dashboard KPIs & Relatório Mensal</span>
-                </h3>
-                <p class="text-xs text-hex_gold_dim/70 mt-2 leading-relaxed">
-                    Painel executivo com navegação mês a mês, demonstrativo de faturamento bruto, custos e lucro limpo.
-                </p>
-
-                <!-- Passos -->
-                <div class="mt-4 space-y-2 text-xs">
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_blue text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">1</span>
-                        <p class="text-hex_gold_light">O sistema carrega automaticamente o <strong>Mês Atual</strong> (ex: Julho/2026).</p>
+        <!-- 4. Dashboard & Relatório Mensal -->
+        <div x-show="!search || 'dashboard relatorio mensal kpi lucro faturamento despesas graficos excel csv mes'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-1/3">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_blue border border-hex_blue/30 bg-hex_blue/10 px-2 py-0.5 rounded">
+                            Análise Financeira
+                        </span>
+                        <a href="{% url 'dashboard' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
+                            <span>Abrir Tela</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
                     </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_blue text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">2</span>
-                        <p class="text-hex_gold_light">Use os botões <strong>◄ Mês Anterior / Próximo Mês ►</strong> ou a caixa de seleção para navegar por qualquer mês do ano.</p>
-                    </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_blue text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">3</span>
-                        <p class="text-hex_gold_light">Clique em <strong>Exportar CSV</strong> para baixar a planilha detalhada de auditoria para o Excel.</p>
+                    <h3 class="text-xl font-bold text-hex_blue title-hex flex items-center space-x-2">
+                        <i data-lucide="layout-dashboard" class="w-6 h-6 text-hex_blue"></i>
+                        <span>Dashboard & Relatório Mensal</span>
+                    </h3>
+                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
+                        Painel executivo com navegação mês a mês e DRE completo.
+                    </p>
+                    <div class="mt-6 space-y-4 text-sm">
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_blue text-hex_dark_bg font-bold flex items-center justify-center shrink-0">1</span>
+                            <p class="text-hex_gold_light mt-0.5">Use o seletor para navegar entre os meses.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_blue text-hex_dark_bg font-bold flex items-center justify-center shrink-0">2</span>
+                            <p class="text-hex_gold_light mt-0.5">O <strong>Lucro Líquido Real</strong> já desconta todas as taxas, insumos e despesas fixas.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_blue text-hex_dark_bg font-bold flex items-center justify-center shrink-0">3</span>
+                            <p class="text-hex_gold_light mt-0.5">Clique em <strong>Exportar CSV</strong> para auditar as taxas por pedido no Excel.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- 7. Custos e Despesas Fixas/Variáveis -->
-        <div 
-            x-show="!search || 'despesas custos fixos variaveis aluguel agua luz contador imposto funcionario influencer'.toLowerCase().includes(search.toLowerCase())"
-            class="tutorial-card bg-hex_dark_card border border-hex_dark_border hover:border-hex_gold/40 p-5 rounded shadow-md flex flex-col justify-between transition-all group"
-        >
-            <div>
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-xxs uppercase font-mono tracking-wider text-hex_gold border border-hex_gold/30 bg-hex_gold/10 px-2 py-0.5 rounded">
-                        Lançamento de Custos
-                    </span>
-                    <a href="{% url 'despesa_listar' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                        <span>Ir para tela</span>
-                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                    </a>
-                </div>
-                <h3 class="text-lg font-bold text-hex_gold title-hex flex items-center space-x-2">
-                    <i data-lucide="wallet" class="w-5 h-5 text-hex_gold"></i>
-                    <span>7. Custos & Despesas (Fixas e Variáveis)</span>
-                </h3>
-                <p class="text-xs text-hex_gold_dim/70 mt-2 leading-relaxed">
-                    Registro de contas da empresa (energia, água, internet, impostos, funcionários, influencers, etc.).
-                </p>
-
-                <!-- Passos -->
-                <div class="mt-4 space-y-2 text-xs">
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_gold text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">1</span>
-                        <p class="text-hex_gold_light">Clique em <strong>Lançar Nova Despesa</strong> e informe a descrição (ex: Energia Elétrica Julho).</p>
-                    </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_gold text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">2</span>
-                        <p class="text-hex_gold_light">Selecione o tipo: <strong>FIXO</strong> (contas recorrentes) ou <strong>VARIÁVEL</strong> (manutenções, equipamentos, propaganda).</p>
-                    </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_gold text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">3</span>
-                        <p class="text-hex_gold_light">Selecione a data do pagamento. A despesa será abatida automaticamente no lucro do mês!</p>
-                    </div>
+                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2">
+                    <img src="/media/tutorial/dashboard.png" alt="Dashboard" class="w-full h-auto rounded shadow-inner opacity-90 hover:opacity-100 transition-opacity">
                 </div>
             </div>
         </div>
 
-        <!-- 8. Cardápio de Campeões & Ficha Técnica -->
-        <div 
-            x-show="!search || 'cardapio produtos campeoes receita ficha tecnica precificacao lanches foto'.toLowerCase().includes(search.toLowerCase())"
-            class="tutorial-card bg-hex_dark_card border border-hex_dark_border hover:border-hex_blue/40 p-5 rounded shadow-md flex flex-col justify-between transition-all group"
-        >
-            <div>
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-xxs uppercase font-mono tracking-wider text-hex_blue border border-hex_blue/30 bg-hex_blue/10 px-2 py-0.5 rounded">
-                        Engenharia de Cardápio
-                    </span>
-                    <a href="{% url 'produto_listar' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                        <span>Ir para tela</span>
-                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                    </a>
+        <!-- 5. Custos e Despesas Fixas -->
+        <div x-show="!search || 'despesas custos fixos variaveis aluguel agua luz contador imposto funcionario influencer'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-1/3">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_gold border border-hex_gold/30 bg-hex_gold/10 px-2 py-0.5 rounded">
+                            Gestão de Gastos
+                        </span>
+                        <a href="{% url 'despesa_listar' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
+                            <span>Abrir Tela</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
+                    </div>
+                    <h3 class="text-xl font-bold text-hex_gold title-hex flex items-center space-x-2">
+                        <i data-lucide="wallet" class="w-6 h-6 text-hex_gold"></i>
+                        <span>Custos & Despesas</span>
+                    </h3>
+                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
+                        Registro de contas (energia, água, internet, etc).
+                    </p>
+                    <div class="mt-6 space-y-4 text-sm">
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">1</span>
+                            <p class="text-hex_gold_light mt-0.5">Clique em <strong>Lançar Nova Despesa</strong>.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">2</span>
+                            <p class="text-hex_gold_light mt-0.5">A listagem diferencia Despesas Fixas (recorrentes) e Variáveis.</p>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="text-lg font-bold text-hex_blue title-hex flex items-center space-x-2">
-                    <i data-lucide="sandwich" class="w-5 h-5 text-hex_blue"></i>
-                    <span>8. Cardápio (Campeões) & Ficha Técnica</span>
-                </h3>
-                <p class="text-xs text-hex_gold_dim/70 mt-2 leading-relaxed">
-                    Cadastro de lanches, bebidas e combos com definição da receita exata (gramas por hambúrguer).
-                </p>
-
-                <!-- Passos -->
-                <div class="mt-4 space-y-2 text-xs">
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_blue text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">1</span>
-                        <p class="text-hex_gold_light">Cadastre o lanche (ex: Draven, Garen, Darius) com nome, foto temática da IA e descrição.</p>
-                    </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_blue text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">2</span>
-                        <p class="text-hex_gold_light">Monte a <strong>Ficha Técnica</strong> inserindo cada insumo (ex: 1 pão, 170g carne, 30g cheddar, 20g bacon).</p>
-                    </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_blue text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">3</span>
-                        <p class="text-hex_gold_light">O sistema calcula o <strong>custo real de produção</strong> e sugere a margem de lucro por canal!</p>
-                    </div>
+                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2">
+                    <img src="/media/tutorial/despesas.png" alt="Despesas" class="w-full h-auto rounded shadow-inner opacity-90 hover:opacity-100 transition-opacity">
                 </div>
             </div>
         </div>
 
-        <!-- 9. Canais de Venda e Taxas de Plataformas -->
-        <div 
-            x-show="!search || 'canais de venda taxas ifood uairango aplicativo online cartao pix comissao'.toLowerCase().includes(search.toLowerCase())"
-            class="tutorial-card bg-hex_dark_card border border-hex_dark_border hover:border-hex_gold/40 p-5 rounded shadow-md flex flex-col justify-between transition-all group"
-        >
-            <div>
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-xxs uppercase font-mono tracking-wider text-hex_gold border border-hex_gold/30 bg-hex_gold/10 px-2 py-0.5 rounded">
-                        Precificação & Plataformas
-                    </span>
-                    <a href="{% url 'canal_listar' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                        <span>Ir para tela</span>
-                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                    </a>
+        <!-- 6. Cardápio de Campeões & Ficha Técnica -->
+        <div x-show="!search || 'cardapio produtos campeoes receita ficha tecnica precificacao lanches foto'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-1/3">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_blue border border-hex_blue/30 bg-hex_blue/10 px-2 py-0.5 rounded">
+                            Engenharia de Cardápio
+                        </span>
+                        <a href="{% url 'produto_listar' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
+                            <span>Abrir Tela</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
+                    </div>
+                    <h3 class="text-xl font-bold text-hex_blue title-hex flex items-center space-x-2">
+                        <i data-lucide="sandwich" class="w-6 h-6 text-hex_blue"></i>
+                        <span>Cardápio & Ficha Técnica</span>
+                    </h3>
+                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
+                        Cadastro de lanches e suas receitas exatas.
+                    </p>
+                    <div class="mt-6 space-y-4 text-sm">
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_blue text-hex_dark_bg font-bold flex items-center justify-center shrink-0">1</span>
+                            <p class="text-hex_gold_light mt-0.5">Botão para Cadastrar Novo Lanche.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_blue text-hex_dark_bg font-bold flex items-center justify-center shrink-0">2</span>
+                            <p class="text-hex_gold_light mt-0.5">Acesso à <strong>Ficha Técnica</strong> para configurar os insumos de cada lanche.</p>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="text-lg font-bold text-hex_gold title-hex flex items-center space-x-2">
-                    <i data-lucide="sliders" class="w-5 h-5 text-hex_gold"></i>
-                    <span>9. Canais de Venda & Taxas de Plataformas</span>
-                </h3>
-                <p class="text-xs text-hex_gold_dim/70 mt-2 leading-relaxed">
-                    Configuração de comissões do iFood, UaiRango, App próprio e taxas das maquininhas de cartão.
-                </p>
-
-                <!-- Passos -->
-                <div class="mt-4 space-y-2 text-xs">
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_gold text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">1</span>
-                        <p class="text-hex_gold_light">Defina as porcentagens de comissão de cada aplicativo (ex: iFood 15,2%, UaiRango 11,5%).</p>
-                    </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_gold text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">2</span>
-                        <p class="text-hex_gold_light">Configure as taxas de cartão de crédito/débito da sua própria maquininha (ex: 3,2%).</p>
-                    </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_gold text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">3</span>
-                        <p class="text-hex_gold_light">Toda venda calcula a taxa exata e mostra seu <strong>lucro líquido limpo</strong>!</p>
-                    </div>
+                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2">
+                    <img src="/media/tutorial/produtos.png" alt="Cardápio" class="w-full h-auto rounded shadow-inner opacity-90 hover:opacity-100 transition-opacity">
                 </div>
             </div>
         </div>
 
-        <!-- 10. Guia Rápido de Correções, Edição e Exclusão (CRUD) -->
-        <div 
-            x-show="!search || 'editar excluir deletar correcoes erro alterar crud refazer'.toLowerCase().includes(search.toLowerCase())"
-            class="tutorial-card bg-hex_dark_card border border-hex_dark_border hover:border-hex_blue/40 p-5 rounded shadow-md flex flex-col justify-between transition-all group"
-        >
-            <div>
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-xxs uppercase font-mono tracking-wider text-hex_blue border border-hex_blue/30 bg-hex_blue/10 px-2 py-0.5 rounded">
-                        Correções Rápidas (CRUD)
-                    </span>
+        <!-- 7. Canais de Venda e Taxas de Plataformas -->
+        <div x-show="!search || 'canais de venda taxas ifood uairango aplicativo online cartao pix comissao'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-1/3">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_gold border border-hex_gold/30 bg-hex_gold/10 px-2 py-0.5 rounded">
+                            Precificação
+                        </span>
+                        <a href="{% url 'canal_listar' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
+                            <span>Abrir Tela</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
+                    </div>
+                    <h3 class="text-xl font-bold text-hex_gold title-hex flex items-center space-x-2">
+                        <i data-lucide="sliders" class="w-6 h-6 text-hex_gold"></i>
+                        <span>Canais & Taxas</span>
+                    </h3>
+                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
+                        Configuração de comissões do iFood, App próprio e maquininhas.
+                    </p>
+                    <div class="mt-6 space-y-4 text-sm">
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">1</span>
+                            <p class="text-hex_gold_light mt-0.5">Ajuste as <strong>taxas do canal</strong> e taxas das máquinas de cartão clicando no ícone de engrenagem/lápis.</p>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="text-lg font-bold text-hex_blue title-hex flex items-center space-x-2">
-                    <i data-lucide="edit-3" class="w-5 h-5 text-hex_blue"></i>
-                    <span>10. Como Editar ou Excluir Lançamentos</span>
-                </h3>
-                <p class="text-xs text-hex_gold_dim/70 mt-2 leading-relaxed">
-                    Todas as tabelas do sistema possuem botões para correções sem dor de cabeça.
-                </p>
+                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2">
+                    <img src="/media/tutorial/canais.png" alt="Canais" class="w-full h-auto rounded shadow-inner opacity-90 hover:opacity-100 transition-opacity">
+                </div>
+            </div>
+        </div>
 
-                <!-- Passos -->
-                <div class="mt-4 space-y-2 text-xs">
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_blue text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">✏️</span>
-                        <p class="text-hex_gold_light"><strong>Editar:</strong> Clique no ícone de lápis azul em qualquer linha de tabela para ajustar valores, nomes ou datas.</p>
+        <!-- 8. Guia Rápido de Correções, Edição e Exclusão (CRUD) -->
+        <div x-show="!search || 'editar excluir deletar correcoes erro alterar crud refazer'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-1/3">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_blue border border-hex_blue/30 bg-hex_blue/10 px-2 py-0.5 rounded">
+                            Correções Básicas
+                        </span>
                     </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_danger text-white font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">🗑️</span>
-                        <p class="text-hex_gold_light"><strong>Excluir:</strong> Clique na lixeira vermelha para remover uma despesa, insumo ou lanche lançado por engano.</p>
+                    <h3 class="text-xl font-bold text-hex_blue title-hex flex items-center space-x-2">
+                        <i data-lucide="edit-3" class="w-6 h-6 text-hex_blue"></i>
+                        <span>Como Editar ou Excluir Lançamentos</span>
+                    </h3>
+                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
+                        Todas as tabelas do sistema possuem botões padrão.
+                    </p>
+                    <div class="mt-6 space-y-4 text-sm">
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_dark_bg text-hex_blue font-bold flex items-center justify-center shrink-0 border border-hex_blue">✏️</span>
+                            <p class="text-hex_gold_light mt-0.5"><strong>Editar:</strong> Lápis azul para corrigir valores e dados.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="w-7 h-7 rounded-full bg-hex_dark_bg text-hex_danger font-bold flex items-center justify-center shrink-0 border border-hex_danger">🗑️</span>
+                            <p class="text-hex_gold_light mt-0.5"><strong>Excluir:</strong> Lixeira vermelha para remover.</p>
+                        </div>
                     </div>
-                    <div class="bg-hex_dark_bg/70 p-2.5 rounded border border-hex_dark_border flex items-start space-x-2">
-                        <span class="w-5 h-5 rounded-full bg-hex_blue text-hex_dark_bg font-bold text-xxs flex items-center justify-center shrink-0 mt-0.5">📅</span>
-                        <p class="text-hex_gold_light"><strong>Fechamento Diário:</strong> Se errou os números de um dia anterior, selecione a data na tela de fechamento diário, ajuste os campos e grave novamente!</p>
-                    </div>
+                </div>
+                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2">
+                    <img src="/media/tutorial/crud.png" alt="Ações" class="w-full h-auto rounded shadow-inner opacity-90 hover:opacity-100 transition-opacity">
                 </div>
             </div>
         </div>

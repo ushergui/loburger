@@ -50,6 +50,17 @@
                     <p class="text-xxs text-hex_danger mt-1">{{ form.categoria.errors.as_text }}</p>
                 {% endif %}
             </div>
+            
+            <!-- Status -->
+            <div>
+                <label for="{{ form.status.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">
+                    {{ form.status.label }}
+                </label>
+                {{ form.status }}
+                {% if form.status.errors %}
+                    <p class="text-xxs text-hex_danger mt-1">{{ form.status.errors.as_text }}</p>
+                {% endif %}
+            </div>
 
             <!-- Valor -->
             <div>
@@ -73,12 +84,24 @@
                 {% endif %}
             </div>
 
+            <!-- Data de Vencimento -->
+            <div>
+                <label for="{{ form.data_vencimento.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">
+                    {{ form.data_vencimento.label }}
+                </label>
+                {{ form.data_vencimento }}
+                {% if form.data_vencimento.errors %}
+                    <p class="text-xxs text-hex_danger mt-1">{{ form.data_vencimento.errors.as_text }}</p>
+                {% endif %}
+            </div>
+
             <!-- Data de Pagamento -->
             <div>
                 <label for="{{ form.data_pagamento.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">
                     {{ form.data_pagamento.label }}
                 </label>
                 {{ form.data_pagamento }}
+                <p class="text-[9px] text-hex_gold_dim/70 mt-1 uppercase tracking-wider">Opcional, se status for Pago</p>
                 {% if form.data_pagamento.errors %}
                     <p class="text-xxs text-hex_danger mt-1">{{ form.data_pagamento.errors.as_text }}</p>
                 {% endif %}
@@ -94,6 +117,21 @@
                     <p class="text-xxs text-hex_danger mt-1">{{ form.observacao.errors.as_text }}</p>
                 {% endif %}
             </div>
+            
+            <!-- Alterar Futuros (Se aplicável) -->
+            {% if 'alterar_futuros' in form.fields %}
+            <div class="col-span-1 md:col-span-2 mt-2 bg-hex_blue/10 border border-hex_blue/30 p-4 rounded flex items-start space-x-3">
+                <div class="pt-1">
+                    {{ form.alterar_futuros }}
+                </div>
+                <div>
+                    <label for="{{ form.alterar_futuros.id_for_label }}" class="block text-sm font-semibold text-hex_blue cursor-pointer">
+                        {{ form.alterar_futuros.label }}
+                    </label>
+                    <p class="text-xs text-hex_gold_dim/70 mt-1">{{ form.alterar_futuros.help_text }}</p>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <div class="flex items-center justify-end space-x-3 border-t border-hex_dark_border pt-5 mt-6">

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Molde - LOL BURGUER{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center space-x-2">
+    <a href="{% url 'despesa_listar' %}" class="text-hex_gold hover:text-white transition-colors" title="Voltar para a listagem">
+        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+    </a>
+    <div>
+        <h1 class="text-2xl font-bold title-hex text-hex_danger">Excluir Molde de Despesa</h1>
+        <p class="text-xs uppercase tracking-wider text-hex_blue">Confirmação de Exclusão</p>
+    </div>
+</div>
+
+<div class="max-w-xl bg-hex_dark_card border border-hex_danger/40 p-6 rounded shadow-md">
+    
+    <div class="flex items-start space-x-4 mb-6 text-hex_gold_light">
+        <div class="mt-1 text-hex_danger bg-hex_danger/10 p-2 rounded-full border border-hex_danger/20">
+            <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+        </div>
+        <div>
+            <h2 class="text-lg font-bold text-white mb-2">Atenção! Ação Irreversível</h2>
+            <p class="mb-3 text-sm text-hex_gold_dim/90">
+                Você está prestes a excluir o molde de despesa fixa <strong>"{{ molde.descricao }}"</strong> (Valor Base: R$ {{ molde.valor_base }}).
+            </p>
+            <p class="mb-1 text-sm text-hex_gold_dim/90 font-semibold text-hex_danger">
+                O que acontecerá:
+            </p>
+            <ul class="list-disc list-inside text-sm text-hex_gold_dim/90 mb-3 ml-1">
+                <li>O sistema <strong>não gerará</strong> mais faturas mensais para este molde.</li>
+                <li>Todas as faturas futuras geradas por este molde com status <span class="text-amber-500 font-bold">PREVISTO</span> serão <strong>excluídas</strong>.</li>
+                <li>Faturas passadas que já foram pagas <strong>serão mantidas</strong> no sistema.</li>
+            </ul>
+        </div>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="flex items-center justify-end space-x-3 border-t border-hex_dark_border pt-5">
+            <a href="{% url 'despesa_listar' %}" class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white font-semibold py-2 px-4 rounded transition-all uppercase tracking-wider text-xs">
+                Cancelar
+            </a>
+            <button type="submit" class="bg-hex_danger/20 hover:bg-hex_danger text-hex_danger hover:text-white font-bold py-2 px-5 rounded transition-all uppercase tracking-wider text-xs border border-hex_danger/50 flex items-center">
+                <i data-lucide="trash-2" class="w-4 h-4 mr-1.5"></i>
+                Sim, Excluir Molde
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

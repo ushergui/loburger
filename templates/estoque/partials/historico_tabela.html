@@ -45,7 +45,11 @@
                         {% endif %}
                     </td>
                     <td class="p-4 text-hex_gold_light/80 text-xs">
-                        {{ mov.responsavel.get_full_name|default:mov.responsavel.username|default:"Sistema" }}
+                        {% if mov.responsavel %}
+                            {{ mov.responsavel.get_full_name|default:mov.responsavel.username }}
+                        {% else %}
+                            Sistema
+                        {% endif %}
                     </td>
                     <td class="p-4 text-xs text-hex_gold_dim/75 italic">
                         {{ mov.observacao|default:"-" }}

@@ -88,7 +88,7 @@
         </div>
         <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/60 block">Custos (Operacionais + Fixos)</span>
         <h2 class="text-2xl font-bold font-mono text-hex_gold_light mt-1.5">R$ {{ custo_total_kpi|floatformat:2 }}</h2>
-        <p class="text-[10px] text-hex_danger/80 mt-1">Taxas: R$ {{ taxas|floatformat:2 }} | Insumos: R$ {{ custo|floatformat:2 }} | Despesas: R$ {{ despesas_total|floatformat:2 }}</p>
+        <p class="text-[10px] text-hex_danger/80 mt-1">Apps: R$ {{ taxas|floatformat:2 }} | Maquininha: R$ {{ taxas_cartao|floatformat:2 }}<br/>Despesas (Inclui Compras): R$ {{ soma_despesas|floatformat:2 }}</p>
     </div>
 
     <!-- Lucro Líquido Real (Scoreboard Destaque) -->
@@ -103,6 +103,32 @@
         <p class="text-[10px] text-hex_gold_light/70 mt-1">Lucro limpo após taxas, insumos e despesas</p>
     </div>
 </div>
+
+<!-- Alertas de Vencimento -->
+{% if despesas_vencimento_proximo %}
+<div class="bg-hex_danger/10 border border-hex_danger/40 p-4 rounded shadow-md mt-6">
+    <div class="flex items-center space-x-2 mb-3">
+        <i data-lucide="alert-triangle" class="w-5 h-5 text-hex_danger"></i>
+        <h3 class="text-sm font-bold title-hex text-hex_danger uppercase tracking-wider">Atenção: Despesas Próximas do Vencimento ou Atrasadas</h3>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {% for alert_desp in despesas_vencimento_proximo %}
+        <div class="bg-hex_dark_bg border border-hex_danger/20 p-3 rounded flex flex-col justify-between">
+            <div class="flex items-start justify-between mb-2">
+                <span class="text-xs font-bold text-white truncate pr-2">{{ alert_desp.descricao }}</span>
+                <span class="text-xs font-mono font-bold text-hex_gold whitespace-nowrap">R$ {{ alert_desp.valor }}</span>
+            </div>
+            <div class="flex items-center justify-between mt-auto">
+                <span class="text-xxs uppercase tracking-wider text-hex_danger/80 font-bold">Vence em: {{ alert_desp.data_vencimento|date:"d/m/Y" }}</span>
+                <a href="{% url 'despesa_editar' alert_desp.id %}" class="bg-hex_danger/20 hover:bg-hex_danger text-hex_danger hover:text-white px-2 py-1 rounded text-[9px] uppercase tracking-wider font-bold transition-all border border-hex_danger/40">
+                    Pagar / Editar
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
 <!-- Gráficos Principais (Chart.js) -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

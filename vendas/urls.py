@@ -15,4 +15,10 @@ urlpatterns = [
     path('canais/novo/', views.canal_criar, name='canal_criar'),
     path('canais/<int:pk>/editar/', views.canal_editar, name='canal_editar'),
     path('canais/<int:pk>/excluir/', views.canal_excluir, name='canal_excluir'),
+
+    # Formas de Pagamento
+    path('formas-pagamento/', views.forma_pagamento_listar, name='forma_pagamento_listar'),
+    path('formas-pagamento/novo/', views.forma_pagamento_criar, name='forma_pagamento_criar'),
+    path('formas-pagamento/<int:pk>/editar/', views.forma_pagamento_editar, name='forma_pagamento_editar'),
+    path('formas-pagamento/<int:pk>/excluir/', views.forma_pagamento_excluir, name='forma_pagamento_excluir'),
 ]

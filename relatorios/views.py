@@ -8,30 +8,56 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from decimal import Decimal
 from datetime import timedelta, datetime
-
-from core.decorators import gestao_required
-from vendas.models import Pedido, PedidoItem, CanalVenda
-from produtos.models import Produto
-from .models import Despesa
-from .forms import DespesaForm
-
-import csv
 import calendar
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.http import HttpResponse
-from django.db.models import Sum, Count, F, Q
-from django.core.paginator import Paginator
-from django.utils import timezone
-from decimal import Decimal
-from datetime import timedelta, datetime
 
 from core.decorators import gestao_required
 from vendas.models import Pedido, PedidoItem, CanalVenda
 from produtos.models import Produto
-from .models import Despesa
-from .forms import DespesaForm
+from .models import Despesa, DespesaRecorrente, CATEGORIA_CHOICES
+from .forms import DespesaForm, DespesaRecorrenteForm
+
+def gerar_despesas_fixas_pendentes():
+    hoje = timezone.localdate()
+    mes_atual = hoje.replace(day=1)
+    
+    # Próximo mês
+    if mes_atual.month == 12:
+        mes_proximo = mes_atual.replace(year=mes_atual.year + 1, month=1)
+    else:
+        mes_proximo = mes_atual.replace(month=mes_atual.month + 1)
+        
+    meses_para_gerar = [mes_atual, mes_proximo]
+    
+    recorrentes_ativas = DespesaRecorrente.objects.filter(ativa=True)
+    
+    for molde in recorrentes_ativas:
+        for mes_ref in meses_para_gerar:
+            # Tenta calcular o dia de vencimento real, cuidado com meses que tem menos dias que dia_vencimento
+            try:
+                data_venc = mes_ref.replace(day=molde.dia_vencimento)
+            except ValueError:
+                # Ex: dia 31 num mês de 30 dias. Ajusta para o último dia do mês
+                ultimo_dia = calendar.monthrange(mes_ref.year, mes_ref.month)[1]
+                data_venc = mes_ref.replace(day=ultimo_dia)
+                
+            # Verifica se já existe uma despesa para este molde neste ano/mês
+            existe = Despesa.objects.filter(
+                despesa_matriz=molde,
+                data_vencimento__year=data_venc.year,
+                data_vencimento__month=data_venc.month
+            ).exists()
+            
+            if not existe:
+                Despesa.objects.create(
+                    descricao=molde.descricao,
+                    tipo='FIXO',
+                    categoria=molde.categoria,
+                    valor=molde.valor_base,
+                    status='PREVISTO',
+                    data_vencimento=data_venc,
+                    despesa_matriz=molde,
+                    observacao=f"Gerada automaticamente pelo molde {molde.id}."
+                )
 
 MESES_PT = {
     1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
@@ -109,6 +135,8 @@ def obter_datas_filtro(periodo_param, mes_param):
 @login_required
 @gestao_required
 def dashboard(request):
+    gerar_despesas_fixas_pendentes()
+    
     periodo_param = request.GET.get('periodo', '').strip()
     mes_param = request.GET.get('mes', '').strip()
     hoje_date = timezone.localdate()
@@ -150,6 +178,7 @@ def dashboard(request):
         faturamento_bruto=Sum('valor_bruto'),
         total_pedidos=Count('id'),
         taxas_totais=Sum('taxas_canal'),
+        taxas_pgto_totais=Sum('taxas_pagamento'),
         custo_insumos=Sum('custo_ingredientes'),
         lucro_liquido_total=Sum('lucro_liquido')
     )
@@ -158,6 +187,7 @@ def dashboard(request):
     faturamento = kpis['faturamento_bruto'] or Decimal('0.00')
     num_pedidos = kpis['total_pedidos'] or 0
     taxas = kpis['taxas_totais'] or Decimal('0.00')
+    taxas_cartao = kpis['taxas_pgto_totais'] or Decimal('0.00')
     custo = kpis['custo_insumos'] or Decimal('0.00')
     
     # 3. Calcular custos e lucro líquido deduzindo as despesas lançadas no período
@@ -165,11 +195,20 @@ def dashboard(request):
         data_pagamento__range=(data_inicio.date(), data_fim.date())
     ).aggregate(total=Sum('valor'))['total'] or Decimal('0.00')
     
-    custo_total_kpi = taxas + custo + soma_despesas
+    custo_total_kpi = taxas + taxas_cartao + soma_despesas
     lucro_pedidos = kpis['lucro_liquido_total'] or Decimal('0.00')
     lucro = lucro_pedidos - soma_despesas
     
     ticket = (faturamento / num_pedidos) if num_pedidos > 0 else Decimal('0.00')
+
+    # Alertas de Vencimento de Despesas (Próximos 5 dias ou atrasadas)
+    hoje_venc = timezone.localdate()
+    cinco_dias = hoje_venc + timedelta(days=5)
+    despesas_vencimento_proximo = Despesa.objects.filter(
+        status='PREVISTO',
+        data_vencimento__lte=cinco_dias,
+        data_vencimento__gte=hoje_venc - timedelta(days=30) # não mostrar coisas super antigas
+    ).order_by('data_vencimento')
 
     # 4. Dados para o Gráfico 1: Faturamento Diário (Linha)
     faturamento_diario = (
@@ -233,6 +272,7 @@ def dashboard(request):
         'faturamento': faturamento,
         'num_pedidos': num_pedidos,
         'taxas': taxas,
+        'taxas_cartao': taxas_cartao,
         'custo': custo,
         'custo_total_kpi': custo_total_kpi,
         'despesas_total': soma_despesas,
@@ -248,7 +288,8 @@ def dashboard(request):
         'chart_canais_lucro': chart_canais_lucro,
         'chart_produtos_labels': chart_produtos_labels,
         'chart_produtos_valores': chart_produtos_valores,
-        'produtos_margem': lista_produtos_margem
+        'produtos_margem': lista_produtos_margem,
+        'despesas_vencimento_proximo': despesas_vencimento_proximo,
     }
 
     if request.headers.get('HX-Request'):
@@ -278,20 +319,23 @@ def exportar_csv(request):
         'Forma de Pagamento',
         'Invocador (Cliente)', 
         'Faturamento Bruto (R$)', 
-        'Taxas do Canal (R$)', 
+        'Taxas do App/Canal (R$)',
+        'Taxas de Pagamento/Cartão (R$)', 
         'Custo Insumos (R$)', 
         'Lucro Líquido Real (R$)'
     ])
     
     for p in pedidos:
+        forma_pagamento_nome = p.forma_pagamento.nome if p.forma_pagamento else 'Não informada'
         writer.writerow([
             p.id,
             p.data_criacao.strftime('%d/%m/%Y %H:%M:%S'),
             p.canal.nome,
-            p.get_forma_pagamento_display(),
+            forma_pagamento_nome,
             p.cliente_nome or 'Cliente Avulso',
             str(p.valor_bruto).replace('.', ','),
             str(p.taxas_canal).replace('.', ','),
+            str(p.taxas_pagamento).replace('.', ','),
             str(p.custo_ingredientes).replace('.', ','),
             str(p.lucro_liquido).replace('.', ',')
         ])
@@ -302,6 +346,8 @@ def exportar_csv(request):
 @login_required
 @gestao_required
 def despesa_listar(request):
+    gerar_despesas_fixas_pendentes()
+    
     busca = request.GET.get('busca', '')
     tipo_filtro = request.GET.get('tipo', '')
     categoria_filtro = request.GET.get('categoria', '')
@@ -330,8 +376,9 @@ def despesa_listar(request):
         'tipo_selecionado': tipo_filtro,
         'categoria_selecionada': categoria_filtro,
         'total_filtrado': total_despesas_filtradas,
-        'categorias': Despesa.CATEGORIA_CHOICES,
+        'categorias': CATEGORIA_CHOICES,
         'tipos': Despesa.TIPO_CHOICES,
+        'recorrentes': DespesaRecorrente.objects.all(),
     }
     
     if request.headers.get('HX-Request'):
@@ -365,7 +412,38 @@ def despesa_editar(request, id):
     if request.method == 'POST':
         form = DespesaForm(request.POST, instance=despesa)
         if form.is_valid():
-            form.save()
+            desp = form.save()
+            
+            # Lógica para alterar o template e despesas futuras
+            if form.cleaned_data.get('alterar_futuros') and desp.despesa_matriz:
+                matriz = desp.despesa_matriz
+                matriz.valor_base = desp.valor
+                matriz.dia_vencimento = desp.data_vencimento.day
+                matriz.save()
+                
+                # Atualiza as despesas geradas (PREVISTAS) no futuro
+                Despesa.objects.filter(
+                    despesa_matriz=matriz,
+                    status='PREVISTO',
+                    data_vencimento__gt=desp.data_vencimento
+                ).update(
+                    valor=desp.valor,
+                    data_vencimento=F('data_vencimento') # Manter o mês e ano, apenas o dia será alterado via um map?
+                    # Nota: Mudar o 'day' no banco diretamente não é tão simples via update(). 
+                    # Vamos fazer num loop para ser preciso.
+                )
+                
+                # Corrigindo o dia das faturas futuras
+                futuras = Despesa.objects.filter(despesa_matriz=matriz, status='PREVISTO', data_vencimento__gt=desp.data_vencimento)
+                for fut in futuras:
+                    try:
+                        fut.data_vencimento = fut.data_vencimento.replace(day=matriz.dia_vencimento)
+                    except ValueError:
+                        ultimo_dia = calendar.monthrange(fut.data_vencimento.year, fut.data_vencimento.month)[1]
+                        fut.data_vencimento = fut.data_vencimento.replace(day=ultimo_dia)
+                    fut.valor = matriz.valor_base
+                    fut.save()
+                    
             messages.success(request, f"Despesa '{despesa.descricao}' atualizada com sucesso!")
             return redirect('despesa_listar')
     else:
@@ -389,5 +467,70 @@ def despesa_excluir(request, id):
         
     return render(request, 'relatorios/despesa_confirm_delete.html', {
         'despesa': despesa
+    })
+
+@login_required
+@gestao_required
+def despesa_recorrente_criar(request):
+    if request.method == 'POST':
+        form = DespesaRecorrenteForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Despesa Fixa (Molde) cadastrada com sucesso! Faturas serão geradas automaticamente.")
+            return redirect('despesa_listar')
+    else:
+        form = DespesaRecorrenteForm()
+        
+    return render(request, 'relatorios/despesa_recorrente_form.html', {
+        'form': form,
+        'titulo': "Cadastrar Despesa Fixa Recorrente"
+    })
+
+@login_required
+@gestao_required
+def despesa_recorrente_editar(request, id):
+    molde = get_object_or_404(DespesaRecorrente, id=id)
+    if request.method == 'POST':
+        form = DespesaRecorrenteForm(request.POST, instance=molde)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Despesa Fixa (Molde) atualizada com sucesso!")
+            return redirect('despesa_listar')
+    else:
+        form = DespesaRecorrenteForm(instance=molde)
+        
+    return render(request, 'relatorios/despesa_recorrente_form.html', {
+        'form': form,
+        'titulo': f"Editar Molde: {molde.descricao}"
+    })
+
+@login_required
+@gestao_required
+def despesa_recorrente_excluir(request, id):
+    molde = get_object_or_404(DespesaRecorrente, id=id)
+    if request.method == 'POST':
+        Despesa.objects.filter(despesa_matriz=molde, status='PREVISTO').delete()
+        molde.delete()
+        messages.success(request, "Despesa Fixa (Molde) e faturas previstas futuras excluídas com sucesso!")
+        return redirect('despesa_listar')
+        
+    return render(request, 'relatorios/despesa_recorrente_confirm_delete.html', {'molde': molde})
+
+@login_required
+@gestao_required
+def notificacoes_badge(request):
+    hoje = timezone.localdate()
+    cinco_dias = hoje + timedelta(days=5)
+    despesas_vencimento = Despesa.objects.filter(
+        status='PREVISTO',
+        data_vencimento__lte=cinco_dias,
+        data_vencimento__gte=hoje - timedelta(days=30)
+    ).order_by('data_vencimento')
+    
+    qtd = despesas_vencimento.count()
+    
+    return render(request, 'relatorios/partials/notificacoes_badge.html', {
+        'qtd': qtd,
+        'despesas': despesas_vencimento[:5] # mostra no max as top 5
     })
 

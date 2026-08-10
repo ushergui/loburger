@@ -2,6 +2,17 @@ from django.db import models
 from decimal import Decimal
 from django.db.models import Sum
 
+class FormaPagamento(models.Model):
+    nome = models.CharField(max_length=50, unique=True, verbose_name="Nome da Forma de Pagamento")
+    
+    class Meta:
+        verbose_name = "Forma de Pagamento"
+        verbose_name_plural = "Formas de Pagamento"
+        ordering = ['nome']
+        
+    def __str__(self):
+        return self.nome
+
 class CanalVenda(models.Model):
     nome = models.CharField(max_length=50, unique=True, verbose_name="Nome do Canal")
     taxa_comissao = models.DecimalField(max_digits=5, decimal_places=4, default=0, verbose_name="Taxa de Comissão (%)")
@@ -20,15 +31,9 @@ class CanalVenda(models.Model):
 
 
 class TaxaFormaPagamento(models.Model):
-    FORMAS_PAGAMENTO = (
-        ('ONLINE', 'Pagamento Online (APP)'),
-        ('PIX_ENTREGA', 'Pix na Entrega (Maquininha)'),
-        ('DINHEIRO_ENTREGA', 'Dinheiro na Entrega'),
-        ('CARTAO_ENTREGA', 'Cartão na Entrega (Maquininha)'),
-    )
 
     canal = models.ForeignKey(CanalVenda, on_delete=models.CASCADE, related_name='taxas_pagamento', verbose_name="Canal de Venda")
-    forma_pagamento = models.CharField(max_length=20, choices=FORMAS_PAGAMENTO, verbose_name="Forma de Pagamento")
+    forma_pagamento = models.ForeignKey(FormaPagamento, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Forma de Pagamento")
     taxa_comissao = models.DecimalField(max_digits=5, decimal_places=4, default=0, verbose_name="Taxa (%)")
     taxa_fixa = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Taxa Fixa (R$)")
 
@@ -39,7 +44,7 @@ class TaxaFormaPagamento(models.Model):
 
     def __str__(self):
         taxa_pct = (self.taxa_comissao * 100).quantize(Decimal('0.01'))
-        return f"{self.canal.nome} - {self.get_forma_pagamento_display()}: {taxa_pct}%"
+        return f"{self.canal.nome} - {self.forma_pagamento.nome}: {taxa_pct}%"
 
 
 class Pedido(models.Model):
@@ -50,22 +55,16 @@ class Pedido(models.Model):
         ('CANCELADO', 'Cancelado'),
     )
 
-    FORMAS_PAGAMENTO = (
-        ('ONLINE', 'Pagamento Online (APP)'),
-        ('PIX_ENTREGA', 'Pix na Entrega (Maquininha)'),
-        ('DINHEIRO_ENTREGA', 'Dinheiro na Entrega'),
-        ('CARTAO_ENTREGA', 'Cartão na Entrega (Maquininha)'),
-    )
-
     cliente_nome = models.CharField(max_length=100, blank=True, null=True, verbose_name="Nome do Cliente")
     canal = models.ForeignKey(CanalVenda, on_delete=models.PROTECT, related_name='pedidos', verbose_name="Canal de Venda")
-    forma_pagamento = models.CharField(max_length=20, choices=FORMAS_PAGAMENTO, default='ONLINE', verbose_name="Forma de Pagamento")
+    forma_pagamento = models.ForeignKey(FormaPagamento, on_delete=models.PROTECT, null=True, blank=True, verbose_name="Forma de Pagamento")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='RECEBIDO', verbose_name="Status do Pedido")
     data_criacao = models.DateTimeField(auto_now_add=True, verbose_name="Data de Criação")
     
     # Valores financeiros calculados automaticamente
     valor_bruto = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Valor Bruto (R$)")
-    taxas_canal = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Taxas do Canal (R$)")
+    taxas_canal = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Taxas do App/Canal (R$)")
+    taxas_pagamento = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Taxas de Pagamento/Cartão (R$)")
     custo_ingredientes = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Custo de Produção (R$)")
     lucro_liquido = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Lucro Líquido Real (R$)")
     desconto = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Desconto Concedido (R$)")
@@ -93,24 +92,38 @@ class Pedido(models.Model):
         self.valor_bruto = Decimal(bruto).quantize(Decimal('0.01'))
         
         if self.status != 'CANCELADO' and self.valor_bruto > 0:
-            # 2. Taxas do Canal
+            # 2. Taxas do Canal (App, etc)
             taxas = (self.valor_bruto * self.canal.taxa_comissao) + self.canal.taxa_fixa
             self.taxas_canal = Decimal(taxas).quantize(Decimal('0.01'))
+            
+            # 2.1 Taxas de Pagamento (Cartão, Maquininha, etc)
+            if self.forma_pagamento:
+                taxa_pgto = TaxaFormaPagamento.objects.filter(canal=self.canal, forma_pagamento=self.forma_pagamento).first()
+                if taxa_pgto:
+                    calc_taxa_pgto = (self.valor_bruto * taxa_pgto.taxa_comissao) + taxa_pgto.taxa_fixa
+                    self.taxas_pagamento = Decimal(calc_taxa_pgto).quantize(Decimal('0.01'))
+                else:
+                    self.taxas_pagamento = Decimal('0.00')
+            else:
+                self.taxas_pagamento = Decimal('0.00')
         else:
             self.taxas_canal = Decimal('0.00')
+            self.taxas_pagamento = Decimal('0.00')
 
         # 3. Custo total dos ingredientes pela ficha técnica
         custo = sum(item.quantidade * item.produto.custo_total for item in itens)
         self.custo_ingredientes = Decimal(custo).quantize(Decimal('0.01'))
 
-        # 4. Lucro Líquido Real
-        self.lucro_liquido = (self.valor_bruto - self.taxas_canal - self.custo_ingredientes).quantize(Decimal('0.01'))
+        # 4. Lucro Líquido Real (Modelo de Caixa: Valor Bruto - Taxas)
+        # O custo dos ingredientes é abatido como Despesa global nas compras, e não por pedido.
+        self.lucro_liquido = (self.valor_bruto - self.taxas_canal - self.taxas_pagamento).quantize(Decimal('0.01'))
 
         if save:
             # Salvamos apenas os campos necessários para evitar recursão
             Pedido.objects.filter(id=self.id).update(
                 valor_bruto=self.valor_bruto,
                 taxas_canal=self.taxas_canal,
+                taxas_pagamento=self.taxas_pagamento,
                 custo_ingredientes=self.custo_ingredientes,
                 lucro_liquido=self.lucro_liquido
             )
@@ -215,4 +228,15 @@ def gerenciar_estoque_pedido(sender, instance, created, **kwargs):
             # Devolve ao estoque e gera histórico de ajuste
             instance.estornar_estoque()
 
+class FechamentoDiarioInfo(models.Model):
+    data = models.DateField(unique=True, verbose_name="Data do Fechamento")
+    quantidade_entregas = models.PositiveIntegerField(default=0, verbose_name="Quantidade de Entregas")
+    taxa_entrega = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('9.00'), verbose_name="Taxa de Entrega (R$)")
+    
+    class Meta:
+        verbose_name = "Informação do Fechamento Diário"
+        verbose_name_plural = "Informações dos Fechamentos Diários"
+        
+    def __str__(self):
+        return f"Fechamento {self.data.strftime('%d/%m/%Y')} - {self.quantidade_entregas} entregas"
 

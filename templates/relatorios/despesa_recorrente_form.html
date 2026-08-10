@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} - LOL BURGUER{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center space-x-2">
+    <a href="{% url 'despesa_listar' %}" class="text-hex_gold hover:text-white transition-colors" title="Voltar para a listagem">
+        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+    </a>
+    <div>
+        <h1 class="text-2xl font-bold title-hex text-hex_gold">{{ titulo }}</h1>
+        <p class="text-xs uppercase tracking-wider text-hex_blue">Módulo Financeiro / Despesas Automáticas</p>
+    </div>
+</div>
+
+<div class="max-w-2xl bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-md">
+    <form method="POST" class="space-y-5">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Descrição -->
+            <div class="col-span-1 md:col-span-2">
+                <label for="{{ form.descricao.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">
+                    {{ form.descricao.label }}
+                </label>
+                {{ form.descricao }}
+                {% if form.descricao.errors %}
+                    <p class="text-xxs text-hex_danger mt-1">{{ form.descricao.errors.as_text }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Categoria -->
+            <div>
+                <label for="{{ form.categoria.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">
+                    {{ form.categoria.label }}
+                </label>
+                {{ form.categoria }}
+                {% if form.categoria.errors %}
+                    <p class="text-xxs text-hex_danger mt-1">{{ form.categoria.errors.as_text }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Valor Base -->
+            <div>
+                <label for="{{ form.valor_base.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">
+                    {{ form.valor_base.label }}
+                </label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold_dim/50 text-xs">R$</span>
+                    <input 
+                        type="number" 
+                        name="valor_base" 
+                        id="{{ form.valor_base.id_for_label }}" 
+                        step="0.01" 
+                        required 
+                        class="w-full bg-hex_dark_bg/80 border border-hex_gold/30 rounded py-2.5 pl-8 pr-3 text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
+                        value="{% if form.valor_base.value %}{{ form.valor_base.value }}{% endif %}"
+                    >
+                </div>
+                {% if form.valor_base.errors %}
+                    <p class="text-xxs text-hex_danger mt-1">{{ form.valor_base.errors.as_text }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Dia Vencimento -->
+            <div>
+                <label for="{{ form.dia_vencimento.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">
+                    {{ form.dia_vencimento.label }}
+                </label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold_dim/50 text-xs">Dia</span>
+                    <input 
+                        type="number" 
+                        name="dia_vencimento" 
+                        id="{{ form.dia_vencimento.id_for_label }}" 
+                        min="1" max="31"
+                        required 
+                        class="w-full bg-hex_dark_bg/80 border border-hex_gold/30 rounded py-2.5 pl-10 pr-3 text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
+                        value="{% if form.dia_vencimento.value %}{{ form.dia_vencimento.value }}{% endif %}"
+                    >
+                </div>
+                <p class="text-[9px] text-hex_gold_dim/70 mt-1 uppercase tracking-wider">Dia do mês em que a despesa vence</p>
+                {% if form.dia_vencimento.errors %}
+                    <p class="text-xxs text-hex_danger mt-1">{{ form.dia_vencimento.errors.as_text }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Ativa -->
+            <div class="col-span-1 md:col-span-2 mt-2 bg-hex_dark_bg/50 border border-hex_gold/20 p-4 rounded flex items-start space-x-3">
+                <div class="pt-1">
+                    {{ form.ativa }}
+                </div>
+                <div>
+                    <label for="{{ form.ativa.id_for_label }}" class="block text-sm font-semibold text-hex_gold cursor-pointer">
+                        {{ form.ativa.label }}
+                    </label>
+                    <p class="text-xs text-hex_gold_dim/70 mt-1">Se marcado, o sistema gerará automaticamente faturas futuras (PREVISTO) para esta despesa a cada mês.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end space-x-3 border-t border-hex_dark_border pt-5 mt-6">
+            <a href="{% url 'despesa_listar' %}" class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white font-semibold py-2.5 px-5 rounded transition-all uppercase tracking-wider text-xs">
+                Cancelar
+            </a>
+            <button type="submit" class="bg-hex_gold hover:bg-hex_blue text-hex_dark_bg hover:text-white font-bold py-2.5 px-6 rounded transition-all uppercase tracking-wider text-xs border border-hex_gold/35">
+                Salvar Molde
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

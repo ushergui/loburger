@@ -103,6 +103,22 @@ def estoque_ajustar(request):
                 if custo_compra is not None and custo_compra > 0:
                     custo_novo = custo_compra / fator
                     
+                    # Lógica de Negócio: Lançamento Automático de Despesa
+                    from relatorios.models import Despesa
+                    from django.utils import timezone
+                    
+                    valor_total_compra = qtd_original * custo_compra
+                    Despesa.objects.create(
+                        descricao=f"Compra/Reposição: {ingrediente.nome} ({qtd_original} {ingrediente.unidade_compra})",
+                        tipo='VARIAVEL',
+                        categoria='FORNECEDORES',
+                        valor=valor_total_compra,
+                        status='PAGO',
+                        data_vencimento=timezone.localdate(),
+                        data_pagamento=timezone.localdate(),
+                        observacao=f"Gerado automaticamente pela entrada no estoque. {mov.observacao}"
+                    )
+                    
                 mov.valor_unitario = custo_novo
                 
                 qtd_anterior = ingrediente.estoque_atual

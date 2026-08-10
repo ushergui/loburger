@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Formas de Pagamento - LOL BURGUER{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
+    <div>
+        <h1 class="text-2xl font-bold title-hex text-hex_gold flex items-center space-x-2">
+            <i data-lucide="credit-card" class="w-6 h-6 text-hex_gold"></i>
+            <span>Formas de Pagamento</span>
+        </h1>
+        <p class="text-sm text-hex_gold_dim/70 mt-1">Cadastre todas as formas de pagamento aceitas pelo seu negócio.</p>
+    </div>
+    
+    <a href="{% url 'forma_pagamento_criar' %}" class="bg-gradient-to-r from-hex_gold to-hex_gold_dim hover:from-hex_blue hover:to-hex_blue_dark text-hex_dark_bg hover:text-white font-bold py-2.5 px-4 rounded transition-all uppercase tracking-wider text-xs flex items-center justify-center space-x-2 border border-hex_gold/40 shadow-hex-gold hover:shadow-hex-blue">
+        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+        <span>Nova Forma</span>
+    </a>
+</div>
+
+<div class="bg-hex_dark_card border border-hex_dark_border rounded shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b border-hex_dark_border bg-hex_dark_bg/50 text-hex_gold uppercase tracking-wider text-xs font-semibold">
+                    <th class="py-3 px-4">Nome da Forma de Pagamento</th>
+                    <th class="py-3 px-4 text-center">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-hex_dark_border text-hex_gold_light/90 text-sm">
+                {% for forma in formas %}
+                    <tr class="hover:bg-hex_blue/10 transition-colors">
+                        <td class="py-3 px-4 font-bold">{{ forma.nome }}</td>
+                        <td class="py-3 px-4 text-center">
+                            <div class="flex justify-center items-center space-x-3">
+                                <a href="{% url 'forma_pagamento_editar' forma.id %}" class="text-hex_blue hover:text-hex_gold transition-colors" title="Editar Forma">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </a>
+                                <a href="{% url 'forma_pagamento_excluir' forma.id %}" class="text-red-400/80 hover:text-red-400 transition-colors" title="Excluir Forma">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="2" class="py-8 text-center text-hex_gold_dim/60 uppercase tracking-wider text-xs">
+                            Nenhuma forma de pagamento cadastrada.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

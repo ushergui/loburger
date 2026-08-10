@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Forma de Pagamento - LOL BURGUER{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-10">
+    <div class="bg-hex_dark_card border border-red-500/30 p-6 rounded shadow-lg text-center relative overflow-hidden group">
+        <div class="absolute inset-0 bg-red-950/10 z-0"></div>
+        <div class="relative z-10">
+            <i data-lucide="alert-triangle" class="w-16 h-16 mx-auto text-red-500 mb-4 animate-pulse"></i>
+            
+            <h1 class="text-xl font-bold text-white mb-2">Excluir Forma de Pagamento?</h1>
+            
+            <p class="text-sm text-hex_gold_dim/80 mb-6">
+                Tem certeza que deseja excluir permanentemente a forma de pagamento <strong class="text-hex_gold">{{ forma.nome }}</strong>?
+                Essa ação não poderá ser desfeita. Se esta forma já estiver sendo usada em canais ou pedidos antigos, a exclusão será bloqueada pelo sistema para evitar inconsistências.
+            </p>
+            
+            <form method="post" class="flex flex-col space-y-3">
+                {% csrf_token %}
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-4 rounded transition-colors uppercase tracking-wider text-xs shadow-lg shadow-red-900/50">
+                    Sim, Excluir Forma de Pagamento
+                </button>
+                
+                <a href="{% url 'forma_pagamento_listar' %}" class="w-full bg-transparent border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white font-bold py-3 px-4 rounded transition-all uppercase tracking-wider text-xs">
+                    Cancelar
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

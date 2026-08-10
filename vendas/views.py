@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Case, When, Value, IntegerField
 from django.core.paginator import Paginator
 from django.utils import timezone
 from decimal import Decimal
@@ -10,8 +10,8 @@ from datetime import datetime, date
 
 from core.decorators import gestao_required
 from produtos.models import Produto, PrecoCanal, Ingrediente
-from .models import CanalVenda, TaxaFormaPagamento, Pedido, PedidoItem
-from .forms import CanalVendaForm
+from .models import CanalVenda, TaxaFormaPagamento, FormaPagamento, Pedido, PedidoItem, FechamentoDiarioInfo
+from .forms import CanalVendaForm, TaxaFormaPagamentoFormSet, FormaPagamentoForm
 
 # ==========================================
 # CANAIS DE VENDA (GESTÃO)
@@ -31,11 +31,25 @@ def canal_criar(request):
         form = CanalVendaForm(request.POST)
         if form.is_valid():
             canal = form.save()
-            messages.success(request, f"Canal de venda '{canal.nome}' cadastrado!")
-            return redirect('canal_listar')
+            formset = TaxaFormaPagamentoFormSet(request.POST, instance=canal)
+            if formset.is_valid():
+                formset.save()
+                messages.success(request, f"Canal de venda '{canal.nome}' cadastrado!")
+                return redirect('canal_listar')
+            else:
+                # Se o formset for inválido, apaga o canal pra não ficar órfão (ou apenas exibe o erro)
+                canal.delete()
+        else:
+            formset = TaxaFormaPagamentoFormSet(request.POST)
     else:
         form = CanalVendaForm()
-    return render(request, 'vendas/canal_form.html', {'form': form, 'titulo': "Cadastrar Canal de Venda"})
+        formset = TaxaFormaPagamentoFormSet()
+    
+    return render(request, 'vendas/canal_form.html', {
+        'form': form, 
+        'formset': formset,
+        'titulo': "Cadastrar Canal de Venda"
+    })
 
 
 @login_required
@@ -44,13 +58,21 @@ def canal_editar(request, pk):
     canal = get_object_or_404(CanalVenda, pk=pk)
     if request.method == 'POST':
         form = CanalVendaForm(request.POST, instance=canal)
-        if form.is_valid():
+        formset = TaxaFormaPagamentoFormSet(request.POST, instance=canal)
+        if form.is_valid() and formset.is_valid():
             form.save()
+            formset.save()
             messages.success(request, f"Canal '{canal.nome}' atualizado!")
             return redirect('canal_listar')
     else:
         form = CanalVendaForm(instance=canal)
-    return render(request, 'vendas/canal_form.html', {'form': form, 'titulo': f"Editar Canal: {canal.nome}"})
+        formset = TaxaFormaPagamentoFormSet(instance=canal)
+        
+    return render(request, 'vendas/canal_form.html', {
+        'form': form, 
+        'formset': formset,
+        'titulo': f"Editar Canal: {canal.nome}"
+    })
 
 
 @login_required
@@ -63,6 +85,58 @@ def canal_excluir(request, pk):
         messages.success(request, f"Canal '{nome}' excluído.")
         return redirect('canal_listar')
     return render(request, 'vendas/canal_confirm_delete.html', {'canal': canal})
+
+
+# ==========================================
+# FORMAS DE PAGAMENTO (GESTÃO)
+# ==========================================
+
+@login_required
+@gestao_required
+def forma_pagamento_listar(request):
+    formas = FormaPagamento.objects.all()
+    return render(request, 'vendas/forma_pagamento_lista.html', {'formas': formas})
+
+@login_required
+@gestao_required
+def forma_pagamento_criar(request):
+    if request.method == 'POST':
+        form = FormaPagamentoForm(request.POST)
+        if form.is_valid():
+            fp = form.save()
+            messages.success(request, f"Forma de Pagamento '{fp.nome}' cadastrada!")
+            return redirect('forma_pagamento_listar')
+    else:
+        form = FormaPagamentoForm()
+    return render(request, 'vendas/forma_pagamento_form.html', {'form': form, 'titulo': "Cadastrar Forma de Pagamento"})
+
+@login_required
+@gestao_required
+def forma_pagamento_editar(request, pk):
+    fp = get_object_or_404(FormaPagamento, pk=pk)
+    if request.method == 'POST':
+        form = FormaPagamentoForm(request.POST, instance=fp)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Forma de Pagamento '{fp.nome}' atualizada!")
+            return redirect('forma_pagamento_listar')
+    else:
+        form = FormaPagamentoForm(instance=fp)
+    return render(request, 'vendas/forma_pagamento_form.html', {'form': form, 'titulo': f"Editar Forma de Pagamento: {fp.nome}"})
+
+@login_required
+@gestao_required
+def forma_pagamento_excluir(request, pk):
+    fp = get_object_or_404(FormaPagamento, pk=pk)
+    if request.method == 'POST':
+        nome = fp.nome
+        try:
+            fp.delete()
+            messages.success(request, f"Forma de Pagamento '{nome}' excluída.")
+        except Exception as e:
+            messages.error(request, "Não é possível excluir esta forma de pagamento pois ela já foi utilizada em vendas ou canais.")
+        return redirect('forma_pagamento_listar')
+    return render(request, 'vendas/forma_pagamento_confirm_delete.html', {'forma': fp})
 
 
 # ==========================================
@@ -351,7 +425,13 @@ def fechamento_diario(request):
     categoria_filtro = request.GET.get('categoria', '').strip()
 
     canais = CanalVenda.objects.all().prefetch_related('taxas_pagamento')
-    produtos = Produto.objects.filter(status=True).prefetch_related('precos_canais', 'ficha_tecnica')
+    produtos = Produto.objects.filter(status=True).annotate(
+        ordem_categoria=Case(
+            When(categoria='BURGER', then=Value(1)),
+            default=Value(2),
+            output_field=IntegerField(),
+        )
+    ).order_by('ordem_categoria', 'nome').prefetch_related('precos_canais', 'ficha_tecnica')
 
     if busca:
         produtos = produtos.filter(Q(nome__icontains=busca) | Q(descricao__icontains=busca))
@@ -384,9 +464,18 @@ def fechamento_diario(request):
         for item in ped.itens.all():
             if item.produto_id not in vendas_gravadas:
                 vendas_gravadas[item.produto_id] = {}
-            chave = f"{ped.canal_id}_{ped.forma_pagamento}"
-            vendas_gravadas[item.produto_id][chave] = vendas_gravadas[item.produto_id].get(chave, 0) + item.quantidade
+            if ped.forma_pagamento:
+                chave = f"{ped.canal_id}_{ped.forma_pagamento.id}"
+                vendas_gravadas[item.produto_id][chave] = vendas_gravadas[item.produto_id].get(chave, 0) + item.quantidade
             total_entregas_dia += item.quantidade
+
+    info_dia = FechamentoDiarioInfo.objects.filter(data=data_fechamento).first()
+    if info_dia:
+        total_entregas_salvo = info_dia.quantidade_entregas
+        taxa_entrega_salva = info_dia.taxa_entrega
+    else:
+        total_entregas_salvo = total_entregas_dia  # Fallback para o sugerido
+        taxa_entrega_salva = Decimal('9.00')
 
     if request.method == 'POST':
         desconto_dia_str = request.POST.get('desconto_dia', '0.00').replace(',', '.')
@@ -395,23 +484,44 @@ def fechamento_diario(request):
         except:
             desconto_dia = Decimal('0.00')
 
+        entregas_str = request.POST.get('quantidade_entregas', '')
+        try:
+            quantidade_entregas = int(entregas_str)
+        except ValueError:
+            quantidade_entregas = total_entregas_dia
+            
+        taxa_entrega_str = request.POST.get('taxa_entrega', '9.00').replace(',', '.')
+        try:
+            taxa_entrega = Decimal(taxa_entrega_str)
+        except:
+            taxa_entrega = Decimal('9.00')
+            
+        # Salva as info extras do dia
+        FechamentoDiarioInfo.objects.update_or_create(
+            data=data_fechamento,
+            defaults={
+                'quantidade_entregas': quantidade_entregas,
+                'taxa_entrega': taxa_entrega
+            }
+        )
+
         # Agrupa itens postados por (canal_id, forma_pagamento)
         # Campos de formulário com nome "qtd_<produto_id>_<canal_id>_<forma_pagamento>"
         vendas_postadas = {} # {(canal_id, forma_pagamento): [(produto, quantidade, preco_unitario)]}
 
         for key, val in request.POST.items():
             if key.startswith('qtd_') and val and val.isdigit() and int(val) > 0:
-                partes = key.split('_') # ['qtd', 'prod_id', 'canal_id', 'forma_pagamento']
+                partes = key.split('_', 3) # ['qtd', 'prod_id', 'canal_id', 'forma_pagamento_id']
                 if len(partes) >= 4:
                     prod_id = int(partes[1])
                     canal_id = int(partes[2])
-                    forma_pagamento = partes[3]
+                    forma_pagamento_id = int(partes[3])
                     qtd = int(val)
 
                     prod_obj = Produto.objects.filter(id=prod_id).first()
                     if prod_obj:
                         preco_unit = precos_matriz.get(prod_id, {}).get(canal_id, Decimal('0.00'))
-                        par = (canal_id, forma_pagamento)
+                        par = (canal_id, forma_pagamento_id)
                         if par not in vendas_postadas:
                             vendas_postadas[par] = []
                         vendas_postadas[par].append((prod_obj, qtd, preco_unit))
@@ -424,19 +534,21 @@ def fechamento_diario(request):
 
         # Cria novos pedidos por canal e forma de pagamento
         novos_pedidos_criados = 0
-        for (canal_id, f_pagamento), itens_lista in vendas_postadas.items():
+        for (canal_id, forma_pagamento_id), itens_lista in vendas_postadas.items():
             canal_obj = CanalVenda.objects.filter(id=canal_id).first()
-            if not canal_obj:
+            forma_pagamento_obj = FormaPagamento.objects.filter(id=forma_pagamento_id).first()
+            
+            if not canal_obj or not forma_pagamento_obj:
                 continue
 
             # Busca taxa da forma de pagamento
-            taxa_obj = TaxaFormaPagamento.objects.filter(canal=canal_obj, forma_pagamento=f_pagamento).first()
+            taxa_obj = TaxaFormaPagamento.objects.filter(canal=canal_obj, forma_pagamento=forma_pagamento_obj).first()
             taxa_pct = taxa_obj.taxa_comissao if taxa_obj else canal_obj.taxa_comissao
 
             novo_pedido = Pedido.objects.create(
-                cliente_nome=f"Fechamento Diário ({f_pagamento})",
+                cliente_nome=f"Fechamento Diário ({forma_pagamento_obj.nome})",
                 canal=canal_obj,
-                forma_pagamento=f_pagamento,
+                forma_pagamento=forma_pagamento_obj,
                 status='CONCLUIDO',
                 desconto=desconto_dia,
                 data_criacao=timezone.make_aware(datetime.combine(data_fechamento, datetime.now().time()))
@@ -474,8 +586,10 @@ def fechamento_diario(request):
         'precos_matriz': precos_matriz,
         'vendas_gravadas': vendas_gravadas,
         'desconto_dia': desconto_dia,
+        'quantidade_entregas': total_entregas_salvo,
+        'taxa_entrega': taxa_entrega_salva,
         'total_entregas_sugerido': total_entregas_dia,
-        'valor_entregas_sugerido': Decimal(total_entregas_dia * 9).quantize(Decimal('0.02')),
+        'valor_entregas_calculado': (Decimal(total_entregas_salvo) * taxa_entrega_salva).quantize(Decimal('0.02')),
         'categorias': Produto.CATEGORIAS,
     }
 

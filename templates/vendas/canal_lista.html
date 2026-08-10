@@ -35,30 +35,31 @@
                     <tr class="hover:bg-hex_dark_bg/30 transition-colors">
                         <td class="p-4 font-bold">
                             <div class="flex items-center space-x-2">
-                                <span class="w-3 h-3 rounded-full" style="background-color: {% if canal.nome == 'iFood Delivery' %}#EA1D2C{% elif 'UaiRango' in canal.nome %}#FF8C00{% else %}#0AC8B9{% endif %};"></span>
-                                <span class="text-white font-bold">{{ canal.nome }}</span>
+                                <span class="w-4 h-4 rounded-full shadow-sm" style="background-color: {% if canal.nome == 'iFood Delivery' %}#EA1D2C{% elif 'UaiRango' in canal.nome %}#FF8C00{% else %}#0AC8B9{% endif %};"></span>
+                                <span class="text-white font-bold text-lg tracking-wide">{{ canal.nome }}</span>
                             </div>
                             <!-- Sub-taxas por modalidade -->
-                            <div class="mt-2 pl-5 space-y-1">
+                            <div class="mt-3 pl-6 flex flex-wrap gap-2">
                                 {% for tp in canal.taxas_pagamento.all %}
-                                    <span class="inline-block text-[10px] font-mono px-2 py-0.5 rounded bg-hex_dark_bg border border-hex_gold/20 text-hex_gold_light mr-1">
-                                        {{ tp.get_forma_pagamento_display }}: <strong>{{ tp.taxa_comissao|stringformat:".2f" }}%</strong>
+                                    <span class="inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-md bg-hex_dark_bg border border-hex_gold/40 text-hex_gold shadow-sm hover:border-hex_gold transition-colors cursor-default">
+                                        <span class="mr-1.5 text-hex_gold_dim">{{ tp.forma_pagamento.nome }}:</span> 
+                                        <strong class="text-white font-mono">{{ tp.taxa_comissao|stringformat:".2f" }}%</strong>
                                     </span>
                                 {% endfor %}
                             </div>
                         </td>
-                        <td class="p-4 font-mono font-semibold text-hex_gold">
+                        <td class="p-4 font-mono font-bold text-hex_gold text-lg">
                             {{ canal.taxa_comissao|stringformat:".2f" }}%
                         </td>
-                        <td class="p-4 font-mono text-hex_gold_light">
+                        <td class="p-4 font-mono font-bold text-white text-lg">
                             R$ {{ canal.taxa_fixa|floatformat:2 }}
                         </td>
-                        <td class="p-4 text-hex_gold_dim/70">
+                        <td class="p-4 text-hex_gold_light text-base font-medium">
                             {{ canal.dias_repasse }} dias
                         </td>
                         <td class="p-4 text-center">
-                            <a href="{% url 'canal_editar' canal.id %}" class="text-hex_blue hover:text-white p-1 rounded hover:bg-hex_dark_bg transition-all inline-block" title="Editar">
-                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            <a href="{% url 'canal_editar' canal.id %}" class="text-hex_blue hover:text-white p-2 rounded hover:bg-hex_blue/20 transition-all inline-block" title="Editar">
+                                <i data-lucide="edit-3" class="w-5 h-5"></i>
                             </a>
                         </td>
                     </tr>

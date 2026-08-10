@@ -2,9 +2,9 @@
     <table class="w-full text-left border-collapse text-xs">
         <thead>
             <tr class="border-b border-hex_dark_border text-hex_gold uppercase tracking-wider text-[10px] font-semibold bg-hex_dark_bg/40">
-                <th class="py-3.5 px-4">Data Pagamento</th>
+                <th class="py-3.5 px-4">Vencimento</th>
                 <th class="py-3.5 px-4">Descrição</th>
-                <th class="py-3.5 px-4">Tipo</th>
+                <th class="py-3.5 px-4">Status</th>
                 <th class="py-3.5 px-4">Categoria</th>
                 <th class="py-3.5 px-4 text-right">Valor</th>
                 <th class="py-3.5 px-4 text-center">Ações</th>
@@ -14,12 +14,21 @@
             {% if page_obj %}
                 {% for desp in page_obj %}
                     <tr class="hover:bg-hex_dark_bg/30 transition-colors">
-                        <td class="py-3 px-4 font-mono">{{ desp.data_pagamento|date:"d/m/Y" }}</td>
-                        <td class="py-3 px-4 font-medium text-white">{{ desp.descricao }}</td>
+                        <td class="py-3 px-4 font-mono">{{ desp.data_vencimento|date:"d/m/Y" }}</td>
+                        <td class="py-3 px-4 font-medium text-white">
+                            {{ desp.descricao }}
+                            {% if desp.despesa_matriz %}<span class="ml-1 text-[9px] px-1 py-0.5 bg-hex_blue/10 text-hex_blue border border-hex_blue/20 rounded uppercase tracking-wider">Auto</span>{% endif %}
+                        </td>
                         <td class="py-3 px-4">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider {% if desp.tipo == 'FIXO' %}bg-blue-950/40 text-hex_blue border border-hex_blue/20{% else %}bg-amber-950/40 text-amber-500 border border-amber-500/20{% endif %}">
-                                {{ desp.get_tipo_display }}
-                            </span>
+                            {% if desp.status == 'PAGO' %}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-green-950/40 text-green-400 border border-green-500/20" title="Pago em {{ desp.data_pagamento|date:'d/m/Y' }}">
+                                    Pago
+                                </span>
+                            {% else %}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-amber-950/40 text-amber-500 border border-amber-500/20">
+                                    Previsto
+                                </span>
+                            {% endif %}
                         </td>
                         <td class="py-3 px-4">{{ desp.get_categoria_display }}</td>
                         <td class="py-3 px-4 text-right font-mono font-bold text-hex_gold">R$ {{ desp.valor }}</td>

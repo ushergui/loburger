@@ -3,7 +3,7 @@
 {% block title %}Cadastro de Canal - LOL BURGUER{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
+<div class="max-w-5xl mx-auto">
     <div class="mb-6 flex items-center space-x-2">
         <a href="{% url 'canal_listar' %}" class="text-hex_gold hover:text-white transition-colors" title="Voltar à listagem">
             <i data-lucide="arrow-left" class="w-6 h-6"></i>
@@ -70,6 +70,49 @@
                             <p class="text-red-400 text-xs mt-1">{{ form.dias_repasse.errors.0 }}</p>
                         {% endif %}
                     </div>
+                </div>
+            </div>
+
+            <!-- Configurações de Taxas Específicas por Pagamento -->
+            <div class="mt-8 border-t border-hex_dark_border pt-6">
+                <h3 class="text-sm uppercase tracking-widest text-hex_blue font-bold mb-4 flex items-center space-x-2">
+                    <i data-lucide="wallet" class="w-4 h-4 text-hex_blue"></i>
+                    <span>Taxas por Forma de Pagamento (Opcional)</span>
+                </h3>
+                <p class="text-xs text-hex_gold_dim/70 mb-4">
+                    Cadastre taxas exclusivas para modalidades como Pix, Online, Cartão ou Dinheiro.
+                </p>
+
+                {{ formset.management_form }}
+                
+                <div class="space-y-4">
+                    {% for subform in formset %}
+                        <div class="bg-hex_dark_bg/50 border border-hex_gold/20 p-4 rounded grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                            {% for hidden in subform.hidden_fields %}
+                                {{ hidden }}
+                            {% endfor %}
+                            
+                            <div class="md:col-span-6">
+                                <label class="block text-[10px] uppercase tracking-wider text-hex_gold_dim/70 mb-1">Forma de Pagamento</label>
+                                {{ subform.forma_pagamento }}
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[10px] uppercase tracking-wider text-hex_gold_dim/70 mb-1">Comissão (%)</label>
+                                {{ subform.taxa_comissao }}
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-[10px] uppercase tracking-wider text-hex_gold_dim/70 mb-1">Taxa Fixa (R$)</label>
+                                {{ subform.taxa_fixa }}
+                            </div>
+                            <div class="md:col-span-1 flex items-center mt-4 md:mt-0 justify-end md:justify-center">
+                                {% if formset.can_delete %}
+                                    <label class="text-xs text-red-400/80 hover:text-red-400 flex items-center space-x-1 cursor-pointer">
+                                        {{ subform.DELETE }} <span class="hidden md:inline">Excluir</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
 

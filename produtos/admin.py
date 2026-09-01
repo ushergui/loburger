@@ -3,6 +3,7 @@ from .models import Ingrediente, Produto, FichaTecnicaItem, PrecoCanal
 
 class FichaTecnicaItemInline(admin.TabularInline):
     model = FichaTecnicaItem
+    fk_name = 'produto'
     extra = 1
 
 class PrecoCanalInline(admin.TabularInline):

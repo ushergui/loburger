@@ -114,6 +114,72 @@ class PagamentoContasTests(TestCase):
         self.assertEqual(r2['despesas_pagas_total'], Decimal('90.00'))
 
 
+class ParcelamentoTests(TestCase):
+    def setUp(self):
+        ConfiguracaoFinanceira.get_solo()
+        from django.contrib.auth import get_user_model
+        U = get_user_model()
+        self.u = U.objects.create_user('g', password='x', role='GESTAO')
+
+    def test_lanca_em_6x_gera_6_previstas(self):
+        from django.test import Client
+        c = Client(); c.force_login(self.u)
+        r = c.post('/relatorios/despesas/novo/', {
+            'descricao': 'Fritadeira nova', 'credor': 'Loja X', 'tipo': 'VARIAVEL',
+            'categoria': 'MANUTENCAO', 'valor': '1200,00', 'status': 'PREVISTO',
+            'data_vencimento': '2026-10-05', 'observacao': '', 'parcelas': '6',
+        })
+        self.assertEqual(r.status_code, 302)
+        parcelas = Despesa.objects.filter(descricao__startswith='Fritadeira nova').order_by('parcela_num')
+        self.assertEqual(parcelas.count(), 6)
+        self.assertEqual(sum(p.valor for p in parcelas), Decimal('1200.00'))
+        self.assertEqual([p.data_vencimento.month for p in parcelas], [10, 11, 12, 1, 2, 3])
+        self.assertTrue(all(p.status == 'PREVISTO' for p in parcelas))
+        self.assertTrue(all(p.grupo_parcelas == parcelas[0].grupo_parcelas for p in parcelas))
+
+
+class FluxoCaixaTests(TestCase):
+    def setUp(self):
+        ConfiguracaoFinanceira.get_solo()
+        from django.contrib.auth import get_user_model
+        self.u = get_user_model().objects.create_user('g', password='x', role='GESTAO')
+
+    def test_pagina_carrega_e_projeta_saidas(self):
+        from django.test import Client
+        hoje = timezone.localdate()
+        Despesa.objects.create(descricao='Aluguel', categoria='OUTROS', valor=Decimal('2000'),
+                               status='PREVISTO', data_vencimento=hoje + timedelta(days=40))
+        c = Client(); c.force_login(self.u)
+        r = c.get('/relatorios/fluxo-caixa/')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(len(r.context['linhas']), 6)
+
+
+class AuditoriaTests(TestCase):
+    def setUp(self):
+        ConfiguracaoFinanceira.get_solo()
+        from django.contrib.auth import get_user_model
+        self.u = get_user_model().objects.create_user('gestor', password='x', role='GESTAO')
+
+    def test_registra_criacao_e_alteracao(self):
+        from django.test import Client
+        from core.models import LogAuditoria
+        c = Client(); c.force_login(self.u)
+        c.post('/relatorios/despesas/novo/', {
+            'descricao': 'Contador', 'credor': 'Silva', 'tipo': 'FIXO', 'categoria': 'CONTADOR',
+            'valor': '600,00', 'status': 'PREVISTO', 'data_vencimento': '2026-10-10', 'observacao': '',
+        })
+        d = Despesa.objects.get(descricao='Contador')
+        logs = LogAuditoria.objects.filter(objeto_id=str(d.id))
+        self.assertTrue(logs.filter(acao='CRIOU').exists())
+        self.assertEqual(logs.first().usuario_nome, 'gestor')
+
+        c.post(f'/relatorios/despesas/{d.id}/pagar/', {'data_pagamento': '2026-10-11'})
+        self.assertTrue(LogAuditoria.objects.filter(objeto_id=str(d.id), acao='ALTEROU').exists())
+        alt = LogAuditoria.objects.filter(objeto_id=str(d.id), acao='ALTEROU').first()
+        self.assertIn('status', alt.detalhes)
+
+
 class AlertaVencimentoTests(TestCase):
     def setUp(self):
         ConfiguracaoFinanceira.get_solo()

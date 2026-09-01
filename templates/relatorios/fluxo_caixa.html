@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Fluxo de Caixa Projetado - LOL BURGUER{% endblock %}
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold title-hex text-hex_gold flex items-center space-x-2">
+        <i data-lucide="trending-up" class="w-6 h-6 text-hex_gold"></i><span>Fluxo de Caixa Projetado</span>
+    </h1>
+    <p class="text-sm text-hex_gold_dim/70 mt-1">
+        Estimativa dos próximos 6 meses: saldo de hoje + recebimento estimado − contas já previstas.
+        <strong>Não é previsão de vendas exata</strong> — serve para saber se o caixa aguenta os compromissos.
+    </p>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+    <div class="bg-hex_dark_card border border-hex_blue/40 p-5 rounded shadow-hex-blue">
+        <span class="text-xxs uppercase tracking-wider text-hex_blue block font-semibold">Caixa acumulado hoje</span>
+        <h2 class="text-2xl font-bold font-mono {% if saldo_hoje >= 0 %}text-hex_gold_light{% else %}text-hex_danger{% endif %} mt-1.5">R$ {{ saldo_hoje|floatformat:2 }}</h2>
+    </div>
+    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md">
+        <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/60 block">Recebimento mensal estimado</span>
+        <h2 class="text-2xl font-bold font-mono text-hex_gold_light mt-1.5">R$ {{ receita_mensal_estimada|floatformat:2 }}</h2>
+        <form method="get" class="mt-2 flex items-center gap-2">
+            <span class="text-[10px] text-hex_gold_dim/60 uppercase">Ajustar:</span>
+            <input type="text" name="receita_mensal" placeholder="ex: 25000" value="{% if override_ativo %}{{ receita_mensal_estimada }}{% endif %}"
+                class="w-28 bg-hex_dark_bg border border-hex_gold/30 rounded py-1 px-2 text-xs text-hex_gold_light focus:outline-none focus:border-hex_blue">
+            <button class="text-[10px] bg-hex_gold/15 border border-hex_gold/40 text-hex_gold px-2 py-1 rounded uppercase tracking-wider">Recalcular</button>
+        </form>
+        <p class="text-[10px] text-hex_gold_dim/50 mt-1">{% if override_ativo %}Valor informado por você.{% else %}Média líquida dos últimos 90 dias.{% endif %}</p>
+    </div>
+</div>
+
+<div class="bg-hex_dark_card border border-hex_dark_border rounded shadow-md overflow-x-auto">
+    <table class="w-full text-left border-collapse text-sm">
+        <thead>
+            <tr class="border-b border-hex_dark_border bg-hex_dark_bg/40 text-hex_gold uppercase tracking-wider text-[10px] font-semibold">
+                <th class="py-3 px-4">Mês</th>
+                <th class="py-3 px-4 text-right">Saldo inicial</th>
+                <th class="py-3 px-4 text-right">+ Recebimento estimado</th>
+                <th class="py-3 px-4 text-right">− Contas previstas</th>
+                <th class="py-3 px-4 text-right">= Saldo projetado</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-hex_dark_border text-hex_gold_light/90 font-mono">
+            {% for l in linhas %}
+            <tr class="{% if l.negativo %}bg-hex_danger/10{% endif %}">
+                <td class="py-3 px-4 font-sans font-semibold text-white">{{ l.mes }}</td>
+                <td class="py-3 px-4 text-right text-hex_gold_dim/70">R$ {{ l.saldo_inicial|floatformat:2 }}</td>
+                <td class="py-3 px-4 text-right text-hex_success">+ {{ l.entradas|floatformat:2 }}</td>
+                <td class="py-3 px-4 text-right text-hex_danger">− {{ l.saidas|floatformat:2 }}</td>
+                <td class="py-3 px-4 text-right font-bold {% if l.negativo %}text-hex_danger{% else %}text-hex_gold{% endif %}">R$ {{ l.saldo_final|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<p class="text-xs text-hex_gold_dim/60 mt-4">
+    <i data-lucide="info" class="w-3.5 h-3.5 inline text-hex_blue"></i>
+    Linha vermelha = o caixa fecharia o mês negativo se as vendas ficarem na média e você pagar tudo que está previsto.
+    É o sinal para segurar uma compra, renegociar um vencimento ou reforçar as vendas.
+</p>
+{% endblock %}

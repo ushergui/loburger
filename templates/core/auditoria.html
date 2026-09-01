@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Auditoria - LOL BURGUER{% endblock %}
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold title-hex text-hex_gold flex items-center space-x-2">
+        <i data-lucide="scroll-text" class="w-6 h-6 text-hex_gold"></i><span>Auditoria — quem fez o quê</span>
+    </h1>
+    <p class="text-sm text-hex_gold_dim/70 mt-1">Registro de tudo que foi criado, alterado ou excluído no sistema.</p>
+</div>
+
+<form method="get" class="bg-hex_dark_card border border-hex_dark_border p-4 rounded mb-6 flex flex-wrap gap-4 items-end">
+    <div>
+        <label class="block text-xxs uppercase tracking-wider text-hex_gold_dim/60 mb-1">Ação</label>
+        <select name="acao" class="bg-hex_dark_bg border border-hex_gold/25 rounded py-2 px-3 text-xs text-hex_gold_light">
+            <option value="">Todas</option>
+            {% for v, l in acoes %}<option value="{{ v }}" {% if acao_sel == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="block text-xxs uppercase tracking-wider text-hex_gold_dim/60 mb-1">Tipo de registro</label>
+        <select name="modelo" class="bg-hex_dark_bg border border-hex_gold/25 rounded py-2 px-3 text-xs text-hex_gold_light">
+            <option value="">Todos</option>
+            {% for m in modelos %}<option value="{{ m }}" {% if modelo_sel == m %}selected{% endif %}>{{ m }}</option>{% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="block text-xxs uppercase tracking-wider text-hex_gold_dim/60 mb-1">Usuário</label>
+        <input type="text" name="usuario" value="{{ usuario_sel }}" placeholder="nome"
+            class="bg-hex_dark_bg border border-hex_gold/25 rounded py-2 px-3 text-xs text-hex_gold_light">
+    </div>
+    <button class="bg-hex_gold/15 border border-hex_gold/40 text-hex_gold px-3 py-2 rounded text-xs uppercase tracking-wider">Filtrar</button>
+</form>
+
+<div class="bg-hex_dark_card border border-hex_dark_border rounded shadow-md overflow-x-auto">
+    <table class="w-full text-left border-collapse text-xs">
+        <thead>
+            <tr class="border-b border-hex_dark_border bg-hex_dark_bg/40 text-hex_gold uppercase tracking-wider text-[10px] font-semibold">
+                <th class="py-3 px-4">Quando</th>
+                <th class="py-3 px-4">Quem</th>
+                <th class="py-3 px-4">Ação</th>
+                <th class="py-3 px-4">Registro</th>
+                <th class="py-3 px-4">O que mudou</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-hex_dark_border text-hex_gold_light/90">
+            {% for log in page_obj %}
+            <tr class="hover:bg-hex_dark_bg/30">
+                <td class="py-3 px-4 font-mono whitespace-nowrap">{{ log.quando|date:"d/m/Y H:i" }}</td>
+                <td class="py-3 px-4 font-semibold text-white">{{ log.usuario_nome }}</td>
+                <td class="py-3 px-4">
+                    <span class="text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded
+                        {% if log.acao == 'CRIOU' %}bg-hex_success/15 text-hex_success border border-hex_success/30
+                        {% elif log.acao == 'EXCLUIU' %}bg-hex_danger/15 text-hex_danger border border-hex_danger/30
+                        {% else %}bg-hex_warning/15 text-hex_warning border border-hex_warning/30{% endif %}">{{ log.get_acao_display }}</span>
+                </td>
+                <td class="py-3 px-4"><span class="text-hex_gold_dim/70">{{ log.modelo }}</span> · <span class="text-white">{{ log.descricao }}</span></td>
+                <td class="py-3 px-4 font-mono text-[10px] text-hex_gold_dim/80">
+                    {% for campo, mud in log.detalhes.items %}
+                        <div>{{ campo }}: <span class="text-hex_danger/70">{{ mud.de }}</span> → <span class="text-hex_success/80">{{ mud.para }}</span></div>
+                    {% endfor %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="py-8 text-center text-hex_gold_dim/50 uppercase tracking-widest text-xs">Nenhum registro de auditoria ainda.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if page_obj.has_other_pages %}
+<div class="flex items-center justify-between mt-4 text-xs">
+    <span class="text-hex_gold_dim/50">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+    <div class="flex gap-2">
+        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&acao={{ acao_sel }}&modelo={{ modelo_sel }}&usuario={{ usuario_sel }}" class="bg-hex_dark_bg border border-hex_gold/30 text-hex_gold px-3 py-1 rounded uppercase tracking-wider">Anterior</a>{% endif %}
+        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&acao={{ acao_sel }}&modelo={{ modelo_sel }}&usuario={{ usuario_sel }}" class="bg-hex_dark_bg border border-hex_gold/30 text-hex_gold px-3 py-1 rounded uppercase tracking-wider">Próxima</a>{% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

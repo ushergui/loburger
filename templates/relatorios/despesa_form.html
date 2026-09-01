@@ -122,6 +122,19 @@
                 {% endif %}
             </div>
             
+            <!-- Parcelamento (só na criação) -->
+            {% if 'parcelas' in form.fields %}
+            <div class="col-span-1 md:col-span-2 mt-2 bg-hex_gold/5 border border-hex_gold/25 p-4 rounded flex items-start space-x-3">
+                <div class="w-24 shrink-0">
+                    <label for="{{ form.parcelas.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">Parcelas</label>
+                    {{ form.parcelas }}
+                </div>
+                <div class="pt-5">
+                    <p class="text-xs text-hex_gold_dim/70">{{ form.parcelas.help_text }}</p>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Alterar Futuros (Se aplicável) -->
             {% if 'alterar_futuros' in form.fields %}
             <div class="col-span-1 md:col-span-2 mt-2 bg-hex_blue/10 border border-hex_blue/30 p-4 rounded flex items-start space-x-3">

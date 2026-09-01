@@ -71,6 +71,11 @@ class Produto(models.Model):
     descricao = models.TextField(blank=True, null=True, verbose_name="Descrição do Lanche")
     foto = models.ImageField(upload_to='produtos/', blank=True, null=True, verbose_name="Foto do Lanche")
     status = models.BooleanField(default=True, verbose_name="Ativo / Em Linha")
+    custo_aquisicao = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal('0.00'),
+        verbose_name="Custo de aquisição (revenda)",
+        help_text="Só para itens de revenda comprados prontos (refrigerante, água, chocolate). "
+                  "Deixe 0 para produtos feitos por ficha técnica.")
 
     class Meta:
         verbose_name = "Produto"
@@ -80,33 +85,90 @@ class Produto(models.Model):
     def __str__(self):
         return self.nome
 
+    def _calcular_custo(self, visitados):
+        if self.pk in visitados:
+            return Decimal('0.00')
+        visitados = visitados | {self.pk}
+        custo = Decimal(self.custo_aquisicao or 0)
+        for item in self.ficha_tecnica.all():
+            if item.ingrediente_id:
+                custo += item.quantidade * item.ingrediente.custo_unitario
+            elif item.produto_componente_id:
+                custo += item.quantidade * item.produto_componente._calcular_custo(visitados)
+        return custo.quantize(Decimal('0.01'))
+
     @property
     def custo_total(self):
-        # Lógica de Negócio: Calcula o custo de produção somando cada item da Ficha Técnica
-        itens = self.ficha_tecnica.all()
-        custo = Decimal('0.00')
-        for item in itens:
-            custo += item.quantidade * item.ingrediente.custo_unitario
-        return custo.quantize(Decimal('0.01'))
+        """Custo de produção: revenda (custo_aquisicao) + soma da ficha técnica.
+        A ficha pode ter ingredientes E outros produtos (combos), recursivamente."""
+        return self._calcular_custo(set())
+
+    def insumos_consolidados(self, multiplicador=Decimal('1'), _visitados=None):
+        """{ingrediente_id: (ingrediente, quantidade_total)} — a ficha achatada,
+        entrando recursivamente nos produtos componentes (combos)."""
+        _visitados = _visitados or set()
+        resultado = {}
+        if self.pk in _visitados:
+            return resultado
+        _visitados = _visitados | {self.pk}
+        for item in self.ficha_tecnica.select_related('ingrediente', 'produto_componente').all():
+            qtd = item.quantidade * multiplicador
+            if item.ingrediente_id:
+                ing = item.ingrediente
+                atual = resultado.get(ing.id, (ing, Decimal('0')))
+                resultado[ing.id] = (ing, atual[1] + qtd)
+            elif item.produto_componente_id:
+                sub = item.produto_componente.insumos_consolidados(qtd, _visitados)
+                for iid, (ing, q) in sub.items():
+                    atual = resultado.get(iid, (ing, Decimal('0')))
+                    resultado[iid] = (ing, atual[1] + q)
+        return resultado
 
 
 class FichaTecnicaItem(models.Model):
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='ficha_tecnica', verbose_name="Produto")
-    ingrediente = models.ForeignKey(Ingrediente, on_delete=models.CASCADE, verbose_name="Ingrediente / Insumo")
+    ingrediente = models.ForeignKey(Ingrediente, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Ingrediente / Insumo")
+    produto_componente = models.ForeignKey(
+        Produto, on_delete=models.CASCADE, null=True, blank=True,
+        related_name='usado_em_combos', verbose_name="Produto componente (combo)")
     quantidade = models.DecimalField(max_digits=10, decimal_places=3, verbose_name="Quantidade Utilizada")
 
     class Meta:
         verbose_name = "Item de Ficha Técnica"
         verbose_name_plural = "Itens de Ficha Técnica"
-        unique_together = ('produto', 'ingrediente')
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    models.Q(ingrediente__isnull=False, produto_componente__isnull=True)
+                    | models.Q(ingrediente__isnull=True, produto_componente__isnull=False)
+                ),
+                name='ficha_item_ingrediente_xor_produto',
+            ),
+        ]
 
     def __str__(self):
-        return f"{self.quantidade} {self.ingrediente.unidade_medida} of {self.ingrediente.nome} em {self.produto.nome}"
+        alvo = self.ingrediente or self.produto_componente
+        return f"{self.quantidade} de {alvo} em {self.produto.nome}"
+
+    @property
+    def componente_nome(self):
+        if self.ingrediente_id:
+            return self.ingrediente.nome
+        return f"{self.produto_componente.nome} (produto)"
+
+    @property
+    def unidade(self):
+        return self.ingrediente.unidade_medida if self.ingrediente_id else 'un'
 
     @property
     def custo_item(self):
-        # Lógica de Negócio: Custo específico desse ingrediente na receita
-        return (self.quantidade * self.ingrediente.custo_unitario).quantize(Decimal('0.01'))
+        if self.ingrediente_id:
+            base = self.ingrediente.custo_unitario
+        elif self.produto_componente_id:
+            base = self.produto_componente.custo_total
+        else:
+            base = Decimal('0')
+        return (self.quantidade * base).quantize(Decimal('0.01'))
 
 
 class PrecoCanal(models.Model):

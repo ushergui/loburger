@@ -482,21 +482,111 @@ def despesa_marcar_paga(request, id):
     })
 
 
+def _add_meses(d, n):
+    """Soma n meses a uma data, ajustando o dia se o mês for menor."""
+    total = d.month - 1 + n
+    ano = d.year + total // 12
+    mes = total % 12 + 1
+    ultimo = calendar.monthrange(ano, mes)[1]
+    return d.replace(year=ano, month=mes, day=min(d.day, ultimo))
+
+
 @login_required
 @gestao_required
 def despesa_criar(request):
     if request.method == 'POST':
         form = DespesaForm(request.POST)
         if form.is_valid():
-            despesa = form.save()
-            messages.success(request, f"Despesa '{despesa.descricao}' no valor de R$ {despesa.valor} cadastrada com sucesso!")
+            cd = form.cleaned_data
+            parcelas = cd.get('parcelas') or 1
+
+            if parcelas > 1:
+                import uuid
+                grupo = uuid.uuid4().hex
+                total = cd['valor']
+                base = (total / parcelas).quantize(Decimal('0.01'))
+                desc_base = cd['descricao']
+                for i in range(1, parcelas + 1):
+                    valor_i = base if i < parcelas else (total - base * (parcelas - 1))
+                    Despesa.objects.create(
+                        descricao=f"{desc_base} ({i}/{parcelas})",
+                        credor=cd.get('credor', ''),
+                        tipo=cd['tipo'], categoria=cd['categoria'],
+                        valor=valor_i, status='PREVISTO',
+                        data_vencimento=_add_meses(cd['data_vencimento'], i - 1),
+                        observacao=cd.get('observacao') or '',
+                        grupo_parcelas=grupo, parcela_num=i, parcela_total=parcelas,
+                    )
+                messages.success(request, f"'{desc_base}' lançada em {parcelas}x de R$ {base} (parcelas previstas em Contas a Pagar).")
+            else:
+                despesa = form.save()
+                messages.success(request, f"Despesa '{despesa.descricao}' — R$ {despesa.valor} — cadastrada.")
             return redirect('despesa_listar')
     else:
         form = DespesaForm()
-        
+
     return render(request, 'relatorios/despesa_form.html', {
         'form': form,
         'titulo': "Lançar Nova Despesa / Custo"
+    })
+
+
+@login_required
+@gestao_required
+def fluxo_caixa_projetado(request):
+    """Projeção de caixa: saldo de hoje + estimativa de entradas − contas previstas,
+    mês a mês, para os próximos meses."""
+    from vendas.models import Pedido
+
+    hoje = timezone.localdate()
+    meses_a_frente = 6
+
+    # Estimativa de recebimento mensal: média líquida dos últimos 90 dias (ou override)
+    override = request.GET.get('receita_mensal', '').replace('.', '').replace(',', '.').strip()
+    if override:
+        try:
+            receita_mensal_estimada = Decimal(override)
+        except Exception:
+            receita_mensal_estimada = Decimal('0')
+    else:
+        d90 = hoje - timedelta(days=90)
+        r = services.resumo_financeiro(d90, hoje)
+        receita_mensal_estimada = (r['entradas_caixa'] / Decimal('3')).quantize(Decimal('0.01'))
+
+    saldo = services.caixa_acumulado()
+    linhas = []
+    ano, mes = hoje.year, hoje.month
+    for i in range(meses_a_frente):
+        ini = date(ano, mes, 1)
+        fim = date(ano, mes, calendar.monthrange(ano, mes)[1])
+        previstas = Despesa.objects.filter(
+            status='PREVISTO', data_vencimento__gte=ini, data_vencimento__lte=fim,
+        )
+        saidas = previstas.aggregate(t=Sum('valor'))['t'] or Decimal('0.00')
+        # No mês corrente, só conta o que ainda vai vencer (a partir de hoje)
+        entradas = receita_mensal_estimada
+        if i == 0:
+            saidas = previstas.filter(data_vencimento__gte=hoje).aggregate(t=Sum('valor'))['t'] or Decimal('0.00')
+            frac = Decimal(fim.day - hoje.day + 1) / Decimal(fim.day)
+            entradas = (receita_mensal_estimada * frac).quantize(Decimal('0.01'))
+        saldo_ini = saldo
+        saldo = (saldo + entradas - saidas).quantize(Decimal('0.01'))
+        linhas.append({
+            'mes': f"{MESES_PT[mes]}/{ano}",
+            'saldo_inicial': saldo_ini,
+            'entradas': entradas,
+            'saidas': saidas,
+            'saldo_final': saldo,
+            'negativo': saldo < 0,
+            'contas': list(previstas.order_by('data_vencimento')[:12]),
+        })
+        ano, mes = (ano + 1, 1) if mes == 12 else (ano, mes + 1)
+
+    return render(request, 'relatorios/fluxo_caixa.html', {
+        'linhas': linhas,
+        'saldo_hoje': services.caixa_acumulado(),
+        'receita_mensal_estimada': receita_mensal_estimada,
+        'override_ativo': bool(override),
     })
 
 

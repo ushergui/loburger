@@ -81,7 +81,16 @@ class Despesa(models.Model):
     data_referencia = models.DateField(null=True, blank=True, verbose_name="Dia de referência",
         help_text="Dia ao qual a despesa automática se refere (fechamento / entrada de estoque).")
 
+    # Parcelamento (compra em Nx)
+    grupo_parcelas = models.CharField(max_length=32, blank=True, default='', verbose_name="Grupo de parcelamento")
+    parcela_num = models.PositiveIntegerField(default=1, verbose_name="Nº da parcela")
+    parcela_total = models.PositiveIntegerField(default=1, verbose_name="Total de parcelas")
+
     despesa_matriz = models.ForeignKey(DespesaRecorrente, on_delete=models.SET_NULL, null=True, blank=True, related_name='faturas_geradas', verbose_name="Molde Gerador")
+
+    @property
+    def eh_parcelada(self):
+        return self.parcela_total > 1
 
     class Meta:
         verbose_name = "Despesa / Custo"

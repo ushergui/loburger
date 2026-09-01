@@ -239,17 +239,10 @@ class Pedido(models.Model):
             return
 
         for item in itens:
-            produto = item.produto
-            # Percorre a ficha técnica do produto
-            for ficha in produto.ficha_tecnica.all():
-                quantidade_deduzir = ficha.quantidade * item.quantidade
-                
-                # Desconta diretamente no estoque atual do ingrediente
-                ingrediente = ficha.ingrediente
+            # Achata a ficha (entra nos produtos componentes de combos)
+            for ingrediente, quantidade_deduzir in item.produto.insumos_consolidados(item.quantidade).values():
                 ingrediente.estoque_atual -= quantidade_deduzir
                 ingrediente.save()
-                
-                # Cria a movimentação de histórico
                 MovimentacaoEstoque.objects.create(
                     ingrediente=ingrediente,
                     quantidade=quantidade_deduzir,
@@ -257,7 +250,7 @@ class Pedido(models.Model):
                     observacao=f"Baixa automática pelo Pedido #{self.id}",
                     responsavel=responsavel
                 )
-        
+
         self.estoque_baixado = True
         Pedido.objects.filter(id=self.id).update(estoque_baixado=True)
 
@@ -269,16 +262,9 @@ class Pedido(models.Model):
             return
             
         for item in self.itens.all():
-            produto = item.produto
-            for ficha in produto.ficha_tecnica.all():
-                quantidade_estornar = ficha.quantidade * item.quantidade
-                
-                # Devolve ao estoque atual do ingrediente
-                ingrediente = ficha.ingrediente
+            for ingrediente, quantidade_estornar in item.produto.insumos_consolidados(item.quantidade).values():
                 ingrediente.estoque_atual += quantidade_estornar
                 ingrediente.save()
-                
-                # Cria a movimentação de histórico de entrada
                 MovimentacaoEstoque.objects.create(
                     ingrediente=ingrediente,
                     quantidade=quantidade_estornar,
@@ -286,7 +272,7 @@ class Pedido(models.Model):
                     observacao=f"Estorno por cancelamento do Pedido #{self.id}",
                     responsavel=responsavel
                 )
-                
+
         self.estoque_baixado = False
         Pedido.objects.filter(id=self.id).update(estoque_baixado=False)
 

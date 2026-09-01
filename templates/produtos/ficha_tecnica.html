@@ -61,6 +61,32 @@
             </button>
         </form>
 
+        <!-- Adicionar um PRODUTO ao combo -->
+        <form hx-post="{% url 'ficha_tecnica_montar' produto.id %}" hx-target="#tabela-ficha-tecnica" hx-swap="innerHTML"
+              class="bg-hex_blue/5 border border-hex_blue/25 p-4 rounded mb-6 flex flex-col md:flex-row gap-4 items-end">
+            {% csrf_token %}
+            <input type="hidden" name="add_produto_componente" value="1">
+            <div class="flex-1 w-full">
+                <label for="produto_componente" class="block text-xs uppercase tracking-wider text-hex_blue mb-1.5">Adicionar produto (combo)</label>
+                <select name="produto_componente" id="produto_componente" required class="w-full bg-hex_dark_bg border border-hex_blue/30 rounded py-2 px-3 text-hex_gold_light focus:outline-none focus:border-hex_blue">
+                    <option value="">-- Escolha um produto já cadastrado --</option>
+                    {% for p in produtos_componentes %}
+                        <option value="{{ p.id }}">{{ p.nome }} ({{ p.get_categoria_display }})</option>
+                    {% endfor %}
+                </select>
+                <p class="text-[10px] text-hex_gold_dim/60 mt-1">Ex.: um combo = Lanche + Batata + Refri. Ao vender o combo, o estoque de cada componente é baixado.</p>
+            </div>
+            <div class="w-full md:w-24">
+                <label for="quantidade_comp" class="block text-xs uppercase tracking-wider text-hex_blue mb-1.5">Qtd</label>
+                <input type="number" name="quantidade" id="quantidade_comp" step="0.001" value="1" required
+                    class="w-full bg-hex_dark_bg border border-hex_blue/30 rounded py-2 px-3 text-hex_gold_light focus:outline-none focus:border-hex_blue">
+            </div>
+            <button type="submit" class="w-full md:w-auto bg-hex_blue hover:bg-hex_gold text-hex_dark_bg font-bold py-2.5 px-4 rounded transition-all uppercase tracking-wider text-xs shrink-0 flex items-center justify-center space-x-1">
+                <i data-lucide="package-plus" class="w-4 h-4"></i>
+                <span>Adicionar</span>
+            </button>
+        </form>
+
         <!-- Tabela Parcial da Ficha Técnica -->
         <div id="tabela-ficha-tecnica">
             {% include "produtos/partials/ficha_tecnica_tabela.html" %}

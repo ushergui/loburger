@@ -128,19 +128,21 @@ OUTROS_PRODUTOS = {
 # ---------------------------------------------------------------------------
 # COMBOS  — lanche + batata + bebida (expansão dos ingredientes)
 # ---------------------------------------------------------------------------
+# Combos como composição de PRODUTOS + ingredientes extras.
+#   'produtos': {nome_do_produto: qtd}   ·   'ingredientes': {nome_do_ingrediente: qtd}
 COMBOS = {
-    'Combo Demacia (Garen + Fritas + Refri)': [
-        ('BURGER', 'GAREN'), ('OUTRO', 'Batata Frita Grande'),
-        ('EXTRA', {'REFRIGERANTE LATA 350ML': 1}),
-    ],
-    'Combo Ionia (Kennen + Fritas + Refri)': [
-        ('BURGER', 'KENNEN'), ('OUTRO', 'Batata Frita Grande'),
-        ('EXTRA', {'REFRIGERANTE LATA 350ML': 1}),
-    ],
-    'Combo Infantil (Lux ou Sett + Refri/Suco + Mimo)': [
-        ('BURGER', 'LUX'), ('OUTRO', 'Batata Frita Pequena'),
-        ('EXTRA', {'REFRIGERANTE PET OU SUCO': 1, 'MIMO INFANTIL': 1}),
-    ],
+    'Combo Demacia (Garen + Fritas + Refri)': {
+        'produtos': {'GAREN': 1, 'Batata Frita Grande': 1},
+        'ingredientes': {'REFRIGERANTE LATA 350ML': 1},
+    },
+    'Combo Ionia (Kennen + Fritas + Refri)': {
+        'produtos': {'KENNEN': 1, 'Batata Frita Grande': 1},
+        'ingredientes': {'REFRIGERANTE LATA 350ML': 1},
+    },
+    'Combo Infantil (Lux ou Sett + Refri/Suco + Mimo)': {
+        'produtos': {'LUX': 1, 'Batata Frita Pequena': 1},
+        'ingredientes': {'REFRIGERANTE PET OU SUCO': 1, 'MIMO INFANTIL': 1},
+    },
 }
 
 
@@ -202,23 +204,19 @@ class Command(BaseCommand):
             custo = aplicar(p, receita)
             self.stdout.write(f"  {p.nome[:38]:38} ~ CMV R$ {custo}")
 
-        # 4. Combos (expansão)
-        self.stdout.write("\n== COMBOS (expansão lanche + batata + bebida) ==")
-        for nome, partes in COMBOS.items():
+        # 4. Combos = produtos componentes + ingredientes extras
+        self.stdout.write("\n== COMBOS (lanche + batata como PRODUTOS + bebida) ==")
+        for nome, comp in COMBOS.items():
             p = get_produto(nome)
             if not p:
                 continue
-            receita = {}
-            for tipo, ref in partes:
-                if tipo == 'BURGER':
-                    fonte = BURGERS[ref]
-                elif tipo == 'OUTRO':
-                    fonte = OUTROS_PRODUTOS[ref]
-                else:
-                    fonte = ref
-                for k, v in fonte.items():
-                    receita[k] = receita.get(k, Decimal('0')) + Decimal(str(v))
-            custo = aplicar(p, receita)
-            self.stdout.write(f"  {p.nome[:44]:44} ~ CMV R$ {custo}")
+            p.ficha_tecnica.all().delete()
+            for prod_nome, qtd in comp.get('produtos', {}).items():
+                sub = Produto.objects.filter(nome__iexact=prod_nome).first()
+                if sub:
+                    FichaTecnicaItem.objects.create(produto=p, produto_componente=sub, quantidade=Decimal(str(qtd)))
+            for ing_nome, qtd in comp.get('ingredientes', {}).items():
+                FichaTecnicaItem.objects.create(produto=p, ingrediente=resolve(ing_nome), quantidade=Decimal(str(qtd)))
+            self.stdout.write(f"  {p.nome[:44]:44} ~ CMV R$ {p.custo_total}")
 
         self.stdout.write(self.style.SUCCESS("\nFichas montadas. Revise as quantidades pela tela do Cardápio."))

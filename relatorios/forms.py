@@ -66,9 +66,16 @@ class DespesaForm(ThemeFormMixin, forms.ModelForm):
     )
     
     alterar_futuros = forms.BooleanField(
-        required=False, 
+        required=False,
         label="Atualizar este novo valor e data para os próximos meses",
         help_text="Marque para que as próximas despesas geradas automaticamente usem este novo valor e dia."
+    )
+
+    parcelas = forms.IntegerField(
+        required=False, min_value=1, max_value=60, initial=1,
+        label="Parcelas",
+        help_text="Deixe 1 para pagamento único. Para uma compra em Nx, o valor acima é o TOTAL — o sistema divide em N contas previstas, uma por mês.",
+        widget=forms.NumberInput(attrs={'min': 1, 'max': 60}),
     )
 
     class Meta:
@@ -91,6 +98,9 @@ class DespesaForm(ThemeFormMixin, forms.ModelForm):
             self.fields['categoria'].choices = choices
         if not self.instance or not self.instance.despesa_matriz:
             self.fields.pop('alterar_futuros', None)
+        # Parcelamento só na criação (não na edição de uma despesa existente)
+        if self.instance and self.instance.pk:
+            self.fields.pop('parcelas', None)
 
     def clean(self):
         cleaned_data = super().clean()

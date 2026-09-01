@@ -49,13 +49,16 @@ class IngredienteForm(ThemeFormMixin, forms.ModelForm):
 class ProdutoForm(ThemeFormMixin, forms.ModelForm):
     class Meta:
         model = Produto
-        fields = ['nome', 'categoria', 'descricao', 'foto', 'status']
+        fields = ['nome', 'categoria', 'descricao', 'foto', 'status', 'custo_aquisicao']
+        widgets = {
+            'custo_aquisicao': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+        }
 
 
 class FichaTecnicaItemForm(ThemeFormMixin, forms.ModelForm):
     class Meta:
         model = FichaTecnicaItem
-        fields = ['ingrediente', 'quantidade']
+        fields = ['ingrediente', 'produto_componente', 'quantidade']
 
 
 class PrecoCanalForm(ThemeFormMixin, forms.ModelForm):

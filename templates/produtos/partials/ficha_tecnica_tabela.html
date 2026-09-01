@@ -2,7 +2,7 @@
     <table class="w-full text-left border-collapse">
         <thead>
             <tr class="border-b border-hex_dark_border bg-hex_dark_bg/30 text-hex_gold uppercase tracking-wider text-xxs font-semibold">
-                <th class="p-3">Ingrediente</th>
+                <th class="p-3">Ingrediente / Produto</th>
                 <th class="p-3 text-right">Qtd</th>
                 <th class="p-3 text-right">Custo Unit.</th>
                 <th class="p-3 text-right">Custo Parcial</th>
@@ -12,9 +12,12 @@
         <tbody class="divide-y divide-hex_dark_border text-xs text-hex_gold_light/90">
             {% for item in produto.ficha_tecnica.all %}
                 <tr class="hover:bg-hex_dark_bg/20 transition-colors">
-                    <td class="p-3 font-medium">{{ item.ingrediente.nome }}</td>
-                    <td class="p-3 text-right font-mono font-semibold">{{ item.quantidade }} {{ item.ingrediente.unidade_medida }}</td>
-                    <td class="p-3 text-right font-mono text-hex_gold_dim/60">R$ {{ item.ingrediente.custo_unitario|floatformat:4 }}</td>
+                    <td class="p-3 font-medium">
+                        {{ item.componente_nome }}
+                        {% if item.produto_componente_id %}<span class="ml-1 text-[9px] px-1 py-0.5 bg-hex_blue/10 text-hex_blue border border-hex_blue/20 rounded uppercase">Produto</span>{% endif %}
+                    </td>
+                    <td class="p-3 text-right font-mono font-semibold">{{ item.quantidade }} {{ item.unidade }}</td>
+                    <td class="p-3 text-right font-mono text-hex_gold_dim/60">{% if item.ingrediente_id %}R$ {{ item.ingrediente.custo_unitario|floatformat:4 }}{% else %}R$ {{ item.produto_componente.custo_total|floatformat:2 }}{% endif %}</td>
                     <td class="p-3 text-right font-mono text-hex_gold font-semibold">R$ {{ item.custo_item|floatformat:2 }}</td>
                     <td class="p-3 text-center">
                         <button 
@@ -46,9 +49,11 @@
     </table>
 </div>
 
-<!-- Dispara um evento global para que o outro lado da tela (Preços e Margens) também atualize o custo de produção de forma reativa -->
+<!-- Quando a ficha muda, avisa o painel de preços para recalcular a margem -->
 <script>
-    // Quando a tabela é recarregada, recarregamos as margens de preço
-    // simulando uma atualização do painel de preços via HTMX
-    htmx.trigger('#tabela-precos-canais', 'recalcular-margem');
+    (function () {
+        var alvo = document.getElementById('tabela-precos-canais');
+        if (alvo && window.htmx) { htmx.trigger(alvo, 'recalcular-margem'); }
+        if (window.lucide) { lucide.createIcons(); }
+    })();
 </script>

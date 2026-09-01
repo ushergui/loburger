@@ -184,24 +184,41 @@ def produto_excluir(request, pk):
 def ficha_tecnica_montar(request, pk):
     produto = get_object_or_404(Produto, pk=pk)
     
-    # Adicionar item à Ficha Técnica via POST (geralmente via HTMX)
+    # Adicionar INGREDIENTE à Ficha Técnica
     if request.method == 'POST' and 'add_ingrediente' in request.POST:
         ingrediente_id = request.POST.get('ingrediente')
         quantidade = request.POST.get('quantidade')
-        
         if ingrediente_id and quantidade:
             ingrediente = get_object_or_404(Ingrediente, id=ingrediente_id)
-            FichaTecnicaItem.objects.update_or_create(
-                produto=produto,
-                ingrediente=ingrediente,
-                defaults={'quantidade': Decimal(quantidade)}
+            item, _ = FichaTecnicaItem.objects.get_or_create(
+                produto=produto, ingrediente=ingrediente, produto_componente=None,
+                defaults={'quantidade': Decimal(quantidade.replace(',', '.'))},
             )
-            
-            # Se for HTMX, devolvemos apenas o fragmento HTML
+            item.quantidade = Decimal(quantidade.replace(',', '.'))
+            item.save()
             if request.headers.get('HX-Request'):
                 return render(request, 'produtos/partials/ficha_tecnica_tabela.html', {'produto': produto})
-                
         messages.success(request, "Ingrediente adicionado à ficha técnica.")
+        return redirect('ficha_tecnica_montar', pk=produto.pk)
+
+    # Adicionar PRODUTO COMPONENTE (combo) à Ficha Técnica
+    if request.method == 'POST' and 'add_produto_componente' in request.POST:
+        comp_id = request.POST.get('produto_componente')
+        quantidade = request.POST.get('quantidade')
+        if comp_id and quantidade:
+            comp = get_object_or_404(Produto, id=comp_id)
+            if comp.id == produto.id:
+                messages.error(request, "Um produto não pode fazer parte de si mesmo.")
+            else:
+                item, _ = FichaTecnicaItem.objects.get_or_create(
+                    produto=produto, produto_componente=comp, ingrediente=None,
+                    defaults={'quantidade': Decimal(quantidade.replace(',', '.'))},
+                )
+                item.quantidade = Decimal(quantidade.replace(',', '.'))
+                item.save()
+                if request.headers.get('HX-Request'):
+                    return render(request, 'produtos/partials/ficha_tecnica_tabela.html', {'produto': produto})
+                messages.success(request, f"'{comp.nome}' adicionado ao combo.")
         return redirect('ficha_tecnica_montar', pk=produto.pk)
 
     # Configurar preço do canal via POST
@@ -232,8 +249,9 @@ def ficha_tecnica_montar(request, pk):
         messages.success(request, "Preço atualizado com sucesso.")
         return redirect('ficha_tecnica_montar', pk=produto.pk)
 
-    # Consultar ingredientes e canais cadastrados
+    # Consultar ingredientes, produtos e canais cadastrados
     ingredientes_disponiveis = Ingrediente.objects.all()
+    produtos_disponiveis = Produto.objects.exclude(id=produto.id).order_by('categoria', 'nome')
     precos_canais_ricos = []
     for c in CanalVenda.objects.all():
         precos_canais_ricos.append({
@@ -244,6 +262,7 @@ def ficha_tecnica_montar(request, pk):
     return render(request, 'produtos/ficha_tecnica.html', {
         'produto': produto,
         'ingredientes': ingredientes_disponiveis,
+        'produtos_componentes': produtos_disponiveis,
         'precos_canais_ricos': precos_canais_ricos
     })
 

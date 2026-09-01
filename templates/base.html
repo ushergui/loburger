@@ -166,6 +166,10 @@
                             <i data-lucide="layout-dashboard" class="w-4 h-4 text-hex_blue"></i>
                             <span>Dashboard KPIs</span>
                         </a>
+                        <a href="{% url 'fluxo_caixa_projetado' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'fluxo_caixa_projetado' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="trending-up" class="w-4 h-4 text-hex_blue"></i>
+                            <span>Fluxo de Caixa</span>
+                        </a>
                         <a href="{% url 'despesa_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'despesa_listar' or 'despesa_criar' in request.resolver_match.url_name or 'despesa_editar' in request.resolver_match.url_name %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="wallet" class="w-4 h-4 text-hex_blue"></i>
                             <span>Custos & Despesas</span>
@@ -193,6 +197,10 @@
                         <a href="{% url 'configuracao_financeira' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'configuracao_financeira' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="settings" class="w-4 h-4 text-hex_blue"></i>
                             <span>Configuração</span>
+                        </a>
+                        <a href="{% url 'auditoria_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'auditoria_listar' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="scroll-text" class="w-4 h-4 text-hex_blue"></i>
+                            <span>Auditoria</span>
                         </a>
                     </nav>
                 </div>

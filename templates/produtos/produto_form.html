@@ -70,6 +70,16 @@
                     {% endif %}
                 </div>
 
+                <!-- Custo de aquisição (revenda) -->
+                <div>
+                    <label for="{{ form.custo_aquisicao.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">
+                        Custo de aquisição (só para revenda)
+                    </label>
+                    {{ form.custo_aquisicao }}
+                    <p class="text-xxs text-hex_gold_dim/50 mt-1">Quanto você paga por um item comprado pronto (refrigerante, água, chocolate). Deixe 0 para lanches montados por ficha técnica.</p>
+                    {% if form.custo_aquisicao.errors %}<p class="text-red-400 text-xs mt-1">{{ form.custo_aquisicao.errors.0 }}</p>{% endif %}
+                </div>
+
                 <!-- Foto do Lanche -->
                 <div>
                     <label for="{{ form.foto.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">

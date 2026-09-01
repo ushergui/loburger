@@ -1,7 +1,9 @@
 from decimal import Decimal
 from django import forms
 from django.utils import timezone
-from .models import Despesa, DespesaRecorrente
+from .models import Despesa, DespesaRecorrente, CATEGORIA_CHOICES, CATEGORIAS_AUTOMATICAS
+
+CATEGORIAS_MANUAIS = [(v, l) for v, l in CATEGORIA_CHOICES if v not in CATEGORIAS_AUTOMATICAS]
 
 class ThemeFormMixin:
     # Mixin para injetar estilos Tailwind / Hextech nos campos automaticamente
@@ -47,6 +49,11 @@ class DespesaRecorrenteForm(ThemeFormMixin, forms.ModelForm):
         model = DespesaRecorrente
         fields = ['descricao', 'categoria', 'valor_base', 'dia_vencimento', 'ativa']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'categoria' in self.fields:
+            self.fields['categoria'].choices = list(CATEGORIAS_MANUAIS)
+
 class DespesaForm(ThemeFormMixin, forms.ModelForm):
     valor = MoneyDecimalField(
         max_digits=10, 
@@ -71,6 +78,13 @@ class DespesaForm(ThemeFormMixin, forms.ModelForm):
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Categorias automáticas (taxas, motoboy, compras de estoque) não são lançadas à mão
+        if 'categoria' in self.fields:
+            atual = getattr(self.instance, 'categoria', None)
+            choices = list(CATEGORIAS_MANUAIS)
+            if atual and atual not in dict(choices):
+                choices.append((atual, dict(CATEGORIA_CHOICES).get(atual, atual)))
+            self.fields['categoria'].choices = choices
         if not self.instance or not self.instance.despesa_matriz:
             self.fields.pop('alterar_futuros', None)
 

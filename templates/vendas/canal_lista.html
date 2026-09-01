@@ -24,9 +24,9 @@
             <thead>
                 <tr class="border-b border-hex_dark_border bg-hex_dark_bg/50 text-hex_gold uppercase tracking-wider text-xs font-semibold">
                     <th class="p-4">Nome do Canal</th>
-                    <th class="p-4">Comissão (%)</th>
-                    <th class="p-4">Taxa Fixa por Pedido</th>
-                    <th class="p-4">Prazo de Repasse</th>
+                    <th class="p-4">Comissão na entrega</th>
+                    <th class="p-4">Taxa on-line no app</th>
+                    <th class="p-4">Taxa Fixa</th>
                     <th class="p-4 text-center">Ações</th>
                 </tr>
             </thead>
@@ -35,27 +35,18 @@
                     <tr class="hover:bg-hex_dark_bg/30 transition-colors">
                         <td class="p-4 font-bold">
                             <div class="flex items-center space-x-2">
-                                <span class="w-4 h-4 rounded-full shadow-sm" style="background-color: {% if canal.nome == 'iFood Delivery' %}#EA1D2C{% elif 'UaiRango' in canal.nome %}#FF8C00{% else %}#0AC8B9{% endif %};"></span>
+                                <span class="w-4 h-4 rounded-full shadow-sm" style="background-color: {% if 'iFood' in canal.nome %}#EA1D2C{% elif 'UaiRango' in canal.nome or 'Uai' in canal.nome %}#FF8C00{% else %}#0AC8B9{% endif %};"></span>
                                 <span class="text-white font-bold text-lg tracking-wide">{{ canal.nome }}</span>
-                            </div>
-                            <!-- Sub-taxas por modalidade -->
-                            <div class="mt-3 pl-6 flex flex-wrap gap-2">
-                                {% for tp in canal.taxas_pagamento.all %}
-                                    <span class="inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-md bg-hex_dark_bg border border-hex_gold/40 text-hex_gold shadow-sm hover:border-hex_gold transition-colors cursor-default">
-                                        <span class="mr-1.5 text-hex_gold_dim">{{ tp.forma_pagamento.nome }}:</span> 
-                                        <strong class="text-white font-mono">{{ tp.taxa_comissao|stringformat:".2f" }}%</strong>
-                                    </span>
-                                {% endfor %}
                             </div>
                         </td>
                         <td class="p-4 font-mono font-bold text-hex_gold text-lg">
-                            {{ canal.taxa_comissao|stringformat:".2f" }}%
+                            {{ canal.taxa_comissao_pct }}%
                         </td>
-                        <td class="p-4 font-mono font-bold text-white text-lg">
+                        <td class="p-4 font-mono font-bold text-hex_blue text-lg">
+                            {{ canal.taxa_online_pct }}%
+                        </td>
+                        <td class="p-4 font-mono font-bold {% if canal.taxa_fixa > 0 %}text-hex_danger{% else %}text-white{% endif %} text-lg">
                             R$ {{ canal.taxa_fixa|floatformat:2 }}
-                        </td>
-                        <td class="p-4 text-hex_gold_light text-base font-medium">
-                            {{ canal.dias_repasse }} dias
                         </td>
                         <td class="p-4 text-center">
                             <a href="{% url 'canal_editar' canal.id %}" class="text-hex_blue hover:text-white p-2 rounded hover:bg-hex_blue/20 transition-all inline-block" title="Editar">

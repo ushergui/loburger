@@ -1,5 +1,8 @@
 from django.contrib import admin
-from .models import CanalVenda, Pedido, PedidoItem
+from .models import (
+    CanalVenda, Pedido, PedidoItem, ConfiguracaoFinanceira,
+    Entregador, EntregaDiaria,
+)
 
 class PedidoItemInline(admin.TabularInline):
     model = PedidoItem
@@ -21,4 +24,7 @@ class CanalVendaAdmin(admin.ModelAdmin):
 
 admin.site.register(Pedido, PedidoAdmin)
 admin.site.register(CanalVenda, CanalVendaAdmin)
+admin.site.register(ConfiguracaoFinanceira)
+admin.site.register(Entregador)
+admin.site.register(EntregaDiaria)
 

@@ -139,14 +139,6 @@
                         <span>Operação</span>
                     </h3>
                     <nav class="space-y-1">
-                        <a href="{% url 'pedido_criar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'pedido_criar' %}bg-[#0B1D2C] text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
-                            <i data-lucide="shopping-cart" class="w-4 h-4 text-hex_gold"></i>
-                            <span>Novo Pedido</span>
-                        </a>
-                        <a href="{% url 'pedido_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'pedido_listar' %}bg-[#0B1D2C] text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
-                            <i data-lucide="clipboard-list" class="w-4 h-4 text-hex_gold"></i>
-                            <span>Painel de Pedidos</span>
-                        </a>
                         <a href="{% url 'fechamento_diario' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'fechamento_diario' %}bg-[#0B1D2C] text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="calendar-check" class="w-4 h-4 text-hex_gold"></i>
                             <span>Fechamento Diário</span>
@@ -193,6 +185,14 @@
                         <a href="{% url 'canal_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'canal_listar' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="sliders" class="w-4 h-4 text-hex_blue"></i>
                             <span>Canais de Venda</span>
+                        </a>
+                        <a href="{% url 'entregador_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'entregador_listar' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="bike" class="w-4 h-4 text-hex_blue"></i>
+                            <span>Entregadores</span>
+                        </a>
+                        <a href="{% url 'configuracao_financeira' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'configuracao_financeira' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="settings" class="w-4 h-4 text-hex_blue"></i>
+                            <span>Configuração</span>
                         </a>
                     </nav>
                 </div>

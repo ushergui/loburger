@@ -1,108 +1,72 @@
 <style>
     input.no-spinners::-webkit-outer-spin-button,
-    input.no-spinners::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-    input.no-spinners[type=number] {
-        -moz-appearance: textfield;
-        appearance: textfield;
-    }
+    input.no-spinners::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input.no-spinners[type=number] { -moz-appearance: textfield; appearance: textfield; }
 </style>
 
 <div class="overflow-x-auto overflow-y-auto max-h-[65vh] relative custom-scrollbar">
     <table class="w-full text-left border-collapse text-sm">
         <thead class="sticky top-0 z-20 shadow-md">
-            <!-- Linha 1 do Cabeçalho: Grupos por Plataforma -->
+            <!-- Linha 1: Canal -->
             <tr class="text-hex_gold uppercase tracking-wider text-xs font-bold bg-hex_dark_bg border-b-2 border-hex_gold/50">
-                <th class="py-3 px-4 min-w-[200px]" rowspan="2">Item do Cardápio</th>
-                
+                <th class="py-3 px-4 min-w-[200px] bg-hex_dark_bg" rowspan="2">Item do Cardápio</th>
                 {% for canal in canais %}
-                    <th class="py-2.5 px-2 text-center border-l border-r border-hex_dark_border bg-hex_dark_bg/90 text-hex_gold font-bold" 
-                        colspan="{{ canal.taxas_pagamento.count|default:1 }}">
-                        {{ canal.nome }} ({{ canal.taxa_comissao|stringformat:".2f" }}%)
+                    <th class="py-2.5 px-2 text-center border-l border-hex_dark_border bg-hex_dark_bg/90 text-hex_gold font-bold" colspan="{{ num_modos }}">
+                        {{ canal.nome }}
+                        <span class="block text-[10px] text-hex_gold_dim/70 font-mono normal-case">entrega {{ canal.taxa_comissao_pct }}% · on-line {{ canal.taxa_online_pct }}%</span>
                     </th>
                 {% endfor %}
             </tr>
-            
-            <!-- Linha 2 do Cabeçalho: Modalidades de Pagamento por Plataforma -->
+            <!-- Linha 2: Modo de pagamento -->
             <tr class="border-b-2 border-hex_dark_border text-hex_gold uppercase tracking-wider text-[10px] font-mono font-bold bg-hex_dark_bg">
                 {% for canal in canais %}
-                    {% if canal.taxas_pagamento.all %}
-                        {% for taxa in canal.taxas_pagamento.all %}
-                            <th class="py-2 px-1 text-center border-l border-hex_dark_border leading-tight min-w-[80px] max-w-[120px]" title="{{ taxa.forma_pagamento.nome }} ({{ taxa.taxa_comissao|stringformat:".2f" }}%)">
-                                {{ taxa.forma_pagamento.nome }} <br> ({{ taxa.taxa_comissao|stringformat:".2f" }}%)
-                            </th>
-                        {% endfor %}
-                    {% else %}
-                        <th class="py-2 px-1 text-center border-l border-hex_dark_border text-hex_gold_dim/50">
-                            (Sem Modalidades)
+                    {% for m_val, m_label in modos %}
+                        <th class="py-2 px-1 text-center border-l border-hex_dark_border leading-tight min-w-[90px] max-w-[130px]" title="{{ m_label }}">
+                            {{ m_label }}
                         </th>
-                    {% endif %}
+                    {% endfor %}
                 {% endfor %}
             </tr>
         </thead>
-        
+
         <tbody class="divide-y divide-hex_dark_border text-hex_gold_light/90">
-            {% if produtos %}
-                {% for prod in produtos %}
-                    <tr class="hover:bg-hex_blue/15 border-l-2 border-l-transparent hover:border-l-hex_gold transition-all duration-200 group">
-                        <!-- Nome e Categoria -->
-                        <td class="py-3 px-4 font-sans align-middle text-left whitespace-nowrap">
-                            <div class="flex items-center space-x-3">
-                                {% if prod.foto %}
-                                    <img src="{{ prod.foto.url }}" alt="{{ prod.nome }}" class="w-9 h-9 rounded object-cover object-top border border-hex_gold/30 group-hover:scale-105 group-hover:border-hex_gold transition-all">
-                                {% else %}
-                                    <div class="w-9 h-9 rounded bg-hex_dark_bg border border-hex_gold/20 flex items-center justify-center text-hex_gold shrink-0 group-hover:border-hex_gold group-hover:bg-hex_dark_bg/80 transition-all">
-                                        {% if prod.categoria == 'BURGER' %}
-                                            <i data-lucide="sandwich" class="w-5 h-5"></i>
-                                        {% elif prod.categoria == 'BEBIDA' %}
-                                            <i data-lucide="cup-soda" class="w-5 h-5"></i>
-                                        {% elif prod.categoria == 'COMBO' %}
-                                            <i data-lucide="package" class="w-5 h-5"></i>
-                                        {% else %}
-                                            <i data-lucide="utensils" class="w-5 h-5"></i>
-                                        {% endif %}
-                                    </div>
-                                {% endif %}
-                                <div>
-                                    <span class="font-bold text-white block text-sm group-hover:text-hex_gold transition-colors">{{ prod.nome }}</span>
-                                    <span class="text-[11px] uppercase tracking-wider text-hex_gold_dim/70 font-semibold block group-hover:text-hex_blue transition-colors">{{ prod.get_categoria_display }}</span>
-                                </div>
-                            </div>
-                        </td>
-
-                        {% for canal in canais %}
-                            {% if canal.taxas_pagamento.all %}
-                                {% for taxa in canal.taxas_pagamento.all %}
-                                    <td class="py-2.5 px-1.5 border-l border-hex_dark_border text-center align-middle">
-                                        <input type="number" min="0" 
-                                               name="qtd_{{ prod.id }}_{{ canal.id }}_{{ taxa.forma_pagamento.id }}" 
-                                               class="w-full min-h-[45px] mx-auto block bg-hex_dark_bg/90 border border-hex_gold/35 rounded-md py-1.5 px-1 text-center text-xl font-extrabold text-white focus:outline-none focus:border-hex_blue focus:bg-hex_blue/25 focus:text-white font-mono no-spinners transition-all group-hover:border-hex_gold/60 shadow-inner" 
-                                               placeholder="0" 
-                                               value="{% with fpid=taxa.forma_pagamento.id|stringformat:'s' cid=canal.id|stringformat:'s' %}{% with ch_prefix=cid|add:'_' %}{% with ch=ch_prefix|add:fpid %}{% for pid, d in vendas_gravadas.items %}{% if pid == prod.id %}{% for ch_key, val in d.items %}{% if ch_key == ch %}{{ val }}{% endif %}{% endfor %}{% endif %}{% endfor %}{% endwith %}{% endwith %}{% endwith %}">
-                                    </td>
-                                {% endfor %}
+            {% for linha in linhas %}
+                <tr class="hover:bg-hex_blue/15 border-l-2 border-l-transparent hover:border-l-hex_gold transition-all duration-200 group">
+                    <td class="py-3 px-4 font-sans align-middle text-left whitespace-nowrap bg-hex_dark_card">
+                        <div class="flex items-center space-x-3">
+                            {% if linha.produto.foto %}
+                                <img src="{{ linha.produto.foto.url }}" alt="{{ linha.produto.nome }}" class="w-9 h-9 rounded object-cover object-top border border-hex_gold/30">
                             {% else %}
-                                <td class="py-2.5 px-1.5 border-l border-hex_dark_border text-center align-middle">
-                                    <span class="text-xs text-hex_gold_dim/30 block mt-2 text-center">N/A</span>
-                                </td>
+                                <div class="w-9 h-9 rounded bg-hex_dark_bg border border-hex_gold/20 flex items-center justify-center text-hex_gold shrink-0">
+                                    <i data-lucide="utensils" class="w-5 h-5"></i>
+                                </div>
                             {% endif %}
-                        {% endfor %}
-
-                    </tr>
-                {% endfor %}
-            {% else %}
+                            <div>
+                                <span class="font-bold text-white block text-sm group-hover:text-hex_gold transition-colors">{{ linha.produto.nome }}</span>
+                                <span class="text-[11px] uppercase tracking-wider text-hex_gold_dim/70 font-semibold block">{{ linha.produto.get_categoria_display }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    {% for cel in linha.celulas %}
+                        <td class="py-2.5 px-1.5 border-l border-hex_dark_border text-center align-middle">
+                            <input type="number" min="0" inputmode="numeric"
+                                   name="{{ cel.name }}"
+                                   value="{{ cel.qtd }}"
+                                   placeholder="0"
+                                   title="Preço: R$ {{ cel.preco|floatformat:2 }}"
+                                   class="w-full min-h-[44px] mx-auto block bg-hex_dark_bg/90 border {% if cel.preco <= 0 %}border-hex_danger/50{% else %}border-hex_gold/35{% endif %} rounded-md py-1.5 px-1 text-center text-xl font-extrabold text-white focus:outline-none focus:border-hex_blue focus:bg-hex_blue/25 font-mono no-spinners transition-all">
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% empty %}
                 <tr>
                     <td colspan="100%" class="py-8 text-center text-hex_gold_dim/50 uppercase tracking-widest text-xs">
                         Nenhum item do cardápio encontrado para a pesquisa.
                     </td>
                 </tr>
-            {% endif %}
+            {% endfor %}
         </tbody>
     </table>
 </div>
 
-<script>
-    lucide.createIcons();
-</script>
+<script>lucide.createIcons();</script>

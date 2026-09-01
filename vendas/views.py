@@ -10,8 +10,15 @@ from datetime import datetime, date
 
 from core.decorators import gestao_required
 from produtos.models import Produto, PrecoCanal, Ingrediente
-from .models import CanalVenda, TaxaFormaPagamento, FormaPagamento, Pedido, PedidoItem, FechamentoDiarioInfo
-from .forms import CanalVendaForm, TaxaFormaPagamentoFormSet, FormaPagamentoForm
+from .models import (
+    CanalVenda, TaxaFormaPagamento, FormaPagamento, Pedido, PedidoItem,
+    FechamentoDiarioInfo, Entregador, EntregaDiaria, ConfiguracaoFinanceira,
+)
+from .forms import (
+    CanalVendaForm, TaxaFormaPagamentoFormSet, FormaPagamentoForm,
+    EntregadorForm, ConfiguracaoFinanceiraForm,
+)
+from .services import sincronizar_despesas_fechamento
 
 # ==========================================
 # CANAIS DE VENDA (GESTÃO)
@@ -31,23 +38,13 @@ def canal_criar(request):
         form = CanalVendaForm(request.POST)
         if form.is_valid():
             canal = form.save()
-            formset = TaxaFormaPagamentoFormSet(request.POST, instance=canal)
-            if formset.is_valid():
-                formset.save()
-                messages.success(request, f"Canal de venda '{canal.nome}' cadastrado!")
-                return redirect('canal_listar')
-            else:
-                # Se o formset for inválido, apaga o canal pra não ficar órfão (ou apenas exibe o erro)
-                canal.delete()
-        else:
-            formset = TaxaFormaPagamentoFormSet(request.POST)
+            messages.success(request, f"Canal de venda '{canal.nome}' cadastrado!")
+            return redirect('canal_listar')
     else:
         form = CanalVendaForm()
-        formset = TaxaFormaPagamentoFormSet()
-    
+
     return render(request, 'vendas/canal_form.html', {
-        'form': form, 
-        'formset': formset,
+        'form': form,
         'titulo': "Cadastrar Canal de Venda"
     })
 
@@ -58,19 +55,15 @@ def canal_editar(request, pk):
     canal = get_object_or_404(CanalVenda, pk=pk)
     if request.method == 'POST':
         form = CanalVendaForm(request.POST, instance=canal)
-        formset = TaxaFormaPagamentoFormSet(request.POST, instance=canal)
-        if form.is_valid() and formset.is_valid():
+        if form.is_valid():
             form.save()
-            formset.save()
             messages.success(request, f"Canal '{canal.nome}' atualizado!")
             return redirect('canal_listar')
     else:
         form = CanalVendaForm(instance=canal)
-        formset = TaxaFormaPagamentoFormSet(instance=canal)
-        
+
     return render(request, 'vendas/canal_form.html', {
-        'form': form, 
-        'formset': formset,
+        'form': form,
         'titulo': f"Editar Canal: {canal.nome}"
     })
 
@@ -412,6 +405,13 @@ def pedido_atualizar_status(request, pk):
 # FECHAMENTO DIÁRIO DE VENDAS EM LOTE
 # ==========================================
 
+def _parse_decimal(valor, padrao=Decimal('0.00')):
+    try:
+        return Decimal(str(valor).replace('R$', '').replace(' ', '').replace(',', '.').strip())
+    except Exception:
+        return padrao
+
+
 @login_required
 def fechamento_diario(request):
     data_str = request.GET.get('data') or request.POST.get('data') or timezone.localdate().strftime('%Y-%m-%d')
@@ -423,173 +423,170 @@ def fechamento_diario(request):
 
     busca = request.GET.get('busca', '').strip()
     categoria_filtro = request.GET.get('categoria', '').strip()
+    config = ConfiguracaoFinanceira.get_solo()
+    modos = Pedido.MODO_PAGAMENTO_CHOICES
 
-    canais = CanalVenda.objects.all().prefetch_related('taxas_pagamento')
+    canais = list(CanalVenda.objects.all().order_by('nome'))
     produtos = Produto.objects.filter(status=True).annotate(
         ordem_categoria=Case(
             When(categoria='BURGER', then=Value(1)),
             default=Value(2),
             output_field=IntegerField(),
         )
-    ).order_by('ordem_categoria', 'nome').prefetch_related('precos_canais', 'ficha_tecnica')
+    ).order_by('ordem_categoria', 'nome').prefetch_related('precos_canais')
 
     if busca:
         produtos = produtos.filter(Q(nome__icontains=busca) | Q(descricao__icontains=busca))
-
     if categoria_filtro:
         produtos = produtos.filter(categoria=categoria_filtro)
 
-    # Mapeamento de preços por produto e canal {produto_id: {canal_id: preco}}
-    precos_matriz = {}
-    for p in produtos:
-        precos_matriz[p.id] = {}
-        for pc in p.precos_canais.all():
-            precos_matriz[p.id][pc.canal_id] = pc.preco
+    # Preços {produto_id: {canal_id: preco}}
+    precos_matriz = {p.id: {pc.canal_id: pc.preco for pc in p.precos_canais.all()} for p in produtos}
 
-    # Buscar pedidos existentes da data
-    pedidos_dia = Pedido.objects.filter(
-        data_criacao__date=data_fechamento,
-        status='CONCLUIDO'
-    ).prefetch_related('itens', 'canal')
+    # Vendas já gravadas do dia (só as do próprio fechamento) {produto_id: {"<canal_id>_<modo>": qtd}}
+    pedidos_fechamento = Pedido.objects.filter(
+        data_criacao__date=data_fechamento, status='CONCLUIDO',
+        cliente_nome__icontains='Fechamento Diário',
+    ).prefetch_related('itens')
 
-    # Mapeamento de vendas gravadas {produto_id: {f"{canal_id}_{forma_pagamento}": qtd}}
     vendas_gravadas = {}
-    total_entregas_dia = 0
     desconto_dia = Decimal('0.00')
-
-    for ped in pedidos_dia:
-        if ped.cliente_nome and 'Fechamento Diário' in ped.cliente_nome:
-            if ped.desconto > 0:
-                desconto_dia = ped.desconto
+    for ped in pedidos_fechamento:
+        if ped.desconto and ped.desconto > desconto_dia:
+            desconto_dia = ped.desconto
+        chave = f"{ped.canal_id}_{ped.modo_pagamento}"
         for item in ped.itens.all():
-            if item.produto_id not in vendas_gravadas:
-                vendas_gravadas[item.produto_id] = {}
-            if ped.forma_pagamento:
-                chave = f"{ped.canal_id}_{ped.forma_pagamento.id}"
-                vendas_gravadas[item.produto_id][chave] = vendas_gravadas[item.produto_id].get(chave, 0) + item.quantidade
-            total_entregas_dia += item.quantidade
+            vendas_gravadas.setdefault(item.produto_id, {})
+            vendas_gravadas[item.produto_id][chave] = vendas_gravadas[item.produto_id].get(chave, 0) + item.quantidade
 
-    info_dia = FechamentoDiarioInfo.objects.filter(data=data_fechamento).first()
-    if info_dia:
-        total_entregas_salvo = info_dia.quantidade_entregas
-        taxa_entrega_salva = info_dia.taxa_entrega
-    else:
-        total_entregas_salvo = total_entregas_dia  # Fallback para o sugerido
-        taxa_entrega_salva = Decimal('9.00')
+    entregadores = list(Entregador.objects.filter(ativo=True))
+    entregas_salvas = {e.entregador_id: e.quantidade for e in EntregaDiaria.objects.filter(data=data_fechamento)}
 
     if request.method == 'POST':
-        desconto_dia_str = request.POST.get('desconto_dia', '0.00').replace(',', '.')
-        try:
-            desconto_dia = Decimal(desconto_dia_str)
-        except:
-            desconto_dia = Decimal('0.00')
+        desconto_dia = _parse_decimal(request.POST.get('desconto_dia', '0'))
 
-        entregas_str = request.POST.get('quantidade_entregas', '')
-        try:
-            quantidade_entregas = int(entregas_str)
-        except ValueError:
-            quantidade_entregas = total_entregas_dia
-            
-        taxa_entrega_str = request.POST.get('taxa_entrega', '9.00').replace(',', '.')
-        try:
-            taxa_entrega = Decimal(taxa_entrega_str)
-        except:
-            taxa_entrega = Decimal('9.00')
-            
-        # Salva as info extras do dia
-        FechamentoDiarioInfo.objects.update_or_create(
-            data=data_fechamento,
-            defaults={
-                'quantidade_entregas': quantidade_entregas,
-                'taxa_entrega': taxa_entrega
-            }
-        )
+        # Entregas por entregador
+        for ent in entregadores:
+            try:
+                q = int(request.POST.get(f'entrega_{ent.id}', 0) or 0)
+            except ValueError:
+                q = 0
+            EntregaDiaria.objects.update_or_create(
+                data=data_fechamento, entregador=ent, defaults={'quantidade': max(q, 0)},
+            )
+            entregas_salvas[ent.id] = max(q, 0)
 
-        # Agrupa itens postados por (canal_id, forma_pagamento)
-        # Campos de formulário com nome "qtd_<produto_id>_<canal_id>_<forma_pagamento>"
-        vendas_postadas = {} # {(canal_id, forma_pagamento): [(produto, quantidade, preco_unitario)]}
-
+        # Coleta qtd_<produto_id>_<canal_id>_<modo>
+        vendas_postadas = {}
+        sem_preco = set()
         for key, val in request.POST.items():
-            if key.startswith('qtd_') and val and val.isdigit() and int(val) > 0:
-                partes = key.split('_', 3) # ['qtd', 'prod_id', 'canal_id', 'forma_pagamento_id']
-                if len(partes) >= 4:
-                    prod_id = int(partes[1])
-                    canal_id = int(partes[2])
-                    forma_pagamento_id = int(partes[3])
-                    qtd = int(val)
+            if not key.startswith('qtd_'):
+                continue
+            v = val.strip()
+            if not v.isdigit() or int(v) <= 0:
+                continue
+            partes = key.split('_')
+            if len(partes) != 4:
+                continue
+            _, pid, cid, modo = partes
+            if modo not in dict(modos):
+                continue
+            prod_obj = Produto.objects.filter(id=int(pid)).first()
+            if not prod_obj:
+                continue
+            preco_unit = precos_matriz.get(int(pid), {}).get(int(cid), Decimal('0.00'))
+            if preco_unit <= 0:
+                sem_preco.add(prod_obj.nome)
+            vendas_postadas.setdefault((int(cid), modo), []).append((prod_obj, int(v), preco_unit))
 
-                    prod_obj = Produto.objects.filter(id=prod_id).first()
-                    if prod_obj:
-                        preco_unit = precos_matriz.get(prod_id, {}).get(canal_id, Decimal('0.00'))
-                        par = (canal_id, forma_pagamento_id)
-                        if par not in vendas_postadas:
-                            vendas_postadas[par] = []
-                        vendas_postadas[par].append((prod_obj, qtd, preco_unit))
-
-        # Cancela/apaga pedidos de fechamento antigos daquela data para recalcular do zero com segurança
-        for ped_antigo in pedidos_dia.filter(cliente_nome__icontains='Fechamento Diário'):
+        # Recria os pedidos do dia do zero (estorna estoque dos antigos)
+        for ped_antigo in Pedido.objects.filter(
+            data_criacao__date=data_fechamento, cliente_nome__icontains='Fechamento Diário',
+        ):
             ped_antigo.status = 'CANCELADO'
-            ped_antigo.save() # dispara estorno de estoque se baixado
+            ped_antigo.save()
             ped_antigo.delete()
 
-        # Cria novos pedidos por canal e forma de pagamento
-        novos_pedidos_criados = 0
-        for (canal_id, forma_pagamento_id), itens_lista in vendas_postadas.items():
+        modos_dict = dict(modos)
+        n = 0
+        desconto_restante = desconto_dia
+        for (canal_id, modo), itens_lista in vendas_postadas.items():
             canal_obj = CanalVenda.objects.filter(id=canal_id).first()
-            forma_pagamento_obj = FormaPagamento.objects.filter(id=forma_pagamento_id).first()
-            
-            if not canal_obj or not forma_pagamento_obj:
+            if not canal_obj:
                 continue
+            # O desconto do dia é aplicado uma única vez (no primeiro pedido criado)
+            desconto_pedido = desconto_restante
+            desconto_restante = Decimal('0.00')
 
-            # Busca taxa da forma de pagamento
-            taxa_obj = TaxaFormaPagamento.objects.filter(canal=canal_obj, forma_pagamento=forma_pagamento_obj).first()
-            taxa_pct = taxa_obj.taxa_comissao if taxa_obj else canal_obj.taxa_comissao
-
-            novo_pedido = Pedido.objects.create(
-                cliente_nome=f"Fechamento Diário ({forma_pagamento_obj.nome})",
-                canal=canal_obj,
-                forma_pagamento=forma_pagamento_obj,
-                status='CONCLUIDO',
-                desconto=desconto_dia,
+            novo = Pedido.objects.create(
+                cliente_nome=f"Fechamento Diário ({modos_dict.get(modo, modo)})",
+                canal=canal_obj, modo_pagamento=modo, status='CONCLUIDO',
+                desconto=desconto_pedido,
+            )
+            # data_criacao é auto_now_add — força a data do fechamento via update
+            Pedido.objects.filter(id=novo.id).update(
                 data_criacao=timezone.make_aware(datetime.combine(data_fechamento, datetime.now().time()))
             )
-
+            novo.refresh_from_db()
             for prod_obj, qtd, preco_unit in itens_lista:
-                PedidoItem.objects.create(
-                    pedido=novo_pedido,
-                    produto=prod_obj,
-                    quantidade=qtd,
-                    preco_unitario=preco_unit
-                )
+                PedidoItem.objects.create(pedido=novo, produto=prod_obj, quantidade=qtd, preco_unitario=preco_unit)
+            novo.recalcular_valores_financeiros(save=True)
+            novo.processar_baixa_estoque()
+            n += 1
 
-            # Recalcula valores usando a taxa específica
-            novo_pedido.recalcular_valores_financeiros(save=False)
-            # Sobrescreve a taxa com a taxa específica da forma de pagamento
-            novo_pedido.taxas_canal = (novo_pedido.valor_bruto * taxa_pct).quantize(Decimal('0.01'))
-            novo_pedido.lucro_liquido = (novo_pedido.valor_bruto - novo_pedido.taxas_canal - novo_pedido.custo_ingredientes - novo_pedido.desconto).quantize(Decimal('0.01'))
-            novo_pedido.save()
-            
-            # Baixa o estoque automaticamente
-            novo_pedido.processar_baixa_estoque()
-            novos_pedidos_criados += 1
+        # Mantém compatibilidade com FechamentoDiarioInfo (nº de entregas do dia)
+        total_entregas = sum(entregas_salvas.values())
+        FechamentoDiarioInfo.objects.update_or_create(
+            data=data_fechamento,
+            defaults={'quantidade_entregas': total_entregas, 'taxa_entrega': config.taxa_entrega},
+        )
 
-        messages.success(request, f"Fechamento diário do dia {data_fechamento.strftime('%d/%m/%Y')} gravado com sucesso! ({novos_pedidos_criados} modalidades/canais processados).")
+        # Gera as despesas automáticas do dia (taxas + motoboy)
+        qtd_despesas = sincronizar_despesas_fechamento(data_fechamento)
+
+        msg = (f"Fechamento de {data_fechamento.strftime('%d/%m/%Y')} gravado: "
+               f"{n} combinações de canal/pagamento, {qtd_despesas} lançamentos automáticos de despesa.")
+        if sem_preco:
+            messages.warning(request, msg + f" Atenção: sem preço cadastrado para {', '.join(sorted(sem_preco))} — lançado como R$ 0,00.")
+        else:
+            messages.success(request, msg)
         return redirect(f"{request.path}?data={data_str}")
 
+    # Estrutura pronta para o template: colunas (canal x modo) e linhas (produto x células)
+    colunas = [
+        {'canal': c, 'modo': m_val, 'modo_label': m_label}
+        for c in canais for m_val, m_label in modos
+    ]
+    linhas = []
+    for p in produtos:
+        celulas = []
+        gravadas_p = vendas_gravadas.get(p.id, {})
+        for c in canais:
+            preco = precos_matriz.get(p.id, {}).get(c.id, Decimal('0.00'))
+            for m_val, _m_label in modos:
+                celulas.append({
+                    'name': f"qtd_{p.id}_{c.id}_{m_val}",
+                    'qtd': gravadas_p.get(f"{c.id}_{m_val}", ''),
+                    'preco': preco,
+                })
+        linhas.append({'produto': p, 'celulas': celulas})
+
+    total_entregas_salvo = sum(entregas_salvas.values())
     context = {
         'data_fechamento': data_str,
         'data_fechamento_obj': data_fechamento,
         'busca': busca,
         'categoria_selecionada': categoria_filtro,
-        'produtos': produtos,
         'canais': canais,
-        'precos_matriz': precos_matriz,
-        'vendas_gravadas': vendas_gravadas,
+        'modos': modos,
+        'colunas': colunas,
+        'linhas': linhas,
+        'num_modos': len(modos),
         'desconto_dia': desconto_dia,
-        'quantidade_entregas': total_entregas_salvo,
-        'taxa_entrega': taxa_entrega_salva,
-        'total_entregas_sugerido': total_entregas_dia,
-        'valor_entregas_calculado': (Decimal(total_entregas_salvo) * taxa_entrega_salva).quantize(Decimal('0.02')),
+        'entregadores': [{'obj': e, 'qtd': entregas_salvas.get(e.id, 0)} for e in entregadores],
+        'taxa_entrega': config.taxa_entrega,
+        'total_entregas_salvo': total_entregas_salvo,
+        'valor_entregas_calculado': (Decimal(total_entregas_salvo) * config.taxa_entrega).quantize(Decimal('0.01')),
         'categorias': Produto.CATEGORIAS,
     }
 
@@ -597,5 +594,79 @@ def fechamento_diario(request):
         return render(request, 'vendas/partials/fechamento_tabela.html', context)
 
     return render(request, 'vendas/fechamento_diario.html', context)
+
+
+# ==========================================
+# ENTREGADORES (GESTÃO)
+# ==========================================
+
+@login_required
+@gestao_required
+def entregador_listar(request):
+    entregadores = Entregador.objects.all()
+    return render(request, 'vendas/entregador_lista.html', {'entregadores': entregadores})
+
+
+@login_required
+@gestao_required
+def entregador_criar(request):
+    if request.method == 'POST':
+        form = EntregadorForm(request.POST)
+        if form.is_valid():
+            e = form.save()
+            messages.success(request, f"Entregador '{e.nome}' cadastrado!")
+            return redirect('entregador_listar')
+    else:
+        form = EntregadorForm()
+    return render(request, 'vendas/entregador_form.html', {'form': form, 'titulo': "Cadastrar Entregador"})
+
+
+@login_required
+@gestao_required
+def entregador_editar(request, pk):
+    e = get_object_or_404(Entregador, pk=pk)
+    if request.method == 'POST':
+        form = EntregadorForm(request.POST, instance=e)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Entregador '{e.nome}' atualizado!")
+            return redirect('entregador_listar')
+    else:
+        form = EntregadorForm(instance=e)
+    return render(request, 'vendas/entregador_form.html', {'form': form, 'titulo': f"Editar Entregador: {e.nome}"})
+
+
+@login_required
+@gestao_required
+def entregador_excluir(request, pk):
+    e = get_object_or_404(Entregador, pk=pk)
+    if request.method == 'POST':
+        nome = e.nome
+        try:
+            e.delete()
+            messages.success(request, f"Entregador '{nome}' excluído.")
+        except Exception:
+            messages.error(request, "Não é possível excluir: este entregador já tem entregas registradas. Marque como inativo.")
+        return redirect('entregador_listar')
+    return render(request, 'vendas/entregador_confirm_delete.html', {'entregador': e})
+
+
+# ==========================================
+# CONFIGURAÇÃO FINANCEIRA (GESTÃO)
+# ==========================================
+
+@login_required
+@gestao_required
+def configuracao_financeira(request):
+    config = ConfiguracaoFinanceira.get_solo()
+    if request.method == 'POST':
+        form = ConfiguracaoFinanceiraForm(request.POST, instance=config)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Configuração financeira atualizada. Vale para os próximos lançamentos.")
+            return redirect('configuracao_financeira')
+    else:
+        form = ConfiguracaoFinanceiraForm(instance=config)
+    return render(request, 'vendas/configuracao_financeira.html', {'form': form, 'titulo': "Configuração Financeira"})
 
 

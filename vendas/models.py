@@ -2,6 +2,69 @@ from django.db import models
 from decimal import Decimal
 from django.db.models import Sum
 
+
+class ConfiguracaoFinanceira(models.Model):
+    """Parâmetros financeiros globais, editáveis pela Gestão. Registro único (pk=1)."""
+    taxa_maquininha = models.DecimalField(
+        max_digits=6, decimal_places=4, default=Decimal('0.0350'),
+        verbose_name="Taxa da maquininha na entrega (%)",
+        help_text="Ex: 0.035 para 3,5%. Aplicada quando o cliente paga no cartão/pix da maquininha do Igor na entrega.")
+    taxa_entrega = models.DecimalField(
+        max_digits=6, decimal_places=2, default=Decimal('9.00'),
+        verbose_name="Valor da entrega (R$)",
+        help_text="Valor fixo cobrado do cliente e repassado ao entregador por entrega.")
+    caixa_inicial = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal('0.00'),
+        verbose_name="Saldo de caixa inicial (R$)",
+        help_text="Dinheiro que já existia no caixa no dia em que o sistema começou a ser usado.")
+
+    class Meta:
+        verbose_name = "Configuração Financeira"
+        verbose_name_plural = "Configuração Financeira"
+
+    def __str__(self):
+        return "Configuração Financeira"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_solo(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+class Entregador(models.Model):
+    nome = models.CharField(max_length=80, unique=True, verbose_name="Nome do Entregador")
+    eh_socio = models.BooleanField(
+        default=False, verbose_name="É sócio (Igor / esposa)",
+        help_text="Se marcado, as entregas feitas por esta pessoa NÃO geram custo de motoboy — o valor fica na empresa.")
+    ativo = models.BooleanField(default=True, verbose_name="Ativo")
+
+    class Meta:
+        verbose_name = "Entregador"
+        verbose_name_plural = "Entregadores"
+        ordering = ['nome']
+
+    def __str__(self):
+        return self.nome + (" (sócio)" if self.eh_socio else "")
+
+
+class EntregaDiaria(models.Model):
+    data = models.DateField(verbose_name="Data")
+    entregador = models.ForeignKey(Entregador, on_delete=models.PROTECT, related_name='entregas', verbose_name="Entregador")
+    quantidade = models.PositiveIntegerField(default=0, verbose_name="Quantidade de Entregas")
+
+    class Meta:
+        verbose_name = "Entrega do Dia"
+        verbose_name_plural = "Entregas do Dia"
+        unique_together = ('data', 'entregador')
+        ordering = ['-data', 'entregador__nome']
+
+    def __str__(self):
+        return f"{self.data.strftime('%d/%m/%Y')} - {self.entregador.nome}: {self.quantidade}"
+
 class FormaPagamento(models.Model):
     nome = models.CharField(max_length=50, unique=True, verbose_name="Nome da Forma de Pagamento")
     
@@ -15,7 +78,14 @@ class FormaPagamento(models.Model):
 
 class CanalVenda(models.Model):
     nome = models.CharField(max_length=50, unique=True, verbose_name="Nome do Canal")
-    taxa_comissao = models.DecimalField(max_digits=5, decimal_places=4, default=0, verbose_name="Taxa de Comissão (%)")
+    taxa_comissao = models.DecimalField(
+        max_digits=5, decimal_places=4, default=0,
+        verbose_name="Comissão base (%)",
+        help_text="Cobrada quando o cliente paga na entrega. iFood 12%, UaiRango 8%, app próprio 0%.")
+    taxa_online = models.DecimalField(
+        max_digits=5, decimal_places=4, default=0,
+        verbose_name="Taxa total no pagamento on-line (%)",
+        help_text="Cobrada quando o cliente paga dentro do app. iFood 15,2%, UaiRango 11,5%, app próprio 0%.")
     taxa_fixa = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Taxa Fixa por Pedido (R$)")
     dias_repasse = models.IntegerField(default=1, verbose_name="Dias para Repasse")
 
@@ -28,6 +98,14 @@ class CanalVenda(models.Model):
         # Mostra o nome do canal e suas taxas de forma limpa
         taxa_pct = (self.taxa_comissao * 100).quantize(Decimal('0.01'))
         return f"{self.nome} (Taxa: {taxa_pct}% + R$ {self.taxa_fixa})"
+
+    @property
+    def taxa_comissao_pct(self):
+        return (self.taxa_comissao * 100).quantize(Decimal('0.01'))
+
+    @property
+    def taxa_online_pct(self):
+        return (self.taxa_online * 100).quantize(Decimal('0.01'))
 
 
 class TaxaFormaPagamento(models.Model):
@@ -55,9 +133,16 @@ class Pedido(models.Model):
         ('CANCELADO', 'Cancelado'),
     )
 
+    MODO_PAGAMENTO_CHOICES = (
+        ('ONLINE', 'Pago no app da plataforma'),
+        ('DINHEIRO', 'Dinheiro na entrega'),
+        ('MAQUININHA', 'Maquininha na entrega'),
+    )
+
     cliente_nome = models.CharField(max_length=100, blank=True, null=True, verbose_name="Nome do Cliente")
     canal = models.ForeignKey(CanalVenda, on_delete=models.PROTECT, related_name='pedidos', verbose_name="Canal de Venda")
     forma_pagamento = models.ForeignKey(FormaPagamento, on_delete=models.PROTECT, null=True, blank=True, verbose_name="Forma de Pagamento")
+    modo_pagamento = models.CharField(max_length=12, choices=MODO_PAGAMENTO_CHOICES, default='ONLINE', verbose_name="Modo de Pagamento")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='RECEBIDO', verbose_name="Status do Pedido")
     data_criacao = models.DateTimeField(auto_now_add=True, verbose_name="Data de Criação")
     
@@ -83,46 +168,42 @@ class Pedido(models.Model):
         return f"Pedido #{self.id} - {self.canal.nome} ({data_formatada})"
 
     def recalcular_valores_financeiros(self, save=True):
-        # Lógica de Negócio: Calcula automaticamente todo o financeiro do pedido
-        # com base nos itens cadastrados.
+        # Lógica de Negócio: recalcula o financeiro do pedido com base nos itens.
+        # REGIME DE CAIXA: o custo dos insumos NÃO entra aqui — ele é reconhecido
+        # na compra (entrada de estoque gera Despesa FORNECEDORES). O custo_ingredientes
+        # fica só como informativo para a margem de contribuição por lanche.
         itens = self.itens.all()
-        
-        # 1. Valor Bruto
-        bruto = sum(item.quantidade * item.preco_unitario for item in itens)
+
+        # 1. Valor Bruto (o que o cliente pagou, incluindo o preço cheio do app)
+        bruto = sum((item.quantidade * item.preco_unitario for item in itens), Decimal('0.00'))
         self.valor_bruto = Decimal(bruto).quantize(Decimal('0.01'))
-        
+
         if self.status != 'CANCELADO' and self.valor_bruto > 0:
-            # 2. Taxas do Canal (App, etc)
-            taxas = (self.valor_bruto * self.canal.taxa_comissao) + self.canal.taxa_fixa
-            self.taxas_canal = Decimal(taxas).quantize(Decimal('0.01'))
-            
-            # 2.1 Taxas de Pagamento (Cartão, Maquininha, etc)
-            if self.forma_pagamento:
-                taxa_pgto = TaxaFormaPagamento.objects.filter(canal=self.canal, forma_pagamento=self.forma_pagamento).first()
-                if taxa_pgto:
-                    calc_taxa_pgto = (self.valor_bruto * taxa_pgto.taxa_comissao) + taxa_pgto.taxa_fixa
-                    self.taxas_pagamento = Decimal(calc_taxa_pgto).quantize(Decimal('0.01'))
-                else:
-                    self.taxas_pagamento = Decimal('0.00')
-            else:
+            config = ConfiguracaoFinanceira.get_solo()
+            if self.modo_pagamento == 'ONLINE':
+                # Pagamento dentro do app: a plataforma fica com a taxa total (iFood 15,2%, UaiRango 11,5%)
+                self.taxas_canal = (self.valor_bruto * self.canal.taxa_online + self.canal.taxa_fixa).quantize(Decimal('0.01'))
+                self.taxas_pagamento = Decimal('0.00')
+            elif self.modo_pagamento == 'MAQUININHA':
+                # Na entrega, no cartão/pix da maquininha do Igor: comissão base da plataforma + taxa da maquininha
+                self.taxas_canal = (self.valor_bruto * self.canal.taxa_comissao + self.canal.taxa_fixa).quantize(Decimal('0.01'))
+                self.taxas_pagamento = (self.valor_bruto * config.taxa_maquininha).quantize(Decimal('0.01'))
+            else:  # DINHEIRO na entrega (ou pix direto): só a comissão base
+                self.taxas_canal = (self.valor_bruto * self.canal.taxa_comissao + self.canal.taxa_fixa).quantize(Decimal('0.01'))
                 self.taxas_pagamento = Decimal('0.00')
         else:
             self.taxas_canal = Decimal('0.00')
             self.taxas_pagamento = Decimal('0.00')
 
-        # 3. Custo total dos ingredientes pela ficha técnica (CMV - Custo da Mercadoria Vendida)
-        # Calculado com base no custo_unitario atualizado na entrada do estoque (custo médio ponderado)
-        custo = sum(item.quantidade * item.produto.custo_total for item in itens)
+        # 4. CMV informativo (custo da ficha técnica pelo custo médio ponderado do insumo)
+        custo = sum((item.quantidade * item.produto.custo_total for item in itens), Decimal('0.00'))
         self.custo_ingredientes = Decimal(custo).quantize(Decimal('0.01'))
 
-        # 4. Lucro Líquido Real = Faturamento Bruto - Taxas do Canal - Taxas de Pagamento - CMV
-        # O custo dos ingredientes reflete o preço de compra lançado na entrada do estoque.
-        # Nota: as Despesas de categoria FORNECEDORES (geradas na entrada do estoque) NÃO
-        # devem ser subtraídas novamente no dashboard para evitar dupla contagem.
-        self.lucro_liquido = (self.valor_bruto - self.taxas_canal - self.taxas_pagamento - self.custo_ingredientes).quantize(Decimal('0.01'))
+        # 5. Valor líquido recebido = o que entra no caixa da operação nesta venda
+        #    (faturamento bruto - comissão do canal - taxa de pagamento - desconto).
+        self.lucro_liquido = (self.valor_bruto - self.taxas_canal - self.taxas_pagamento - self.desconto).quantize(Decimal('0.01'))
 
         if save:
-            # Salvamos apenas os campos necessários para evitar recursão
             Pedido.objects.filter(id=self.id).update(
                 valor_bruto=self.valor_bruto,
                 taxas_canal=self.taxas_canal,
@@ -130,6 +211,17 @@ class Pedido(models.Model):
                 custo_ingredientes=self.custo_ingredientes,
                 lucro_liquido=self.lucro_liquido
             )
+
+    @property
+    def valor_liquido(self):
+        # Alias legível: o que efetivamente entrou no caixa com esta venda.
+        return self.lucro_liquido
+
+    @property
+    def margem_contribuicao(self):
+        # Para engenharia de cardápio: sobra depois de taxas E custo de insumo.
+        return (self.valor_bruto - self.taxas_canal - self.taxas_pagamento
+                - self.custo_ingredientes - self.desconto).quantize(Decimal('0.01'))
 
     def processar_baixa_estoque(self, responsavel=None):
         # Lógica de Negócio: Efetua a baixa física de insumos no estoque.

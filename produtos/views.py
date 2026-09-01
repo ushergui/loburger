@@ -28,7 +28,7 @@ def ingrediente_listar(request):
     if categoria:
         ingredientes = ingredientes.filter(categoria=categoria)
         
-    paginator = Paginator(ingredientes, 10)
+    paginator = Paginator(ingredientes, 50)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     

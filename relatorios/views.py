@@ -190,14 +190,23 @@ def dashboard(request):
     taxas_cartao = kpis['taxas_pgto_totais'] or Decimal('0.00')
     custo = kpis['custo_insumos'] or Decimal('0.00')
     
-    # 3. Calcular custos e lucro líquido deduzindo as despesas lançadas no período
+    # 3. Calcular lucro líquido deduzindo as despesas de overhead (fixas/variáveis) lançadas no período
+    # IMPORTANTE: despesas de categoria FORNECEDORES são excluídas pois o CMV já está
+    # embutido no lucro_liquido de cada pedido (custo_ingredientes deduzido na venda).
+    # Incluir FORNECEDORES aqui causaria dupla contagem do custo dos insumos.
+    soma_despesas_overhead = Despesa.objects.filter(
+        data_pagamento__range=(data_inicio.date(), data_fim.date())
+    ).exclude(categoria='FORNECEDORES').aggregate(total=Sum('valor'))['total'] or Decimal('0.00')
+
+    # Para exibição no KPI de Custo Total: inclui todas as despesas (fornecedores + overhead)
     soma_despesas = Despesa.objects.filter(
         data_pagamento__range=(data_inicio.date(), data_fim.date())
     ).aggregate(total=Sum('valor'))['total'] or Decimal('0.00')
     
     custo_total_kpi = taxas + taxas_cartao + soma_despesas
     lucro_pedidos = kpis['lucro_liquido_total'] or Decimal('0.00')
-    lucro = lucro_pedidos - soma_despesas
+    # Lucro real = lucro dos pedidos (já com CMV deduzido) - despesas de overhead do período
+    lucro = lucro_pedidos - soma_despesas_overhead
     
     ticket = (faturamento / num_pedidos) if num_pedidos > 0 else Decimal('0.00')
 

@@ -110,13 +110,16 @@ class Pedido(models.Model):
             self.taxas_canal = Decimal('0.00')
             self.taxas_pagamento = Decimal('0.00')
 
-        # 3. Custo total dos ingredientes pela ficha técnica
+        # 3. Custo total dos ingredientes pela ficha técnica (CMV - Custo da Mercadoria Vendida)
+        # Calculado com base no custo_unitario atualizado na entrada do estoque (custo médio ponderado)
         custo = sum(item.quantidade * item.produto.custo_total for item in itens)
         self.custo_ingredientes = Decimal(custo).quantize(Decimal('0.01'))
 
-        # 4. Lucro Líquido Real (Modelo de Caixa: Valor Bruto - Taxas)
-        # O custo dos ingredientes é abatido como Despesa global nas compras, e não por pedido.
-        self.lucro_liquido = (self.valor_bruto - self.taxas_canal - self.taxas_pagamento).quantize(Decimal('0.01'))
+        # 4. Lucro Líquido Real = Faturamento Bruto - Taxas do Canal - Taxas de Pagamento - CMV
+        # O custo dos ingredientes reflete o preço de compra lançado na entrada do estoque.
+        # Nota: as Despesas de categoria FORNECEDORES (geradas na entrada do estoque) NÃO
+        # devem ser subtraídas novamente no dashboard para evitar dupla contagem.
+        self.lucro_liquido = (self.valor_bruto - self.taxas_canal - self.taxas_pagamento - self.custo_ingredientes).quantize(Decimal('0.01'))
 
         if save:
             # Salvamos apenas os campos necessários para evitar recursão

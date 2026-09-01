@@ -17,6 +17,9 @@ echo Aplicando migracoes...
 echo Coletando arquivos estaticos...
 .\venv\Scripts\python.exe manage.py collectstatic --noinput
 
+echo Gerando contas recorrentes do mes...
+.\venv\Scripts\python.exe manage.py gerar_contas_recorrentes
+
 echo.
 echo Acesse: http://127.0.0.1:8080
 start "" http://127.0.0.1:8080

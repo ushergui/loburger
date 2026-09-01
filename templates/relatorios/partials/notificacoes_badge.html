@@ -24,23 +24,24 @@
          :class="{ 'hidden': false }">
         
         <div class="bg-hex_dark_bg/80 border-b border-hex_gold/20 px-4 py-2 flex items-center justify-between">
-            <h3 class="text-xs font-bold text-hex_gold uppercase tracking-wider title-hex">Notificações</h3>
+            <h3 class="text-xs font-bold text-hex_gold uppercase tracking-wider title-hex">Contas a Pagar</h3>
             {% if qtd > 0 %}
-                <span class="text-[9px] bg-hex_danger/20 text-hex_danger border border-hex_danger/30 px-1.5 py-0.5 rounded">{{ qtd }} pendentes</span>
+                <span class="text-[9px] bg-hex_danger/20 text-hex_danger border border-hex_danger/30 px-1.5 py-0.5 rounded">{{ qtd }} urgente{{ qtd|pluralize }}</span>
             {% endif %}
         </div>
-        
+
         <div class="max-h-64 overflow-y-auto">
             {% if qtd > 0 %}
                 {% for d in despesas %}
-                <a href="{% url 'despesa_editar' d.id %}" class="block px-4 py-3 border-b border-hex_dark_border hover:bg-hex_dark_bg transition-colors">
+                <a href="{% url 'despesa_marcar_paga' d.id %}" class="block px-4 py-3 border-b border-hex_dark_border hover:bg-hex_dark_bg transition-colors">
                     <div class="flex justify-between items-start mb-1">
                         <span class="text-xs font-bold text-white truncate pr-2">{{ d.descricao }}</span>
-                        <span class="text-[10px] font-mono font-bold text-hex_danger text-right">R$ {{ d.valor }}</span>
+                        <span class="text-[10px] font-mono font-bold text-hex_gold text-right">R$ {{ d.valor|floatformat:2 }}</span>
                     </div>
-                    <div class="text-[10px] text-hex_gold_dim/80 flex items-center mt-1">
+                    <div class="text-[10px] flex items-center mt-1 {% if d.urgencia == 'atrasada' %}text-hex_danger{% elif d.urgencia == 'hoje' %}text-hex_warning{% else %}text-hex_gold_dim/80{% endif %}">
                         <i data-lucide="clock" class="w-3 h-3 mr-1 inline"></i>
-                        Vence em: <strong class="ml-1 text-hex_danger">{{ d.data_vencimento|date:"d/m/Y" }}</strong>
+                        <strong>{{ d.rotulo }}</strong>
+                        <span class="ml-1 text-hex_gold_dim/60">· {{ d.data_vencimento|date:"d/m" }}</span>
                     </div>
                 </a>
                 {% endfor %}
@@ -49,14 +50,14 @@
                     <div class="mx-auto w-10 h-10 bg-hex_dark_bg rounded-full flex items-center justify-center mb-2">
                         <i data-lucide="check" class="w-5 h-5 text-hex_success opacity-50"></i>
                     </div>
-                    <p class="text-xs text-hex_gold_dim/70">Nenhuma despesa próxima do vencimento.</p>
+                    <p class="text-xs text-hex_gold_dim/70">Nenhuma conta urgente.</p>
                 </div>
             {% endif %}
         </div>
-        
+
         {% if qtd > 0 %}
         <div class="bg-hex_dark_bg/50 px-4 py-2 text-center border-t border-hex_dark_border">
-            <a href="{% url 'despesa_listar' %}" class="text-[10px] text-hex_blue hover:text-white uppercase tracking-wider font-semibold transition-colors">Ver todas as despesas</a>
+            <a href="{% url 'despesa_listar' %}" class="text-[10px] text-hex_blue hover:text-white uppercase tracking-wider font-semibold transition-colors">Ver todas as contas a pagar</a>
         </div>
         {% endif %}
     </div>

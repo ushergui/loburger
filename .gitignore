@@ -26,10 +26,6 @@ scratch/
 .DS_Store
 Thumbs.db
 
-# Banco de dados local (dados, não código)
-db.sqlite3
-*.sqlite3
-
 # Arquivos estáticos coletados
 /staticfiles/
 

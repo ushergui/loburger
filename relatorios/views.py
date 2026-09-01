@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
-from django.db.models import Sum, Count, F, Q
+from django.db.models import Sum, Count, Q
 from django.core.paginator import Paginator
 from django.utils import timezone
 from decimal import Decimal
@@ -18,38 +18,49 @@ from .forms import DespesaForm, DespesaRecorrenteForm
 from . import services
 
 MESES_PROJECAO_PADRAO = 12
+DIAS_ALERTA_URGENTE = 3   # badge do sino: atrasadas + vence em ≤ 3 dias
+DIAS_ALERTA_LISTA = 7     # o que aparece na lista de "próximas"
 
 
-def gerar_despesas_fixas_pendentes(meses_a_frente=MESES_PROJECAO_PADRAO):
-    """Gera as faturas previstas dos moldes fixos: mês atual + N meses à frente.
-    Nunca gera nada para trás."""
+def _dia_vencimento(mes_ref, dia):
+    """Dia do mês, ajustando para o último dia se o mês não tiver esse dia (ex: 31/fev)."""
+    try:
+        return mes_ref.replace(day=dia)
+    except ValueError:
+        ultimo = calendar.monthrange(mes_ref.year, mes_ref.month)[1]
+        return mes_ref.replace(day=ultimo)
+
+
+def gerar_despesas_fixas_pendentes(meses_a_frente=MESES_PROJECAO_PADRAO, forcar=False):
+    """Gera as faturas PREVISTAS dos moldes fixos: mês atual + N meses à frente.
+    Nunca gera nada para trás. Roda no máximo 1x por dia (guarda em ConfiguracaoFinanceira),
+    a menos que `forcar=True` (usado pelo comando de terminal)."""
+    from vendas.models import ConfiguracaoFinanceira
+
     hoje = timezone.localdate()
+    config = ConfiguracaoFinanceira.get_solo()
+    if not forcar and config.ultima_geracao_recorrentes == hoje:
+        return 0
+
     y, m = hoje.year, hoje.month
     meses_para_gerar = []
     for _ in range(meses_a_frente + 1):
         meses_para_gerar.append(date(y, m, 1))
-        if m == 12:
-            y, m = y + 1, 1
-        else:
-            m += 1
+        y, m = (y + 1, 1) if m == 12 else (y, m + 1)
 
+    criadas = 0
     for molde in DespesaRecorrente.objects.filter(ativa=True):
         for mes_ref in meses_para_gerar:
-            try:
-                data_venc = mes_ref.replace(day=molde.dia_vencimento)
-            except ValueError:
-                ultimo_dia = calendar.monthrange(mes_ref.year, mes_ref.month)[1]
-                data_venc = mes_ref.replace(day=ultimo_dia)
-
+            data_venc = _dia_vencimento(mes_ref, molde.dia_vencimento)
             existe = Despesa.objects.filter(
                 despesa_matriz=molde,
                 data_vencimento__year=data_venc.year,
                 data_vencimento__month=data_venc.month,
             ).exists()
-
             if not existe:
                 Despesa.objects.create(
                     descricao=molde.descricao,
+                    credor=molde.credor,
                     tipo='FIXO',
                     categoria=molde.categoria,
                     valor=molde.valor_base,
@@ -57,8 +68,31 @@ def gerar_despesas_fixas_pendentes(meses_a_frente=MESES_PROJECAO_PADRAO):
                     data_vencimento=data_venc,
                     despesa_matriz=molde,
                     origem='RECORRENTE',
-                    observacao=f"Gerada automaticamente pelo molde {molde.id}.",
+                    observacao=f"Gerada automaticamente pelo molde fixo #{molde.id}.",
                 )
+                criadas += 1
+
+    config.ultima_geracao_recorrentes = hoje
+    config.save(update_fields=['ultima_geracao_recorrentes'])
+    return criadas
+
+
+def propagar_molde_para_previstas(molde, a_partir_de=None):
+    """Depois de editar um molde, alinha as faturas PREVISTAS ainda não vencidas
+    (ou a partir de uma data) com o novo valor, credor e dia de vencimento."""
+    hoje = timezone.localdate()
+    corte = a_partir_de or hoje
+    futuras = Despesa.objects.filter(
+        despesa_matriz=molde, status='PREVISTO', data_vencimento__gte=corte,
+    )
+    for fut in futuras:
+        fut.valor = molde.valor_base
+        fut.credor = molde.credor
+        fut.categoria = molde.categoria
+        fut.descricao = molde.descricao
+        fut.data_vencimento = _dia_vencimento(fut.data_vencimento.replace(day=1), molde.dia_vencimento)
+        fut.save()
+    return futuras.count()
 
 MESES_PT = {
     1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
@@ -201,14 +235,16 @@ def dashboard(request):
     soma_despesas = despesas_total
     custo_total_kpi = despesas_total
 
-    # Alertas de Vencimento de Despesas (Próximos 5 dias ou atrasadas)
+    # Alertas de contas a pagar: atrasadas + próximas (até DIAS_ALERTA_LISTA dias)
     hoje_venc = timezone.localdate()
-    cinco_dias = hoje_venc + timedelta(days=5)
-    despesas_vencimento_proximo = Despesa.objects.filter(
-        status='PREVISTO',
-        data_vencimento__lte=cinco_dias,
-        data_vencimento__gte=hoje_venc - timedelta(days=30) # não mostrar coisas super antigas
-    ).order_by('data_vencimento')
+    despesas_vencimento_proximo = list(
+        Despesa.objects.filter(
+            status='PREVISTO',
+            data_vencimento__lte=hoje_venc + timedelta(days=DIAS_ALERTA_LISTA),
+        ).order_by('data_vencimento')
+    )
+    for d in despesas_vencimento_proximo:
+        _rotular_vencimento(d, hoje_venc)
 
     # 4. Dados para o Gráfico 1: Faturamento Diário (Linha)
     from django.db.models.functions import TruncDate
@@ -387,11 +423,16 @@ def despesa_listar(request):
 
     total_despesas_filtradas = despesas.aggregate(total=Sum('valor'))['total'] or Decimal('0.00')
 
-    # Contadores para as abas
     hoje = timezone.localdate()
+    # Rótulo de urgência nas contas a pagar
+    if vista == 'a_pagar':
+        for d in page_obj:
+            _rotular_vencimento(d, hoje)
+
     qs_prev = Despesa.objects.filter(status='PREVISTO')
     total_a_pagar = qs_prev.aggregate(t=Sum('valor'))['t'] or Decimal('0.00')
     total_atrasadas = qs_prev.filter(data_vencimento__lt=hoje).count()
+    total_urgentes = contas_a_pagar_urgentes(hoje).count()
 
     context = {
         'page_obj': page_obj,
@@ -402,6 +443,7 @@ def despesa_listar(request):
         'total_filtrado': total_despesas_filtradas,
         'total_a_pagar': total_a_pagar,
         'total_atrasadas': total_atrasadas,
+        'total_urgentes': total_urgentes,
         'hoje': hoje,
         'categorias': CATEGORIA_CHOICES,
         'tipos': Despesa.TIPO_CHOICES,
@@ -427,8 +469,17 @@ def despesa_marcar_paga(request, id):
         despesa.data_pagamento = dp
         despesa.status = 'PAGO'
         despesa.save()
-        messages.success(request, f"'{despesa.descricao}' marcada como paga em {dp.strftime('%d/%m/%Y')}. Saiu do caixa nesse dia.")
-    return redirect('despesa_listar')
+        messages.success(
+            request,
+            f"'{despesa.descricao}' — R$ {despesa.valor} — marcada como paga em {dp.strftime('%d/%m/%Y')}. "
+            "Sai de Contas a Pagar e debita do caixa nesse dia."
+        )
+        return redirect('despesa_listar')
+
+    return render(request, 'relatorios/despesa_pagar.html', {
+        'despesa': despesa,
+        'hoje': timezone.localdate().strftime('%Y-%m-%d'),
+    })
 
 
 @login_required
@@ -457,42 +508,23 @@ def despesa_editar(request, id):
         form = DespesaForm(request.POST, instance=despesa)
         if form.is_valid():
             desp = form.save()
-            
-            # Lógica para alterar o template e despesas futuras
+
+            # Se veio de um molde e o usuário pediu, atualiza o molde e as previstas futuras
             if form.cleaned_data.get('alterar_futuros') and desp.despesa_matriz:
-                matriz = desp.despesa_matriz
-                matriz.valor_base = desp.valor
-                matriz.dia_vencimento = desp.data_vencimento.day
-                matriz.save()
-                
-                # Atualiza as despesas geradas (PREVISTAS) no futuro
-                Despesa.objects.filter(
-                    despesa_matriz=matriz,
-                    status='PREVISTO',
-                    data_vencimento__gt=desp.data_vencimento
-                ).update(
-                    valor=desp.valor,
-                    data_vencimento=F('data_vencimento') # Manter o mês e ano, apenas o dia será alterado via um map?
-                    # Nota: Mudar o 'day' no banco diretamente não é tão simples via update(). 
-                    # Vamos fazer num loop para ser preciso.
-                )
-                
-                # Corrigindo o dia das faturas futuras
-                futuras = Despesa.objects.filter(despesa_matriz=matriz, status='PREVISTO', data_vencimento__gt=desp.data_vencimento)
-                for fut in futuras:
-                    try:
-                        fut.data_vencimento = fut.data_vencimento.replace(day=matriz.dia_vencimento)
-                    except ValueError:
-                        ultimo_dia = calendar.monthrange(fut.data_vencimento.year, fut.data_vencimento.month)[1]
-                        fut.data_vencimento = fut.data_vencimento.replace(day=ultimo_dia)
-                    fut.valor = matriz.valor_base
-                    fut.save()
-                    
-            messages.success(request, f"Despesa '{despesa.descricao}' atualizada com sucesso!")
+                molde = desp.despesa_matriz
+                molde.valor_base = desp.valor
+                molde.credor = desp.credor
+                molde.categoria = desp.categoria
+                molde.dia_vencimento = desp.data_vencimento.day
+                molde.save()
+                n = propagar_molde_para_previstas(molde, a_partir_de=desp.data_vencimento + timedelta(days=1))
+                messages.info(request, f"Molde fixo atualizado e {n} fatura(s) futura(s) realinhada(s).")
+
+            messages.success(request, f"Despesa '{despesa.descricao}' atualizada.")
             return redirect('despesa_listar')
     else:
         form = DespesaForm(instance=despesa)
-        
+
     return render(request, 'relatorios/despesa_form.html', {
         'form': form,
         'titulo': f"Editar Despesa: {despesa.descricao}"
@@ -520,7 +552,8 @@ def despesa_recorrente_criar(request):
         form = DespesaRecorrenteForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Despesa Fixa (Molde) cadastrada com sucesso! Faturas serão geradas automaticamente.")
+            n = gerar_despesas_fixas_pendentes(forcar=True)
+            messages.success(request, f"Despesa fixa cadastrada. {n} fatura(s) prevista(s) gerada(s) para os próximos meses.")
             return redirect('despesa_listar')
     else:
         form = DespesaRecorrenteForm()
@@ -537,12 +570,24 @@ def despesa_recorrente_editar(request, id):
     if request.method == 'POST':
         form = DespesaRecorrenteForm(request.POST, instance=molde)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Despesa Fixa (Molde) atualizada com sucesso!")
+            molde = form.save()
+            # Realinha as faturas previstas ainda não vencidas com o molde novo
+            n = propagar_molde_para_previstas(molde)
+            if not molde.ativa:
+                # Molde desativado: some com as previstas futuras não vencidas
+                apagadas = Despesa.objects.filter(
+                    despesa_matriz=molde, status='PREVISTO',
+                    data_vencimento__gte=timezone.localdate(),
+                ).delete()[0]
+                messages.info(request, f"Molde desativado. {apagadas} fatura(s) prevista(s) futura(s) removida(s).")
+            else:
+                gerar_despesas_fixas_pendentes(forcar=True)
+                messages.info(request, f"{n} fatura(s) prevista(s) realinhada(s) com o molde.")
+            messages.success(request, "Despesa fixa (molde) atualizada.")
             return redirect('despesa_listar')
     else:
         form = DespesaRecorrenteForm(instance=molde)
-        
+
     return render(request, 'relatorios/despesa_recorrente_form.html', {
         'form': form,
         'titulo': f"Editar Molde: {molde.descricao}"
@@ -560,21 +605,40 @@ def despesa_recorrente_excluir(request, id):
         
     return render(request, 'relatorios/despesa_recorrente_confirm_delete.html', {'molde': molde})
 
+def _rotular_vencimento(despesa, hoje):
+    """Anota rótulo/urgência de uma conta prevista para exibição."""
+    dias = (despesa.data_vencimento - hoje).days
+    if dias < 0:
+        despesa.rotulo = f"Atrasada há {abs(dias)} dia{'s' if abs(dias) != 1 else ''}"
+        despesa.urgencia = 'atrasada'
+    elif dias == 0:
+        despesa.rotulo = "Vence hoje"
+        despesa.urgencia = 'hoje'
+    elif dias <= DIAS_ALERTA_URGENTE:
+        despesa.rotulo = f"Vence em {dias} dia{'s' if dias != 1 else ''}"
+        despesa.urgencia = 'proxima'
+    else:
+        despesa.rotulo = f"Vence em {dias} dias"
+        despesa.urgencia = 'futura'
+    return despesa
+
+
+def contas_a_pagar_urgentes(hoje=None):
+    """Contas previstas atrasadas ou que vencem em até DIAS_ALERTA_URGENTE dias."""
+    hoje = hoje or timezone.localdate()
+    limite = hoje + timedelta(days=DIAS_ALERTA_URGENTE)
+    return Despesa.objects.filter(status='PREVISTO', data_vencimento__lte=limite).order_by('data_vencimento')
+
+
 @login_required
 @gestao_required
 def notificacoes_badge(request):
     hoje = timezone.localdate()
-    cinco_dias = hoje + timedelta(days=5)
-    despesas_vencimento = Despesa.objects.filter(
-        status='PREVISTO',
-        data_vencimento__lte=cinco_dias,
-        data_vencimento__gte=hoje - timedelta(days=30)
-    ).order_by('data_vencimento')
-    
-    qtd = despesas_vencimento.count()
-    
+    urgentes = list(contas_a_pagar_urgentes(hoje))
+    for d in urgentes:
+        _rotular_vencimento(d, hoje)
     return render(request, 'relatorios/partials/notificacoes_badge.html', {
-        'qtd': qtd,
-        'despesas': despesas_vencimento[:5] # mostra no max as top 5
+        'qtd': len(urgentes),
+        'despesas': urgentes[:6],
     })
 

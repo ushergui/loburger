@@ -17,6 +17,9 @@ class ConfiguracaoFinanceira(models.Model):
         max_digits=12, decimal_places=2, default=Decimal('0.00'),
         verbose_name="Saldo de caixa inicial (R$)",
         help_text="Dinheiro que já existia no caixa no dia em que o sistema começou a ser usado.")
+    ultima_geracao_recorrentes = models.DateField(
+        null=True, blank=True, verbose_name="Última geração de contas recorrentes",
+        help_text="Controle interno: as faturas dos moldes fixos são geradas no máximo 1x por dia.")
 
     class Meta:
         verbose_name = "Configuração Financeira"

@@ -47,7 +47,10 @@ class DespesaRecorrenteForm(ThemeFormMixin, forms.ModelForm):
 
     class Meta:
         model = DespesaRecorrente
-        fields = ['descricao', 'categoria', 'valor_base', 'dia_vencimento', 'ativa']
+        fields = ['descricao', 'credor', 'categoria', 'valor_base', 'dia_vencimento', 'ativa']
+        widgets = {
+            'credor': forms.TextInput(attrs={'placeholder': 'Ex: Enel, Sabesp, Vivo, Contador Silva'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -70,8 +73,9 @@ class DespesaForm(ThemeFormMixin, forms.ModelForm):
 
     class Meta:
         model = Despesa
-        fields = ['descricao', 'tipo', 'categoria', 'valor', 'status', 'data_vencimento', 'data_pagamento', 'observacao', 'alterar_futuros']
+        fields = ['descricao', 'credor', 'tipo', 'categoria', 'valor', 'status', 'data_vencimento', 'data_pagamento', 'observacao', 'alterar_futuros']
         widgets = {
+            'credor': forms.TextInput(attrs={'placeholder': 'Ex: João Refrigeração'}),
             'data_vencimento': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
             'data_pagamento': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
         }

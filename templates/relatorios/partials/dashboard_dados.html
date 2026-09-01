@@ -117,15 +117,15 @@
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {% for alert_desp in despesas_vencimento_proximo %}
-        <div class="bg-hex_dark_bg border border-hex_danger/20 p-3 rounded flex flex-col justify-between">
+        <div class="bg-hex_dark_bg border {% if alert_desp.urgencia == 'atrasada' %}border-hex_danger/40{% elif alert_desp.urgencia == 'hoje' %}border-hex_warning/40{% else %}border-hex_gold/20{% endif %} p-3 rounded flex flex-col justify-between">
             <div class="flex items-start justify-between mb-2">
-                <span class="text-xs font-bold text-white truncate pr-2">{{ alert_desp.descricao }}</span>
-                <span class="text-xs font-mono font-bold text-hex_gold whitespace-nowrap">R$ {{ alert_desp.valor }}</span>
+                <span class="text-xs font-bold text-white truncate pr-2">{{ alert_desp.descricao }}{% if alert_desp.credor %} <span class="text-hex_gold_dim/60 font-normal">· {{ alert_desp.credor }}</span>{% endif %}</span>
+                <span class="text-xs font-mono font-bold text-hex_gold whitespace-nowrap">R$ {{ alert_desp.valor|floatformat:2 }}</span>
             </div>
             <div class="flex items-center justify-between mt-auto">
-                <span class="text-xxs uppercase tracking-wider text-hex_danger/80 font-bold">Vence em: {{ alert_desp.data_vencimento|date:"d/m/Y" }}</span>
-                <a href="{% url 'despesa_editar' alert_desp.id %}" class="bg-hex_danger/20 hover:bg-hex_danger text-hex_danger hover:text-white px-2 py-1 rounded text-[9px] uppercase tracking-wider font-bold transition-all border border-hex_danger/40">
-                    Pagar / Editar
+                <span class="text-xxs uppercase tracking-wider font-bold {% if alert_desp.urgencia == 'atrasada' %}text-hex_danger{% elif alert_desp.urgencia == 'hoje' %}text-hex_warning{% else %}text-hex_gold_dim/70{% endif %}">{{ alert_desp.rotulo }} · {{ alert_desp.data_vencimento|date:"d/m" }}</span>
+                <a href="{% url 'despesa_marcar_paga' alert_desp.id %}" class="bg-hex_success/15 hover:bg-hex_success text-hex_success hover:text-hex_dark_bg px-2 py-1 rounded text-[9px] uppercase tracking-wider font-bold transition-all border border-hex_success/40">
+                    Pagar
                 </a>
             </div>
         </div>

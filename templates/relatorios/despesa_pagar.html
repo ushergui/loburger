@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Pagar conta - LOL BURGUER{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto my-10">
+    <div class="bg-hex_dark_card border border-hex_success/40 p-6 md:p-8 rounded shadow-md">
+        <div class="flex items-center space-x-2 mb-4">
+            <i data-lucide="check-circle-2" class="w-6 h-6 text-hex_success"></i>
+            <h1 class="text-xl font-bold title-hex text-hex_gold">Confirmar pagamento</h1>
+        </div>
+
+        <div class="bg-hex_dark_bg/60 border border-hex_dark_border rounded p-4 mb-5 text-sm space-y-1">
+            <div class="flex justify-between"><span class="text-hex_gold_dim/70">Descrição</span><span class="text-white font-semibold">{{ despesa.descricao }}</span></div>
+            {% if despesa.credor %}<div class="flex justify-between"><span class="text-hex_gold_dim/70">Credor</span><span class="text-hex_gold_light">{{ despesa.credor }}</span></div>{% endif %}
+            <div class="flex justify-between"><span class="text-hex_gold_dim/70">Categoria</span><span class="text-hex_gold_light">{{ despesa.get_categoria_display }}</span></div>
+            <div class="flex justify-between"><span class="text-hex_gold_dim/70">Vencimento</span><span class="text-hex_gold_light font-mono">{{ despesa.data_vencimento|date:"d/m/Y" }}</span></div>
+            <div class="flex justify-between text-base pt-1 border-t border-hex_dark_border mt-1"><span class="text-hex_gold_dim/70">Valor</span><span class="text-hex_gold font-mono font-bold">R$ {{ despesa.valor|floatformat:2 }}</span></div>
+        </div>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label for="data_pagamento" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">Data em que foi paga</label>
+                <input type="date" name="data_pagamento" id="data_pagamento" value="{{ hoje }}"
+                    class="w-full bg-hex_dark_bg/80 border border-hex_gold/30 rounded py-2.5 px-3 text-hex_gold_light focus:outline-none focus:border-hex_blue">
+                <p class="text-xxs text-hex_gold_dim/60 mt-1">O valor debita do caixa <strong>nesse dia</strong>. Se você pagou antes/depois do vencimento, ajuste aqui.</p>
+            </div>
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-hex_dark_border">
+                <a href="{% url 'despesa_listar' %}" class="px-4 py-2.5 rounded text-xs font-semibold text-hex_gold hover:text-white uppercase tracking-wider">Cancelar</a>
+                <button type="submit" class="bg-hex_success hover:bg-hex_blue text-hex_dark_bg hover:text-white font-bold py-2.5 px-6 rounded uppercase tracking-wider text-xs border border-hex_success/40">
+                    Confirmar pagamento
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

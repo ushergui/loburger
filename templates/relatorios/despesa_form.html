@@ -29,6 +29,16 @@
                 {% endif %}
             </div>
 
+            <!-- Credor / Fornecedor -->
+            <div class="col-span-1 md:col-span-2">
+                <label for="{{ form.credor.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">
+                    {{ form.credor.label }}
+                </label>
+                {{ form.credor }}
+                <p class="text-[9px] text-hex_gold_dim/70 mt-1 uppercase tracking-wider">Quem vai receber (opcional)</p>
+                {% if form.credor.errors %}<p class="text-xxs text-hex_danger mt-1">{{ form.credor.errors.as_text }}</p>{% endif %}
+            </div>
+
             <!-- Tipo de Custo -->
             <div>
                 <label for="{{ form.tipo.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">

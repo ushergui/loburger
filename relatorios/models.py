@@ -6,8 +6,8 @@ CATEGORIA_CHOICES = (
     ('TAXA_PLATAFORMA', 'Taxa de Plataforma (iFood / UaiRango)'),
     ('TAXA_MAQUININHA', 'Taxa de Maquininha'),
     ('ENTREGA', 'Entregadores / Motoboy'),
-    ('ENERGIA', 'Energia'),
-    ('AGUA_LUZ', 'Água / Luz'),
+    ('ENERGIA', 'Energia Elétrica (luz)'),
+    ('AGUA_LUZ', 'Água / Esgoto'),
     ('INTERNET', 'Internet / Telefone'),
     ('IMPOSTOS', 'Impostos / Tributos (MEI / DAS)'),
     ('CONTADOR', 'Contador / Assessoria'),
@@ -32,15 +32,16 @@ CATEGORIAS_NAO_OPERACIONAIS = ('RETIRADA_SOCIOS',)
 
 class DespesaRecorrente(models.Model):
     descricao = models.CharField(max_length=150, verbose_name="Descrição da Despesa")
+    credor = models.CharField(max_length=120, blank=True, default='', verbose_name="Fornecedor / Credor")
     categoria = models.CharField(max_length=20, choices=CATEGORIA_CHOICES, default='OUTROS', verbose_name="Categoria")
     dia_vencimento = models.IntegerField(verbose_name="Dia Padrão de Vencimento")
     valor_base = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor Base Previsto (R$)")
     ativa = models.BooleanField(default=True, verbose_name="Ativa (Gerar futuras?)")
-    
+
     class Meta:
         verbose_name = "Despesa Fixa (Molde)"
         verbose_name_plural = "Despesas Fixas (Moldes)"
-        
+
     def __str__(self):
         return f"{self.descricao} (Dia {self.dia_vencimento})"
 
@@ -64,12 +65,14 @@ class Despesa(models.Model):
     )
 
     descricao = models.CharField(max_length=150, verbose_name="Descrição da Despesa")
+    credor = models.CharField(max_length=120, blank=True, default='', verbose_name="Fornecedor / Credor",
+        help_text="Quem vai receber (ex: 'Enel', 'João Refrigeração', 'Contador Silva').")
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES, default='FIXO', verbose_name="Tipo de Custo")
     categoria = models.CharField(max_length=20, choices=CATEGORIA_CHOICES, default='OUTROS', verbose_name="Categoria")
     valor = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor (R$)")
 
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PREVISTO', verbose_name="Status")
-    data_vencimento = models.DateField(verbose_name="Data de Vencimento")
+    data_vencimento = models.DateField(verbose_name="Data de Vencimento / Previsão de Pagamento")
     data_pagamento = models.DateField(null=True, blank=True, verbose_name="Data de Pagamento (Real)")
 
     observacao = models.TextField(blank=True, null=True, verbose_name="Observações")

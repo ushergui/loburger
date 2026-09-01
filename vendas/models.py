@@ -8,11 +8,7 @@ class ConfiguracaoFinanceira(models.Model):
     taxa_maquininha = models.DecimalField(
         max_digits=6, decimal_places=4, default=Decimal('0.0350'),
         verbose_name="Taxa da maquininha na entrega (%)",
-        help_text="Ex: 0.035 para 3,5%. Aplicada quando o cliente paga no cartão/pix da maquininha do Igor.")
-    taxa_online_plataforma = models.DecimalField(
-        max_digits=6, decimal_places=4, default=Decimal('0.0320'),
-        verbose_name="Acréscimo de pagamento on-line no app (%)",
-        help_text="Ex: 0.032 para 3,2%. Somado à comissão do canal quando o cliente paga dentro do app da plataforma.")
+        help_text="Ex: 0.035 para 3,5%. Aplicada quando o cliente paga no cartão/pix da maquininha do Igor na entrega.")
     taxa_entrega = models.DecimalField(
         max_digits=6, decimal_places=2, default=Decimal('9.00'),
         verbose_name="Valor da entrega (R$)",
@@ -82,7 +78,14 @@ class FormaPagamento(models.Model):
 
 class CanalVenda(models.Model):
     nome = models.CharField(max_length=50, unique=True, verbose_name="Nome do Canal")
-    taxa_comissao = models.DecimalField(max_digits=5, decimal_places=4, default=0, verbose_name="Taxa de Comissão (%)")
+    taxa_comissao = models.DecimalField(
+        max_digits=5, decimal_places=4, default=0,
+        verbose_name="Comissão base (%)",
+        help_text="Cobrada quando o cliente paga na entrega. iFood 12%, UaiRango 8%, app próprio 0%.")
+    taxa_online = models.DecimalField(
+        max_digits=5, decimal_places=4, default=0,
+        verbose_name="Taxa total no pagamento on-line (%)",
+        help_text="Cobrada quando o cliente paga dentro do app. iFood 15,2%, UaiRango 11,5%, app próprio 0%.")
     taxa_fixa = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Taxa Fixa por Pedido (R$)")
     dias_repasse = models.IntegerField(default=1, verbose_name="Dias para Repasse")
 
@@ -99,6 +102,10 @@ class CanalVenda(models.Model):
     @property
     def taxa_comissao_pct(self):
         return (self.taxa_comissao * 100).quantize(Decimal('0.01'))
+
+    @property
+    def taxa_online_pct(self):
+        return (self.taxa_online * 100).quantize(Decimal('0.01'))
 
 
 class TaxaFormaPagamento(models.Model):
@@ -172,16 +179,17 @@ class Pedido(models.Model):
         self.valor_bruto = Decimal(bruto).quantize(Decimal('0.01'))
 
         if self.status != 'CANCELADO' and self.valor_bruto > 0:
-            # 2. Comissão da plataforma (iFood 12%, UaiRango 8%, app próprio 0%)
-            self.taxas_canal = (self.valor_bruto * self.canal.taxa_comissao + self.canal.taxa_fixa).quantize(Decimal('0.01'))
-
-            # 3. Acréscimo por modo de pagamento
             config = ConfiguracaoFinanceira.get_solo()
             if self.modo_pagamento == 'ONLINE':
-                self.taxas_pagamento = (self.valor_bruto * config.taxa_online_plataforma).quantize(Decimal('0.01'))
+                # Pagamento dentro do app: a plataforma fica com a taxa total (iFood 15,2%, UaiRango 11,5%)
+                self.taxas_canal = (self.valor_bruto * self.canal.taxa_online + self.canal.taxa_fixa).quantize(Decimal('0.01'))
+                self.taxas_pagamento = Decimal('0.00')
             elif self.modo_pagamento == 'MAQUININHA':
+                # Na entrega, no cartão/pix da maquininha do Igor: comissão base da plataforma + taxa da maquininha
+                self.taxas_canal = (self.valor_bruto * self.canal.taxa_comissao + self.canal.taxa_fixa).quantize(Decimal('0.01'))
                 self.taxas_pagamento = (self.valor_bruto * config.taxa_maquininha).quantize(Decimal('0.01'))
-            else:  # DINHEIRO na entrega
+            else:  # DINHEIRO na entrega (ou pix direto): só a comissão base
+                self.taxas_canal = (self.valor_bruto * self.canal.taxa_comissao + self.canal.taxa_fixa).quantize(Decimal('0.01'))
                 self.taxas_pagamento = Decimal('0.00')
         else:
             self.taxas_canal = Decimal('0.00')

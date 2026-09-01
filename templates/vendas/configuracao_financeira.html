@@ -15,17 +15,11 @@
         <form method="post" class="space-y-6">
             {% csrf_token %}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+                <div class="md:col-span-2">
                     <label for="{{ form.taxa_maquininha.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">Taxa da maquininha na entrega (%)</label>
                     {{ form.taxa_maquininha }}
-                    <p class="text-xxs text-hex_gold_dim/50 mt-1">{{ form.taxa_maquininha.help_text }}</p>
+                    <p class="text-xxs text-hex_gold_dim/50 mt-1">{{ form.taxa_maquininha.help_text }} As comissões das plataformas (12% / 8% e as versões on-line 15,2% / 11,5%) ficam em <a href="{% url 'canal_listar' %}" class="text-hex_blue underline">Canais de Venda</a>.</p>
                     {% if form.taxa_maquininha.errors %}<p class="text-red-400 text-xs mt-1">{{ form.taxa_maquininha.errors.0 }}</p>{% endif %}
-                </div>
-                <div>
-                    <label for="{{ form.taxa_online_plataforma.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">Acréscimo de pagamento on-line no app (%)</label>
-                    {{ form.taxa_online_plataforma }}
-                    <p class="text-xxs text-hex_gold_dim/50 mt-1">{{ form.taxa_online_plataforma.help_text }}</p>
-                    {% if form.taxa_online_plataforma.errors %}<p class="text-red-400 text-xs mt-1">{{ form.taxa_online_plataforma.errors.0 }}</p>{% endif %}
                 </div>
                 <div>
                     <label for="{{ form.taxa_entrega.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">Valor da entrega (R$)</label>

@@ -18,12 +18,14 @@ class BaseFinanceiro(TestCase):
     def setUp(self):
         cfg = ConfiguracaoFinanceira.get_solo()
         cfg.taxa_maquininha = Decimal('0.0350')
-        cfg.taxa_online_plataforma = Decimal('0.0320')
         cfg.taxa_entrega = Decimal('9.00')
         cfg.caixa_inicial = Decimal('0.00')
         cfg.save()
 
-        self.ifood = CanalVenda.objects.create(nome='iFood', taxa_comissao=Decimal('0.1200'), taxa_fixa=Decimal('0'))
+        self.ifood = CanalVenda.objects.create(
+            nome='iFood', taxa_comissao=Decimal('0.1200'),
+            taxa_online=Decimal('0.1520'), taxa_fixa=Decimal('0'),
+        )
 
         self.pao = Ingrediente.objects.create(nome='Pao', unidade_medida='un', unidade_compra='un',
                                               custo_unitario=Decimal('1.0000'), estoque_atual=Decimal('100'))
@@ -40,12 +42,12 @@ class BaseFinanceiro(TestCase):
 
 
 class RecalculoFinanceiroTests(BaseFinanceiro):
-    def test_online_soma_comissao_e_acrescimo(self):
+    def test_online_usa_a_taxa_total_do_canal(self):
         p = self._pedido('ONLINE', qtd=2)  # bruto 100
         self.assertEqual(p.valor_bruto, Decimal('100.00'))
-        self.assertEqual(p.taxas_canal, Decimal('12.00'))       # 12%
-        self.assertEqual(p.taxas_pagamento, Decimal('3.20'))    # +3,2%
-        self.assertEqual(p.lucro_liquido, Decimal('84.80'))     # 100 - 12 - 3.20
+        self.assertEqual(p.taxas_canal, Decimal('15.20'))       # 15,2% (taxa on-line do iFood)
+        self.assertEqual(p.taxas_pagamento, Decimal('0.00'))
+        self.assertEqual(p.lucro_liquido, Decimal('84.80'))
 
     def test_maquininha_usa_taxa_da_config(self):
         p = self._pedido('MAQUININHA', qtd=2)
@@ -71,8 +73,8 @@ class RecalculoFinanceiroTests(BaseFinanceiro):
 class DespesasDoFechamentoTests(BaseFinanceiro):
     def test_gera_taxa_plataforma_maquininha_e_motoboy(self):
         hoje = timezone.localdate()
-        self._pedido('ONLINE', qtd=2)      # taxa canal 12 + online 3,20
-        self._pedido('MAQUININHA', qtd=2)  # taxa canal 12 + maquininha 3,50
+        self._pedido('ONLINE', qtd=2)      # taxa canal on-line 15,20
+        self._pedido('MAQUININHA', qtd=2)  # taxa canal 12,00 + maquininha 3,50
 
         socio = Entregador.objects.create(nome='Igor', eh_socio=True)
         ze = Entregador.objects.create(nome='Ze', eh_socio=False)
@@ -83,7 +85,7 @@ class DespesasDoFechamentoTests(BaseFinanceiro):
         self.assertEqual(n, 3)
 
         plataforma = Despesa.objects.get(categoria='TAXA_PLATAFORMA', data_referencia=hoje)
-        self.assertEqual(plataforma.valor, Decimal('27.20'))   # 12 + 3,20 + 12
+        self.assertEqual(plataforma.valor, Decimal('27.20'))   # on-line 15,20 + entrega 12,00
         maquininha = Despesa.objects.get(categoria='TAXA_MAQUININHA', data_referencia=hoje)
         self.assertEqual(maquininha.valor, Decimal('3.50'))
         motoboy = Despesa.objects.get(categoria='ENTREGA', data_referencia=hoje)

@@ -46,20 +46,26 @@ class PercentageField(forms.Field):
 
 class CanalVendaForm(ThemeFormMixin, forms.ModelForm):
     taxa_comissao = PercentageField(
-        label="Comissão Canal (%)",
-        widget=forms.TextInput(attrs={'placeholder': 'Ex: 8 ou 12,50'}),
-        help_text="Digite a porcentagem (Ex: 8 para 8%)"
+        label="Comissão base — pagamento na entrega (%)",
+        widget=forms.TextInput(attrs={'placeholder': 'Ex: 8 ou 12'}),
+        help_text="iFood 12 · UaiRango 8 · app próprio 0"
+    )
+    taxa_online = PercentageField(
+        label="Taxa total — pagamento on-line no app (%)",
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'Ex: 15,2 ou 11,5'}),
+        help_text="iFood 15,2 · UaiRango 11,5 · app próprio 0"
     )
     taxa_fixa = CustomDecimalField(
-        max_digits=10, 
-        decimal_places=2, 
+        max_digits=10,
+        decimal_places=2,
         required=False,
         label="Taxa Fixa por Pedido (R$)",
-        widget=forms.TextInput(attrs={'placeholder': 'Ex: 1,50 ou 0,00'})
+        widget=forms.TextInput(attrs={'placeholder': '0,00'})
     )
     class Meta:
         model = CanalVenda
-        fields = ['nome', 'taxa_comissao', 'taxa_fixa', 'dias_repasse']
+        fields = ['nome', 'taxa_comissao', 'taxa_online', 'taxa_fixa', 'dias_repasse']
 
 class FormaPagamentoForm(ThemeFormMixin, forms.ModelForm):
     class Meta:
@@ -110,11 +116,6 @@ class ConfiguracaoFinanceiraForm(ThemeFormMixin, forms.ModelForm):
         help_text="Digite a porcentagem (Ex: 3,5 para 3,5%).",
         widget=forms.TextInput(attrs={'placeholder': 'Ex: 3,5'}),
     )
-    taxa_online_plataforma = PercentageField(
-        label="Acréscimo de pagamento on-line no app (%)",
-        help_text="Somado à comissão do canal quando o cliente paga dentro do app da plataforma (Ex: 3,2).",
-        widget=forms.TextInput(attrs={'placeholder': 'Ex: 3,2'}),
-    )
     taxa_entrega = CustomDecimalField(
         max_digits=6, decimal_places=2, label="Valor da entrega (R$)",
         widget=forms.TextInput(attrs={'placeholder': 'Ex: 9,00'}),
@@ -126,4 +127,4 @@ class ConfiguracaoFinanceiraForm(ThemeFormMixin, forms.ModelForm):
 
     class Meta:
         model = ConfiguracaoFinanceira
-        fields = ['taxa_maquininha', 'taxa_online_plataforma', 'taxa_entrega', 'caixa_inicial']
+        fields = ['taxa_maquininha', 'taxa_entrega', 'caixa_inicial']

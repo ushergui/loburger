@@ -13,7 +13,7 @@
                 {% for canal in canais %}
                     <th class="py-2.5 px-2 text-center border-l border-hex_dark_border bg-hex_dark_bg/90 text-hex_gold font-bold" colspan="{{ num_modos }}">
                         {{ canal.nome }}
-                        <span class="block text-[10px] text-hex_gold_dim/70 font-mono normal-case">comissão {{ canal.taxa_comissao_pct }}%</span>
+                        <span class="block text-[10px] text-hex_gold_dim/70 font-mono normal-case">entrega {{ canal.taxa_comissao_pct }}% · on-line {{ canal.taxa_online_pct }}%</span>
                     </th>
                 {% endfor %}
             </tr>

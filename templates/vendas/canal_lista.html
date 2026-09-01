@@ -24,9 +24,9 @@
             <thead>
                 <tr class="border-b border-hex_dark_border bg-hex_dark_bg/50 text-hex_gold uppercase tracking-wider text-xs font-semibold">
                     <th class="p-4">Nome do Canal</th>
-                    <th class="p-4">Comissão (%)</th>
-                    <th class="p-4">Taxa Fixa por Pedido</th>
-                    <th class="p-4">Prazo de Repasse</th>
+                    <th class="p-4">Comissão na entrega</th>
+                    <th class="p-4">Taxa on-line no app</th>
+                    <th class="p-4">Taxa Fixa</th>
                     <th class="p-4 text-center">Ações</th>
                 </tr>
             </thead>
@@ -42,11 +42,11 @@
                         <td class="p-4 font-mono font-bold text-hex_gold text-lg">
                             {{ canal.taxa_comissao_pct }}%
                         </td>
-                        <td class="p-4 font-mono font-bold text-white text-lg">
-                            R$ {{ canal.taxa_fixa|floatformat:2 }}
+                        <td class="p-4 font-mono font-bold text-hex_blue text-lg">
+                            {{ canal.taxa_online_pct }}%
                         </td>
-                        <td class="p-4 text-hex_gold_light text-base font-medium">
-                            {{ canal.dias_repasse }} dias
+                        <td class="p-4 font-mono font-bold {% if canal.taxa_fixa > 0 %}text-hex_danger{% else %}text-white{% endif %} text-lg">
+                            R$ {{ canal.taxa_fixa|floatformat:2 }}
                         </td>
                         <td class="p-4 text-center">
                             <a href="{% url 'canal_editar' canal.id %}" class="text-hex_blue hover:text-white p-2 rounded hover:bg-hex_blue/20 transition-all inline-block" title="Editar">

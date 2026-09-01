@@ -24,17 +24,12 @@ def sincronizar_despesas_fechamento(data):
 
     novas = []
 
-    # 2. Taxa de plataforma por canal (comissão + acréscimo de pagamento on-line)
+    # 2. Taxa de plataforma por canal + taxa da maquininha (na entrega, no cartão)
     por_canal = {}
     taxa_maquininha_total = Decimal('0.00')
     for p in pedidos:
-        c = por_canal.setdefault(p.canal, Decimal('0.00'))
-        valor_taxa_canal = p.taxas_canal
-        if p.modo_pagamento == 'ONLINE':
-            valor_taxa_canal += p.taxas_pagamento
-        elif p.modo_pagamento == 'MAQUININHA':
-            taxa_maquininha_total += p.taxas_pagamento
-        por_canal[p.canal] = c + valor_taxa_canal
+        por_canal[p.canal] = por_canal.get(p.canal, Decimal('0.00')) + p.taxas_canal
+        taxa_maquininha_total += p.taxas_pagamento
 
     for canal, valor in por_canal.items():
         if valor > 0:

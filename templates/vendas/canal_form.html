@@ -24,21 +24,29 @@
                 {% if form.nome.errors %}<p class="text-red-400 text-xs mt-1">{{ form.nome.errors.0 }}</p>{% endif %}
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="{{ form.taxa_comissao.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">
-                        Comissão da Plataforma (%) <span class="text-hex_blue font-bold">*</span>
+                        Comissão base — pagamento na entrega (%) <span class="text-hex_blue font-bold">*</span>
                     </label>
                     {{ form.taxa_comissao }}
                     <p class="text-xxs text-hex_gold_dim/50 mt-1">iFood: 12 · UaiRango: 8 · App próprio: 0</p>
                     {% if form.taxa_comissao.errors %}<p class="text-red-400 text-xs mt-1">{{ form.taxa_comissao.errors.0 }}</p>{% endif %}
                 </div>
                 <div>
+                    <label for="{{ form.taxa_online.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">
+                        Taxa total — pagamento on-line no app (%)
+                    </label>
+                    {{ form.taxa_online }}
+                    <p class="text-xxs text-hex_gold_dim/50 mt-1">iFood: 15,2 · UaiRango: 11,5 · App próprio: 0</p>
+                    {% if form.taxa_online.errors %}<p class="text-red-400 text-xs mt-1">{{ form.taxa_online.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
                     <label for="{{ form.taxa_fixa.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">
                         Taxa Fixa por Pedido (R$)
                     </label>
                     {{ form.taxa_fixa }}
-                    <p class="text-xxs text-hex_gold_dim/50 mt-1">Normalmente 0,00</p>
+                    <p class="text-xxs text-hex_gold_dim/50 mt-1">Deixe 0,00 — iFood e UaiRango não cobram valor fixo por pedido.</p>
                     {% if form.taxa_fixa.errors %}<p class="text-red-400 text-xs mt-1">{{ form.taxa_fixa.errors.0 }}</p>{% endif %}
                 </div>
                 <div>
@@ -53,8 +61,8 @@
 
             <div class="bg-hex_dark_bg/50 border border-hex_gold/20 p-4 rounded text-xs text-hex_gold_dim/80">
                 <i data-lucide="info" class="w-4 h-4 inline text-hex_blue"></i>
-                O acréscimo por pagamento on-line no app (+3,2%) e a taxa da maquininha na entrega (+3,5%) são globais e ficam em
-                <a href="{% url 'configuracao_financeira' %}" class="text-hex_blue underline">Configuração Financeira</a>.
+                Quando o cliente paga na <strong>maquininha do Igor na entrega</strong>, o sistema soma a comissão base + a taxa da maquininha
+                (<a href="{% url 'configuracao_financeira' %}" class="text-hex_blue underline">Configuração Financeira</a>, hoje 3,5%).
             </div>
 
             <div class="flex items-center justify-end space-x-4 pt-4 border-t border-hex_dark_border">

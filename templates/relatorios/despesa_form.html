@@ -69,15 +69,9 @@
                 </label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold_dim/50 text-xs">R$</span>
-                    <input 
-                        type="number" 
-                        name="valor" 
-                        id="{{ form.valor.id_for_label }}" 
-                        step="0.01" 
-                        required 
-                        class="w-full bg-hex_dark_bg/80 border border-hex_gold/30 rounded py-2.5 pl-8 pr-3 text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
-                        value="{% if form.valor.value %}{{ form.valor.value }}{% endif %}"
-                    >
+                    <div class="[&_input]:pl-9">
+                        {{ form.valor }}
+                    </div>
                 </div>
                 {% if form.valor.errors %}
                     <p class="text-xxs text-hex_danger mt-1">{{ form.valor.errors.as_text }}</p>
@@ -144,4 +138,30 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusSelect = document.getElementById('{{ form.status.id_for_label }}');
+    const dataPagamentoInput = document.getElementById('{{ form.data_pagamento.id_for_label }}');
+
+    if (statusSelect && dataPagamentoInput) {
+        // Quando muda status para PAGO, se data de pagamento estiver vazia, preenche hoje
+        statusSelect.addEventListener('change', function() {
+            if (this.value === 'PAGO' && !dataPagamentoInput.value) {
+                const hoje = new Date().toISOString().split('T')[0];
+                dataPagamentoInput.value = hoje;
+            } else if (this.value === 'PREVISTO') {
+                dataPagamentoInput.value = '';
+            }
+        });
+
+        // Quando digita uma data de pagamento, marca status como PAGO automaticamente
+        dataPagamentoInput.addEventListener('change', function() {
+            if (this.value) {
+                statusSelect.value = 'PAGO';
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

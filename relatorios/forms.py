@@ -1,4 +1,6 @@
+from decimal import Decimal
 from django import forms
+from django.utils import timezone
 from .models import Despesa, DespesaRecorrente
 
 class ThemeFormMixin:
@@ -24,12 +26,35 @@ class ThemeFormMixin:
                     'class': 'w-full bg-hex_dark_bg/80 border border-hex_gold/30 rounded py-2.5 px-3 text-hex_gold_light placeholder-hex_gold_light/30 focus:outline-none focus:border-hex_blue transition-all'
                 })
 
+class MoneyDecimalField(forms.DecimalField):
+    def to_python(self, value):
+        if value in (None, '', 'None'):
+            return None
+        if isinstance(value, Decimal):
+            return value
+        clean_val = str(value).replace('R$', '').replace(' ', '').replace(',', '.').strip()
+        return super().to_python(clean_val)
+
 class DespesaRecorrenteForm(ThemeFormMixin, forms.ModelForm):
+    valor_base = MoneyDecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        label="Valor Base Previsto (R$)",
+        widget=forms.TextInput(attrs={'placeholder': 'Ex: 425,00'})
+    )
+
     class Meta:
         model = DespesaRecorrente
         fields = ['descricao', 'categoria', 'valor_base', 'dia_vencimento', 'ativa']
 
 class DespesaForm(ThemeFormMixin, forms.ModelForm):
+    valor = MoneyDecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        label="Valor (R$)",
+        widget=forms.TextInput(attrs={'placeholder': 'Ex: 425,00'})
+    )
+    
     alterar_futuros = forms.BooleanField(
         required=False, 
         label="Atualizar este novo valor e data para os próximos meses",
@@ -40,11 +65,27 @@ class DespesaForm(ThemeFormMixin, forms.ModelForm):
         model = Despesa
         fields = ['descricao', 'tipo', 'categoria', 'valor', 'status', 'data_vencimento', 'data_pagamento', 'observacao', 'alterar_futuros']
         widgets = {
-            'data_vencimento': forms.DateInput(attrs={'type': 'date'}),
-            'data_pagamento': forms.DateInput(attrs={'type': 'date'}),
+            'data_vencimento': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'data_pagamento': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
         }
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if not self.instance or not self.instance.despesa_matriz:
-            self.fields.pop('alterar_futuros')
+            self.fields.pop('alterar_futuros', None)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        status = cleaned_data.get('status')
+        data_pagamento = cleaned_data.get('data_pagamento')
+        
+        # Se informou data de pagamento, garante que o status fique como PAGO
+        if data_pagamento and status != 'PAGO':
+            cleaned_data['status'] = 'PAGO'
+            
+        # Se marcou como PAGO e não informou data, define hoje como data de pagamento
+        if status == 'PAGO' and not data_pagamento:
+            cleaned_data['data_pagamento'] = timezone.localdate()
+            
+        return cleaned_data
+

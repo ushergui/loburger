@@ -20,6 +20,7 @@ MODELOS_AUDITADOS = {
     'vendas.CanalVenda': ('Canal de venda', ['nome', 'taxa_comissao', 'taxa_online', 'taxa_fixa']),
     'vendas.ConfiguracaoFinanceira': ('Configuração financeira', ['taxa_maquininha', 'taxa_entrega', 'caixa_inicial']),
     'vendas.Entregador': ('Entregador', ['nome', 'eh_socio', 'ativo']),
+    'core.Usuario': ('Usuário', ['username', 'first_name', 'last_name', 'email', 'role', 'is_active', 'is_staff', 'is_superuser']),
 }
 
 

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }} - LOL BURGUER{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto">
+    <div class="mb-6 flex items-center space-x-2">
+        <a href="{% url 'usuario_listar' %}" class="text-hex_gold hover:text-white" title="Voltar"><i data-lucide="arrow-left" class="w-6 h-6"></i></a>
+        <h1 class="text-2xl font-bold title-hex text-hex_gold">{{ titulo }}</h1>
+    </div>
+
+    <div class="bg-hex_dark_card border border-hex_dark_border p-6 md:p-8 rounded shadow-hex-gold">
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="bg-hex_danger/10 border border-hex_danger/40 text-hex_danger text-xs p-3 rounded">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div>
+                <label for="{{ form.username.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-1.5">{{ form.username.label }} <span class="text-hex_blue">*</span></label>
+                {{ form.username }}
+                {% if form.username.errors %}<p class="text-red-400 text-xs mt-1">{{ form.username.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="{{ form.first_name.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-1.5">{{ form.first_name.label }}</label>
+                    {{ form.first_name }}
+                </div>
+                <div>
+                    <label for="{{ form.last_name.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-1.5">{{ form.last_name.label }}</label>
+                    {{ form.last_name }}
+                </div>
+            </div>
+
+            <div>
+                <label for="{{ form.email.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-1.5">E-mail</label>
+                {{ form.email }}
+            </div>
+
+            <div>
+                <label for="{{ form.role.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-1.5">Perfil <span class="text-hex_blue">*</span></label>
+                {{ form.role }}
+                <p class="text-xxs text-hex_gold_dim/60 mt-1">{{ form.role.help_text }}</p>
+                {% if form.role.errors %}<p class="text-red-400 text-xs mt-1">{{ form.role.errors.0 }}</p>{% endif %}
+            </div>
+
+            {% if form.is_active %}
+            <label class="flex items-center space-x-3 text-sm text-hex_gold_light">
+                {{ form.is_active }}
+                <span>Acesso liberado (desmarcar bloqueia o login sem apagar o cadastro)</span>
+            </label>
+            {% if form.is_active.errors %}<p class="text-red-400 text-xs">{{ form.is_active.errors.0 }}</p>{% endif %}
+            {% endif %}
+
+            {% if form.senha1 %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-hex_dark_border">
+                <div>
+                    <label for="{{ form.senha1.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-1.5">{{ form.senha1.label }} <span class="text-hex_blue">*</span></label>
+                    {{ form.senha1 }}
+                    {% if form.senha1.errors %}<p class="text-red-400 text-xs mt-1">{{ form.senha1.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.senha2.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-1.5">{{ form.senha2.label }} <span class="text-hex_blue">*</span></label>
+                    {{ form.senha2 }}
+                    {% if form.senha2.errors %}<p class="text-red-400 text-xs mt-1">{{ form.senha2.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="flex items-center justify-end space-x-4 pt-4 border-t border-hex_dark_border">
+                <a href="{% url 'usuario_listar' %}" class="px-4 py-2.5 rounded text-xs font-semibold text-hex_gold hover:text-white uppercase tracking-wider">Cancelar</a>
+                <button type="submit" class="bg-gradient-to-r from-hex_gold to-hex_gold_dim hover:from-hex_blue hover:to-hex_blue_dark text-hex_dark_bg hover:text-white font-bold py-2.5 px-6 rounded uppercase tracking-wider text-xs border border-hex_gold/40 shadow-hex-gold">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

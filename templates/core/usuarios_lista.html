@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Usuários - LOL BURGUER{% endblock %}
+{% block content %}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+    <div>
+        <h1 class="text-2xl font-bold title-hex text-hex_gold flex items-center space-x-2">
+            <i data-lucide="users" class="w-6 h-6 text-hex_gold"></i><span>Usuários e Perfis</span>
+        </h1>
+        <p class="text-sm text-hex_gold_dim/70 mt-1">Quem entra no sistema e o que cada um pode ver.</p>
+    </div>
+    <a href="{% url 'usuario_criar' %}" class="bg-gradient-to-r from-hex_gold to-hex_gold_dim hover:from-hex_blue hover:to-hex_blue_dark text-hex_dark_bg hover:text-white font-bold py-2.5 px-4 rounded transition-all uppercase tracking-wider text-xs flex items-center space-x-2 border border-hex_gold/40 shadow-hex-gold self-start">
+        <i data-lucide="user-plus" class="w-4 h-4"></i><span>Novo Usuário</span>
+    </a>
+</div>
+
+<div class="bg-hex_dark_card border border-hex_dark_border rounded shadow-md overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+        <thead>
+            <tr class="border-b border-hex_dark_border bg-hex_dark_bg/50 text-hex_gold uppercase tracking-wider text-xs font-semibold">
+                <th class="p-4">Usuário</th>
+                <th class="p-4">Nome</th>
+                <th class="p-4">Perfil</th>
+                <th class="p-4 text-center">Acesso</th>
+                <th class="p-4 text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-hex_dark_border text-sm text-hex_gold_light/90">
+            {% for u in usuarios %}
+            <tr class="hover:bg-hex_dark_bg/30 transition-colors {% if not u.is_active %}opacity-50{% endif %}">
+                <td class="p-4 font-mono font-bold text-white">
+                    {{ u.username }}
+                    {% if u.pk == request.user.pk %}<span class="ml-1 text-[9px] uppercase tracking-wider text-hex_blue border border-hex_blue/30 bg-hex_blue/10 px-1 rounded">você</span>{% endif %}
+                    {% if u.is_superuser %}<span class="ml-1 text-[9px] uppercase tracking-wider text-hex_gold border border-hex_gold/30 bg-hex_gold/10 px-1 rounded">super</span>{% endif %}
+                </td>
+                <td class="p-4">{{ u.get_full_name|default:"—" }}<div class="text-[10px] text-hex_gold_dim/60">{{ u.email }}</div></td>
+                <td class="p-4">
+                    {% if u.role == 'GESTAO' %}
+                        <span class="text-hex_blue font-semibold">Gestão</span>
+                    {% else %}
+                        <span class="text-hex_gold_light">Operador</span>
+                    {% endif %}
+                </td>
+                <td class="p-4 text-center">
+                    {% if u.is_active %}<span class="text-hex_success">Liberado</span>{% else %}<span class="text-hex_danger">Bloqueado</span>{% endif %}
+                </td>
+                <td class="p-4 text-center">
+                    <div class="flex items-center justify-center gap-2">
+                        <a href="{% url 'usuario_editar' u.pk %}" class="text-hex_blue hover:text-white p-2 rounded hover:bg-hex_blue/20" title="Editar"><i data-lucide="edit-3" class="w-4 h-4"></i></a>
+                        <a href="{% url 'usuario_resetar_senha' u.pk %}" class="text-hex_gold hover:text-white p-2 rounded hover:bg-hex_gold/20" title="Redefinir senha"><i data-lucide="key-round" class="w-4 h-4"></i></a>
+                        {% if u.pk != request.user.pk %}
+                        <a href="{% url 'usuario_excluir' u.pk %}" class="text-hex_danger hover:text-white p-2 rounded hover:bg-hex_danger/20" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="p-8 text-center text-hex_gold_dim/50 italic">Nenhum usuário.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="mt-4 text-xs text-hex_gold_dim/60 flex items-start gap-2">
+    <i data-lucide="info" class="w-4 h-4 text-hex_blue shrink-0 mt-0.5"></i>
+    <span><strong>Gestão</strong>: acesso total (financeiro, cadastros, relatórios, usuários). <strong>Operador</strong>: só o dia a dia (fechamento, estoque). Bloquear o acesso mantém o histórico da pessoa; excluir apaga o cadastro.</span>
+</div>
+{% endblock %}

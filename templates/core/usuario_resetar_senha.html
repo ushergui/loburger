@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Redefinir senha - LOL BURGUER{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto my-10">
+    <div class="bg-hex_dark_card border border-hex_gold/40 p-6 md:p-8 rounded shadow-md">
+        <div class="flex items-center space-x-2 mb-4">
+            <i data-lucide="key-round" class="w-6 h-6 text-hex_gold"></i>
+            <h1 class="text-xl font-bold title-hex text-hex_gold">Redefinir senha de {{ alvo.username }}</h1>
+        </div>
+        <p class="text-xs text-hex_gold_dim/70 mb-5">Você define uma senha nova aqui e passa para a pessoa. Ela pode continuar usando a mesma depois.</p>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="bg-hex_danger/10 border border-hex_danger/40 text-hex_danger text-xs p-3 rounded">{{ form.non_field_errors }}</div>{% endif %}
+            <div>
+                <label for="{{ form.senha1.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-1.5">Nova senha</label>
+                {{ form.senha1 }}
+                {% if form.senha1.errors %}<p class="text-red-400 text-xs mt-1">{{ form.senha1.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ form.senha2.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-1.5">Repetir a senha</label>
+                {{ form.senha2 }}
+                {% if form.senha2.errors %}<p class="text-red-400 text-xs mt-1">{{ form.senha2.errors.0 }}</p>{% endif %}
+            </div>
+            <div class="flex items-center justify-end space-x-4 pt-3 border-t border-hex_dark_border">
+                <a href="{% url 'usuario_listar' %}" class="px-4 py-2.5 rounded text-xs font-semibold text-hex_gold hover:text-white uppercase tracking-wider">Cancelar</a>
+                <button type="submit" class="bg-hex_gold hover:bg-hex_blue text-hex_dark_bg hover:text-white font-bold py-2.5 px-6 rounded uppercase tracking-wider text-xs border border-hex_gold/35">Redefinir</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

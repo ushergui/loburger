@@ -198,6 +198,10 @@
                             <i data-lucide="settings" class="w-4 h-4 text-hex_blue"></i>
                             <span>Configuração</span>
                         </a>
+                        <a href="{% url 'usuario_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if 'usuario' in request.resolver_match.url_name %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="users" class="w-4 h-4 text-hex_blue"></i>
+                            <span>Usuários</span>
+                        </a>
                         <a href="{% url 'auditoria_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'auditoria_listar' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="scroll-text" class="w-4 h-4 text-hex_blue"></i>
                             <span>Auditoria</span>

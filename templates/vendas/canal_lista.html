@@ -35,21 +35,12 @@
                     <tr class="hover:bg-hex_dark_bg/30 transition-colors">
                         <td class="p-4 font-bold">
                             <div class="flex items-center space-x-2">
-                                <span class="w-4 h-4 rounded-full shadow-sm" style="background-color: {% if canal.nome == 'iFood Delivery' %}#EA1D2C{% elif 'UaiRango' in canal.nome %}#FF8C00{% else %}#0AC8B9{% endif %};"></span>
+                                <span class="w-4 h-4 rounded-full shadow-sm" style="background-color: {% if 'iFood' in canal.nome %}#EA1D2C{% elif 'UaiRango' in canal.nome or 'Uai' in canal.nome %}#FF8C00{% else %}#0AC8B9{% endif %};"></span>
                                 <span class="text-white font-bold text-lg tracking-wide">{{ canal.nome }}</span>
-                            </div>
-                            <!-- Sub-taxas por modalidade -->
-                            <div class="mt-3 pl-6 flex flex-wrap gap-2">
-                                {% for tp in canal.taxas_pagamento.all %}
-                                    <span class="inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-md bg-hex_dark_bg border border-hex_gold/40 text-hex_gold shadow-sm hover:border-hex_gold transition-colors cursor-default">
-                                        <span class="mr-1.5 text-hex_gold_dim">{{ tp.forma_pagamento.nome }}:</span> 
-                                        <strong class="text-white font-mono">{{ tp.taxa_comissao|stringformat:".2f" }}%</strong>
-                                    </span>
-                                {% endfor %}
                             </div>
                         </td>
                         <td class="p-4 font-mono font-bold text-hex_gold text-lg">
-                            {{ canal.taxa_comissao|stringformat:".2f" }}%
+                            {{ canal.taxa_comissao_pct }}%
                         </td>
                         <td class="p-4 font-mono font-bold text-white text-lg">
                             R$ {{ canal.taxa_fixa|floatformat:2 }}

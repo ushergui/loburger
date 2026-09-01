@@ -16,7 +16,7 @@ def home_redirect(request):
     if request.user.role == 'GESTAO':
         return redirect('dashboard')
     else:
-        return redirect('pedido_criar')
+        return redirect('fechamento_diario')
 
 @login_required
 def tutorial_view(request):

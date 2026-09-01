@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load l10n %}
 
 {% block title %}Fechamento Diário de Vendas - LOL BURGUER{% endblock %}
 
@@ -86,65 +87,54 @@
                 <i data-lucide="tag" class="w-4 h-4 text-hex_gold"></i>
                 <span>Ajuste / Desconto Geral do Dia</span>
             </h3>
-            <p class="text-xxs text-hex_gold_dim/60 mb-3">Informe qualquer valor promocional ou abatimento concedido no total do dia.</p>
+            <p class="text-xxs text-hex_gold_dim/60 mb-3">Valor promocional ou abatimento concedido no total do dia. Aplicado uma vez.</p>
             <div class="relative w-48">
                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold_dim/50 text-base font-mono">R$</span>
-                <input 
-                    type="number" 
-                    name="desconto_dia" 
-                    step="0.01" 
-                    value="{{ desconto_dia }}" 
+                <input type="number" name="desconto_dia" step="0.01" value="{{ desconto_dia }}"
                     class="w-full bg-hex_dark_bg border border-hex_gold/30 rounded py-1.5 pl-10 pr-3 text-xl text-hex_gold_light focus:outline-none focus:border-hex_blue text-right font-mono no-spinners"
-                    placeholder="0,00"
-                >
+                    placeholder="0,00">
             </div>
         </div>
 
-        <!-- Entregas (Motoboy) -->
-        <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md">
+        <!-- Entregas por Entregador -->
+        <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md"
+             {% localize off %}x-data="{ taxa: {{ taxa_entrega }}, entregas: { {% for e in entregadores %}{{ e.obj.id }}: {{ e.qtd|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %} },
+                       get total() { return Object.values(this.entregas).reduce((a,b) => a + (parseInt(b)||0), 0); } }"{% endlocalize %}>
             <h3 class="text-xs uppercase tracking-widest text-hex_blue font-bold mb-2 flex items-center space-x-2">
                 <i data-lucide="bike" class="w-4 h-4 text-hex_blue"></i>
-                <span>Resumo de Entregas (Motoboy)</span>
+                <span>Entregas por Entregador</span>
             </h3>
-            <p class="text-xxs text-hex_gold_dim/60 mb-3">O sistema calcula o total automaticamente com base na quantidade de entregas e na taxa definida para o dia.</p>
-            
-            <div class="grid grid-cols-3 gap-3 text-xs font-mono" x-data="{ entregas: '{{ quantidade_entregas|default:0 }}', taxa: '{{ taxa_entrega|default:'9.00' }}'.replace(',', '.') }">
-                <div class="bg-hex_dark_bg/60 p-2 rounded border border-hex_dark_border relative">
-                    <span class="text-[10px] uppercase tracking-wider text-hex_gold_dim/60 block mb-1">Qtd Entregas</span>
-                    <input 
-                        type="number" 
-                        name="quantidade_entregas" 
-                        x-model="entregas"
-                        value="{{ quantidade_entregas|default:0 }}"
-                        class="w-full bg-hex_dark_card border border-hex_gold/30 rounded py-1.5 px-3 text-xl font-bold text-white focus:outline-none focus:border-hex_blue text-left font-mono mb-1 no-spinners"
-                        placeholder="Ex: 5"
-                    >
-                    <span class="text-[9px] text-hex_gold_dim/60 block mt-1 leading-tight">
-                        * Sugerido: {{ total_entregas_sugerido }}
+            <p class="text-xxs text-hex_gold_dim/60 mb-3">
+                Quantidade de entregas de cada um na noite. Taxa fixa de <strong>R$ {{ taxa_entrega|floatformat:2 }}</strong> por entrega
+                (<a href="{% url 'configuracao_financeira' %}" class="text-hex_blue underline">alterar</a>).
+                Entregas de sócios não geram custo de motoboy.
+            </p>
+
+            {% if entregadores %}
+            <div class="space-y-2">
+                {% for e in entregadores %}
+                <div class="flex items-center justify-between bg-hex_dark_bg/60 p-2 rounded border border-hex_dark_border">
+                    <span class="text-sm text-hex_gold_light">
+                        {{ e.obj.nome }}
+                        {% if e.obj.eh_socio %}<span class="text-[9px] uppercase tracking-wider text-hex_blue border border-hex_blue/30 bg-hex_blue/10 px-1 rounded ml-1">sócio</span>{% endif %}
                     </span>
+                    <input type="number" min="0" inputmode="numeric" name="entrega_{{ e.obj.id }}"
+                        x-model="entregas[{{ e.obj.id }}]"
+                        value="{{ e.qtd|default:0 }}"
+                        class="w-20 bg-hex_dark_card border border-hex_gold/30 rounded py-1 px-2 text-lg font-bold text-white focus:outline-none focus:border-hex_blue text-center font-mono no-spinners">
                 </div>
-
-                <div class="bg-hex_dark_bg/60 p-2 rounded border border-hex_dark_border relative">
-                    <span class="text-[10px] uppercase tracking-wider text-hex_gold_dim/60 block mb-1">Taxa (R$)</span>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-hex_gold_dim/50 text-sm font-mono">R$</span>
-                        <input 
-                            type="number" 
-                            step="0.01"
-                            name="taxa_entrega" 
-                            x-model="taxa"
-                            value="{{ taxa_entrega|default:'9.00' }}"
-                            class="w-full bg-hex_dark_card border border-hex_gold/30 rounded py-1.5 pl-8 pr-2 text-xl font-bold text-white focus:outline-none focus:border-hex_blue text-left font-mono mb-1 no-spinners"
-                            placeholder="9.00"
-                        >
-                    </div>
-                </div>
-
-                <div class="bg-hex_dark_bg/60 p-2 rounded border border-hex_dark_border flex flex-col justify-center items-end">
-                    <span class="text-[10px] uppercase tracking-wider text-hex_gold_dim/60 block mb-1">Custo Total</span>
-                    <span class="text-base font-bold text-hex_gold" x-text="'R$ ' + (parseFloat(entregas || 0) * parseFloat(taxa || 0)).toFixed(2).replace('.', ',')">R$ {{ valor_entregas_calculado }}</span>
-                </div>
+                {% endfor %}
             </div>
+            <div class="flex items-center justify-between mt-3 pt-3 border-t border-hex_dark_border text-xs font-mono">
+                <span class="uppercase tracking-wider text-hex_gold_dim/60">Total entregas: <b class="text-white" x-text="total"></b></span>
+                <span class="uppercase tracking-wider text-hex_gold_dim/60">Cobrado do cliente: <b class="text-hex_gold" x-text="'R$ ' + (total * taxa).toFixed(2).replace('.', ',')"></b></span>
+            </div>
+            {% else %}
+            <p class="text-xs text-hex_danger/80">
+                Nenhum entregador cadastrado.
+                <a href="{% url 'entregador_criar' %}" class="underline">Cadastrar agora</a>.
+            </p>
+            {% endif %}
         </div>
     </div>
 

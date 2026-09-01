@@ -48,60 +48,64 @@
     </div>
 </div>
 
-<!-- Scorecard KPIs (Scoreboard) -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-    
-    <!-- Faturamento Bruto -->
-    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md relative overflow-hidden group hover:border-hex_gold/45 transition-colors">
-        <div class="absolute -right-2 -bottom-2 opacity-10 text-hex_gold group-hover:scale-110 transition-transform">
-            <i data-lucide="banknote" class="w-20 h-20"></i>
-        </div>
+<!-- A FOTO DA EMPRESA (não zera no fim do mês) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="bg-hex_dark_card border border-hex_blue/40 p-5 rounded shadow-hex-blue">
+        <span class="text-xxs uppercase tracking-wider text-hex_blue block font-semibold">Caixa acumulado (hoje)</span>
+        <h2 class="text-2xl font-bold font-mono {% if caixa_hoje >= 0 %}text-hex_gold_light{% else %}text-hex_danger{% endif %} mt-1.5">R$ {{ caixa_hoje|floatformat:2 }}</h2>
+        <p class="text-[10px] text-hex_gold_dim/60 mt-1">O que a operação gerou desde o início. Não zera no mês.</p>
+    </div>
+    <div class="bg-hex_dark_card border border-hex_blue/40 p-5 rounded shadow-hex-blue">
+        <span class="text-xxs uppercase tracking-wider text-hex_blue block font-semibold">Valor do estoque (hoje)</span>
+        <h2 class="text-2xl font-bold font-mono text-hex_gold_light mt-1.5">R$ {{ valor_estoque_hoje|floatformat:2 }}</h2>
+        <p class="text-[10px] text-hex_gold_dim/60 mt-1">Insumos na geladeira, ao custo médio.</p>
+    </div>
+    <div class="bg-hex_dark_card border border-hex_success/40 p-5 rounded shadow-hex-blue">
+        <span class="text-xxs uppercase tracking-wider text-hex_success block font-semibold">Lucro econômico do mês</span>
+        <h2 class="text-2xl font-bold font-mono {% if lucro_economico >= 0 %}text-hex_success{% else %}text-hex_danger{% endif %} mt-1.5">R$ {{ lucro_economico|floatformat:2 }}</h2>
+        <p class="text-[10px] text-hex_gold_dim/60 mt-1">Resultado de caixa ajustado pela variação de estoque.</p>
+    </div>
+</div>
+
+<!-- Scorecard do período (zera todo mês) -->
+<div class="mt-3 text-[10px] uppercase tracking-widest text-hex_gold_dim/50 font-mono">— Resultado do período (zera a cada mês) —</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mt-2">
+
+    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md">
         <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/60 block">Faturamento Bruto</span>
         <h2 class="text-2xl font-bold font-mono text-hex_gold_light mt-1.5">R$ {{ faturamento|floatformat:2 }}</h2>
-        <p class="text-[10px] text-hex_blue mt-1">Total cobrado de clientes</p>
+        <p class="text-[10px] text-hex_blue mt-1">Preço cheio cobrado dos clientes</p>
     </div>
 
-    <!-- Pedidos Concluídos -->
-    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md relative overflow-hidden group hover:border-hex_blue/45 transition-colors">
-        <div class="absolute -right-2 -bottom-2 opacity-10 text-hex_blue group-hover:scale-110 transition-transform">
-            <i data-lucide="clipboard-check" class="w-20 h-20"></i>
-        </div>
+    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md">
         <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/60 block">Pedidos Finalizados</span>
         <h2 class="text-2xl font-bold font-mono text-white mt-1.5">{{ num_pedidos }}</h2>
-        <p class="text-[10px] text-hex_gold_dim/50 mt-1">Volume de vendas (Concluídos)</p>
+        <p class="text-[10px] text-hex_gold_dim/50 mt-1">Ticket médio: R$ {{ ticket|floatformat:2 }}</p>
     </div>
 
-    <!-- Ticket Médio -->
-    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md relative overflow-hidden group hover:border-hex_gold/45 transition-colors">
-        <div class="absolute -right-2 -bottom-2 opacity-10 text-hex_gold group-hover:scale-110 transition-transform">
-            <i data-lucide="arrow-up-right" class="w-20 h-20"></i>
-        </div>
-        <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/60 block">Ticket Médio</span>
-        <h2 class="text-2xl font-bold font-mono text-hex_gold mt-1.5">R$ {{ ticket|floatformat:2 }}</h2>
-        <p class="text-[10px] text-hex_gold_dim/50 mt-1">Média gasta por pedido</p>
+    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md">
+        <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/60 block">Taxas de Plataforma</span>
+        <h2 class="text-2xl font-bold font-mono text-hex_danger/90 mt-1.5">R$ {{ taxas|floatformat:2 }}</h2>
+        <p class="text-[10px] text-hex_gold_dim/50 mt-1">iFood / UaiRango / maquininha</p>
     </div>
 
-    <!-- Custos e Taxas -->
-    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md relative overflow-hidden group hover:border-hex_danger/45 transition-colors">
-        <div class="absolute -right-2 -bottom-2 opacity-10 text-hex_danger group-hover:scale-110 transition-transform">
-            <i data-lucide="percent" class="w-20 h-20"></i>
-        </div>
-        <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/60 block">Custos (Operacionais + Fixos)</span>
-        <h2 class="text-2xl font-bold font-mono text-hex_gold_light mt-1.5">R$ {{ custo_total_kpi|floatformat:2 }}</h2>
-        <p class="text-[10px] text-hex_danger/80 mt-1">Apps: R$ {{ taxas|floatformat:2 }} | Maquininha: R$ {{ taxas_cartao|floatformat:2 }}<br/>Despesas (Inclui Compras): R$ {{ soma_despesas|floatformat:2 }}</p>
+    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md">
+        <span class="text-xxs uppercase tracking-wider text-hex_gold_dim/60 block">Despesas Pagas no Mês</span>
+        <h2 class="text-2xl font-bold font-mono text-hex_gold_light mt-1.5">R$ {{ soma_despesas|floatformat:2 }}</h2>
+        <p class="text-[10px] text-hex_danger/80 mt-1">Compras de insumo: R$ {{ compras_insumo|floatformat:2 }}<br/>Retiradas dos sócios: R$ {{ retiradas_socios|floatformat:2 }}</p>
     </div>
 
-    <!-- Lucro Líquido Real (Scoreboard Destaque) -->
-    <div class="bg-hex_dark_card border border-hex_success/45 p-5 rounded shadow-hex-blue relative overflow-hidden group hover:shadow-lg transition-all">
-        <div class="absolute -right-2 -bottom-2 opacity-10 text-hex_success group-hover:scale-110 transition-transform">
-            <i data-lucide="gem" class="w-20 h-20"></i>
-        </div>
-        <span class="text-xxs uppercase tracking-wider text-hex_blue block font-semibold">Lucro Líquido Real</span>
-        <h2 class="text-2xl font-bold font-mono {% if lucro >= 0 %}text-hex_success{% else %}text-hex_danger{% endif %} mt-1.5">
-            R$ {{ lucro|floatformat:2 }}
-        </h2>
-        <p class="text-[10px] text-hex_gold_light/70 mt-1">Lucro limpo após taxas, insumos e despesas</p>
+    <div class="bg-hex_dark_card border border-hex_success/45 p-5 rounded shadow-hex-blue">
+        <span class="text-xxs uppercase tracking-wider text-hex_blue block font-semibold">Resultado de Caixa do Mês</span>
+        <h2 class="text-2xl font-bold font-mono {% if lucro >= 0 %}text-hex_success{% else %}text-hex_danger{% endif %} mt-1.5">R$ {{ lucro|floatformat:2 }}</h2>
+        <p class="text-[10px] text-hex_gold_light/70 mt-1">Entrou menos saiu. CMV (informativo): R$ {{ custo|floatformat:2 }}</p>
     </div>
+</div>
+
+<div class="mt-4 text-xs font-mono text-hex_gold_dim/60 flex flex-wrap gap-x-6 gap-y-1">
+    <span>Autoconsumo no mês: <b class="text-hex_gold_light">R$ {{ autoconsumo_mes|floatformat:2 }}</b></span>
+    <span>Perdas no mês: <b class="text-hex_gold_light">R$ {{ perdas_mes|floatformat:2 }}</b></span>
+    <span class="text-hex_gold_dim/40">(já pagos na compra — não descontam de novo)</span>
 </div>
 
 <!-- Alertas de Vencimento -->
@@ -225,7 +229,7 @@
                         tension: 0.3
                     },
                     {
-                        label: 'Lucro Líquido Real (R$)',
+                        label: 'Líquido recebido (R$)',
                         data: {{ chart_dias_lucro|safe }},
                         borderColor: '#0AC8B9',
                         backgroundColor: 'rgba(10, 200, 185, 0.1)',

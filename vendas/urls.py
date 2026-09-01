@@ -16,9 +16,18 @@ urlpatterns = [
     path('canais/<int:pk>/editar/', views.canal_editar, name='canal_editar'),
     path('canais/<int:pk>/excluir/', views.canal_excluir, name='canal_excluir'),
 
-    # Formas de Pagamento
+    # Formas de Pagamento (legado — mantido para compatibilidade)
     path('formas-pagamento/', views.forma_pagamento_listar, name='forma_pagamento_listar'),
     path('formas-pagamento/novo/', views.forma_pagamento_criar, name='forma_pagamento_criar'),
     path('formas-pagamento/<int:pk>/editar/', views.forma_pagamento_editar, name='forma_pagamento_editar'),
     path('formas-pagamento/<int:pk>/excluir/', views.forma_pagamento_excluir, name='forma_pagamento_excluir'),
+
+    # Entregadores
+    path('entregadores/', views.entregador_listar, name='entregador_listar'),
+    path('entregadores/novo/', views.entregador_criar, name='entregador_criar'),
+    path('entregadores/<int:pk>/editar/', views.entregador_editar, name='entregador_editar'),
+    path('entregadores/<int:pk>/excluir/', views.entregador_excluir, name='entregador_excluir'),
+
+    # Configuração financeira
+    path('configuracao/', views.configuracao_financeira, name='configuracao_financeira'),
 ]

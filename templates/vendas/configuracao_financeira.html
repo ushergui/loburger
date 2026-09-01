@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Configuração Financeira - LOL BURGUER{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold title-hex text-hex_gold flex items-center space-x-2">
+            <i data-lucide="settings" class="w-6 h-6 text-hex_gold"></i><span>Configuração Financeira</span>
+        </h1>
+        <p class="text-sm text-hex_gold_dim/70 mt-1">
+            Valores globais usados nos cálculos. Toda alteração vale para os lançamentos <strong>a partir de agora</strong> — não recalcula o passado.
+        </p>
+    </div>
+
+    <div class="bg-hex_dark_card border border-hex_dark_border p-6 md:p-8 rounded shadow-hex-gold">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.taxa_maquininha.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">Taxa da maquininha na entrega (%)</label>
+                    {{ form.taxa_maquininha }}
+                    <p class="text-xxs text-hex_gold_dim/50 mt-1">{{ form.taxa_maquininha.help_text }}</p>
+                    {% if form.taxa_maquininha.errors %}<p class="text-red-400 text-xs mt-1">{{ form.taxa_maquininha.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.taxa_online_plataforma.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">Acréscimo de pagamento on-line no app (%)</label>
+                    {{ form.taxa_online_plataforma }}
+                    <p class="text-xxs text-hex_gold_dim/50 mt-1">{{ form.taxa_online_plataforma.help_text }}</p>
+                    {% if form.taxa_online_plataforma.errors %}<p class="text-red-400 text-xs mt-1">{{ form.taxa_online_plataforma.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.taxa_entrega.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">Valor da entrega (R$)</label>
+                    {{ form.taxa_entrega }}
+                    <p class="text-xxs text-hex_gold_dim/50 mt-1">Cobrado do cliente e pago ao entregador por entrega.</p>
+                    {% if form.taxa_entrega.errors %}<p class="text-red-400 text-xs mt-1">{{ form.taxa_entrega.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.caixa_inicial.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">Saldo de caixa inicial (R$)</label>
+                    {{ form.caixa_inicial }}
+                    <p class="text-xxs text-hex_gold_dim/50 mt-1">Dinheiro que já existia no caixa quando começaram a usar o sistema.</p>
+                    {% if form.caixa_inicial.errors %}<p class="text-red-400 text-xs mt-1">{{ form.caixa_inicial.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="flex items-center justify-end pt-4 border-t border-hex_dark_border">
+                <button type="submit" class="bg-gradient-to-r from-hex_gold to-hex_gold_dim hover:from-hex_blue hover:to-hex_blue_dark text-hex_dark_bg hover:text-white font-bold py-2.5 px-6 rounded uppercase tracking-wider text-xs border border-hex_gold/40 shadow-hex-gold">Salvar Configuração</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

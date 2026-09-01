@@ -93,34 +93,37 @@ def estoque_ajustar(request):
             
             # Ajusta a quantidade física na movimentação para a unidade de consumo do banco
             mov.quantidade = qtd_original * fator
-            
-            if mov.tipo == 'ENTRADA':
+
+            if mov.tipo in ('ENTRADA', 'ABERTURA'):
                 # Valores originais digitados na unidade de compra
                 custo_compra = mov.valor_unitario
-                
+
                 # Custo convertido para a unidade de consumo (ex: R$/kg -> R$/g)
                 custo_novo = Decimal('0.0000')
                 if custo_compra is not None and custo_compra > 0:
                     custo_novo = custo_compra / fator
-                    
-                    # Lógica de Negócio: Lançamento Automático de Despesa
-                    from relatorios.models import Despesa
-                    from django.utils import timezone
-                    
-                    valor_total_compra = qtd_original * custo_compra
-                    Despesa.objects.create(
-                        descricao=f"Compra/Reposição: {ingrediente.nome} ({qtd_original} {ingrediente.unidade_compra})",
-                        tipo='VARIAVEL',
-                        categoria='FORNECEDORES',
-                        valor=valor_total_compra,
-                        status='PAGO',
-                        data_vencimento=timezone.localdate(),
-                        data_pagamento=timezone.localdate(),
-                        observacao=f"Gerado automaticamente pela entrada no estoque. {mov.observacao}"
-                    )
-                    
+
+                    # ENTRADA (compra real) gera Despesa paga. ABERTURA (carga inicial) NÃO.
+                    if mov.tipo == 'ENTRADA':
+                        from relatorios.models import Despesa
+                        from django.utils import timezone
+
+                        valor_total_compra = qtd_original * custo_compra
+                        Despesa.objects.create(
+                            descricao=f"Compra: {ingrediente.nome} ({qtd_original} {ingrediente.unidade_compra})",
+                            tipo='VARIAVEL',
+                            categoria='FORNECEDORES',
+                            valor=valor_total_compra,
+                            status='PAGO',
+                            data_vencimento=timezone.localdate(),
+                            data_pagamento=timezone.localdate(),
+                            origem='ESTOQUE',
+                            data_referencia=timezone.localdate(),
+                            observacao=f"Gerada automaticamente pela entrada no estoque. {mov.observacao or ''}".strip(),
+                        )
+
                 mov.valor_unitario = custo_novo
-                
+
                 qtd_anterior = ingrediente.estoque_atual
                 custo_anterior = ingrediente.custo_unitario
                 qtd_nova = mov.quantidade
@@ -132,20 +135,29 @@ def estoque_ajustar(request):
                         novo_custo_medio = (valor_total_anterior + valor_total_novo) / (qtd_anterior + qtd_nova)
                     else:
                         novo_custo_medio = custo_novo
-                    
                     ingrediente.custo_unitario = novo_custo_medio
 
                 ingrediente.estoque_atual += qtd_nova
+                rotulo = "Carga inicial" if mov.tipo == 'ABERTURA' else "Entrada"
                 messages.success(
-                    request, 
-                    f"Adicionado {qtd_original} {ingrediente.unidade_compra} (convertido para {qtd_nova} {ingrediente.unidade_medida}) ao estoque de '{ingrediente.nome}' com sucesso. "
-                    f"Custo unitário recalculado para R$ {ingrediente.custo_unitario:.4f}/{ingrediente.unidade_medida}."
+                    request,
+                    f"{rotulo}: +{qtd_original} {ingrediente.unidade_compra} "
+                    f"(= {qtd_nova} {ingrediente.unidade_medida}) em '{ingrediente.nome}'. "
+                    f"Custo médio: R$ {ingrediente.custo_unitario:.4f}/{ingrediente.unidade_medida}."
+                    + ("" if mov.tipo == 'ENTRADA' else " Não gerou despesa (abertura).")
                 )
             else:
                 ingrediente.estoque_atual -= mov.quantidade
+                motivo = {
+                    'SAIDA_PERDA': 'perda / descarte',
+                    'SAIDA_AUTOCONSUMO': 'autoconsumo',
+                    'AJUSTE': 'ajuste de inventário',
+                }.get(mov.tipo, 'ajuste')
                 messages.success(
-                    request, 
-                    f"Debitado {qtd_original} {ingrediente.unidade_compra} (convertido para {mov.quantidade} {ingrediente.unidade_medida}) do estoque de '{ingrediente.nome}' por perda/ajuste."
+                    request,
+                    f"Baixa por {motivo}: -{qtd_original} {ingrediente.unidade_compra} "
+                    f"(= {mov.quantidade} {ingrediente.unidade_medida}) em '{ingrediente.nome}'. "
+                    "Não gera despesa — o insumo já foi pago na compra."
                 )
             
             # Salva a atualização física do insumo e a movimentação no banco
@@ -153,9 +165,9 @@ def estoque_ajustar(request):
             mov.save()
             
             return redirect('estoque_resumo')
-    else:
+    ingrediente_selecionado = None
+    if request.method != 'POST':
         ingrediente_id = request.GET.get('ingrediente_id')
-        ingrediente_selecionado = None
         if ingrediente_id:
             ingrediente_selecionado = get_object_or_404(Ingrediente, id=ingrediente_id)
             form = MovimentacaoEstoqueForm(initial={

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Excluir Entregador - LOL BURGUER{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto my-12">
+    <div class="bg-hex_dark_card border border-hex_danger/40 p-6 md:p-8 rounded shadow-lg text-center">
+        <h1 class="text-xl font-bold title-hex text-hex_danger mb-2">Excluir Entregador</h1>
+        <p class="text-sm text-hex_gold_light mb-6">
+            Excluir <span class="font-bold text-hex_gold">"{{ entregador.nome }}"</span>?
+            <span class="text-xs text-hex_danger/80 block mt-2">Se ele já tem entregas registradas, prefira marcar como inativo.</span>
+        </p>
+        <form method="post" class="flex items-center justify-center space-x-4">
+            {% csrf_token %}
+            <a href="{% url 'entregador_listar' %}" class="px-4 py-2.5 rounded text-xs font-semibold text-hex_gold hover:text-white uppercase tracking-wider">Cancelar</a>
+            <button type="submit" class="bg-hex_danger hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded uppercase tracking-wider text-xs border border-hex_danger/40">Confirmar</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

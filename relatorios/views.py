@@ -7,46 +7,46 @@ from django.db.models import Sum, Count, F, Q
 from django.core.paginator import Paginator
 from django.utils import timezone
 from decimal import Decimal
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, date
 import calendar
 
 from core.decorators import gestao_required
 from vendas.models import Pedido, PedidoItem, CanalVenda
 from produtos.models import Produto
-from .models import Despesa, DespesaRecorrente, CATEGORIA_CHOICES
+from .models import Despesa, DespesaRecorrente, CATEGORIA_CHOICES, CATEGORIAS_AUTOMATICAS
 from .forms import DespesaForm, DespesaRecorrenteForm
+from . import services
 
-def gerar_despesas_fixas_pendentes():
+MESES_PROJECAO_PADRAO = 12
+
+
+def gerar_despesas_fixas_pendentes(meses_a_frente=MESES_PROJECAO_PADRAO):
+    """Gera as faturas previstas dos moldes fixos: mês atual + N meses à frente.
+    Nunca gera nada para trás."""
     hoje = timezone.localdate()
-    mes_atual = hoje.replace(day=1)
-    
-    # Próximo mês
-    if mes_atual.month == 12:
-        mes_proximo = mes_atual.replace(year=mes_atual.year + 1, month=1)
-    else:
-        mes_proximo = mes_atual.replace(month=mes_atual.month + 1)
-        
-    meses_para_gerar = [mes_atual, mes_proximo]
-    
-    recorrentes_ativas = DespesaRecorrente.objects.filter(ativa=True)
-    
-    for molde in recorrentes_ativas:
+    y, m = hoje.year, hoje.month
+    meses_para_gerar = []
+    for _ in range(meses_a_frente + 1):
+        meses_para_gerar.append(date(y, m, 1))
+        if m == 12:
+            y, m = y + 1, 1
+        else:
+            m += 1
+
+    for molde in DespesaRecorrente.objects.filter(ativa=True):
         for mes_ref in meses_para_gerar:
-            # Tenta calcular o dia de vencimento real, cuidado com meses que tem menos dias que dia_vencimento
             try:
                 data_venc = mes_ref.replace(day=molde.dia_vencimento)
             except ValueError:
-                # Ex: dia 31 num mês de 30 dias. Ajusta para o último dia do mês
                 ultimo_dia = calendar.monthrange(mes_ref.year, mes_ref.month)[1]
                 data_venc = mes_ref.replace(day=ultimo_dia)
-                
-            # Verifica se já existe uma despesa para este molde neste ano/mês
+
             existe = Despesa.objects.filter(
                 despesa_matriz=molde,
                 data_vencimento__year=data_venc.year,
-                data_vencimento__month=data_venc.month
+                data_vencimento__month=data_venc.month,
             ).exists()
-            
+
             if not existe:
                 Despesa.objects.create(
                     descricao=molde.descricao,
@@ -56,7 +56,8 @@ def gerar_despesas_fixas_pendentes():
                     status='PREVISTO',
                     data_vencimento=data_venc,
                     despesa_matriz=molde,
-                    observacao=f"Gerada automaticamente pelo molde {molde.id}."
+                    origem='RECORRENTE',
+                    observacao=f"Gerada automaticamente pelo molde {molde.id}.",
                 )
 
 MESES_PT = {
@@ -170,45 +171,35 @@ def dashboard(request):
         else:
             cur_m -= 1
 
-    # 1. Filtrar pedidos concluídos no período exato
+    # 1. Filtrar pedidos concluídos no período exato (usado nos gráficos)
     pedidos_concluidos = Pedido.objects.filter(status='CONCLUIDO', data_criacao__range=(data_inicio, data_fim))
-    
-    # 2. Calcular KPIs do Scorecard
-    kpis = pedidos_concluidos.aggregate(
-        faturamento_bruto=Sum('valor_bruto'),
-        total_pedidos=Count('id'),
-        taxas_totais=Sum('taxas_canal'),
-        taxas_pgto_totais=Sum('taxas_pagamento'),
-        custo_insumos=Sum('custo_ingredientes'),
-        lucro_liquido_total=Sum('lucro_liquido')
-    )
-    
-    # Formatação de valores padrões caso o banco esteja vazio
-    faturamento = kpis['faturamento_bruto'] or Decimal('0.00')
-    num_pedidos = kpis['total_pedidos'] or 0
-    taxas = kpis['taxas_totais'] or Decimal('0.00')
-    taxas_cartao = kpis['taxas_pgto_totais'] or Decimal('0.00')
-    custo = kpis['custo_insumos'] or Decimal('0.00')
-    
-    # 3. Calcular lucro líquido deduzindo as despesas de overhead (fixas/variáveis) lançadas no período
-    # IMPORTANTE: despesas de categoria FORNECEDORES são excluídas pois o CMV já está
-    # embutido no lucro_liquido de cada pedido (custo_ingredientes deduzido na venda).
-    # Incluir FORNECEDORES aqui causaria dupla contagem do custo dos insumos.
-    soma_despesas_overhead = Despesa.objects.filter(
-        data_pagamento__range=(data_inicio.date(), data_fim.date())
-    ).exclude(categoria='FORNECEDORES').aggregate(total=Sum('valor'))['total'] or Decimal('0.00')
 
-    # Para exibição no KPI de Custo Total: inclui todas as despesas (fornecedores + overhead)
-    soma_despesas = Despesa.objects.filter(
-        data_pagamento__range=(data_inicio.date(), data_fim.date())
-    ).aggregate(total=Sum('valor'))['total'] or Decimal('0.00')
-    
-    custo_total_kpi = taxas + taxas_cartao + soma_despesas
-    lucro_pedidos = kpis['lucro_liquido_total'] or Decimal('0.00')
-    # Lucro real = lucro dos pedidos (já com CMV deduzido) - despesas de overhead do período
-    lucro = lucro_pedidos - soma_despesas_overhead
-    
-    ticket = (faturamento / num_pedidos) if num_pedidos > 0 else Decimal('0.00')
+    # 2. Consolidação financeira do período (regime de caixa)
+    resumo = services.resumo_financeiro(data_inicio.date(), data_fim.date())
+    mov = services.resumo_movimentacao_estoque(data_inicio.date(), data_fim.date())
+
+    faturamento = resumo['faturamento_bruto']
+    num_pedidos = resumo['num_pedidos']
+    taxas_plataforma = resumo['taxas_plataforma']
+    custo = resumo['cmv']
+    ticket = resumo['ticket_medio']
+    resultado_caixa = resumo['resultado_caixa']
+    resultado_operacional = resumo['resultado_operacional']
+    lucro_economico = resumo['lucro_economico']
+    despesas_total = resumo['despesas_pagas_total']
+    compras_insumo = resumo['compras_insumo']
+    retiradas_socios = resumo['retiradas_socios']
+
+    # "Foto" da empresa — não zera no fim do mês
+    caixa_hoje = services.caixa_acumulado()
+    valor_estoque_hoje = services.valor_estoque_atual()
+
+    # Compatibilidade com nomes antigos usados no template / gráficos
+    lucro = resultado_caixa
+    taxas = taxas_plataforma
+    taxas_cartao = Decimal('0.00')
+    soma_despesas = despesas_total
+    custo_total_kpi = despesas_total
 
     # Alertas de Vencimento de Despesas (Próximos 5 dias ou atrasadas)
     hoje_venc = timezone.localdate()
@@ -220,13 +211,14 @@ def dashboard(request):
     ).order_by('data_vencimento')
 
     # 4. Dados para o Gráfico 1: Faturamento Diário (Linha)
+    from django.db.models.functions import TruncDate
     faturamento_diario = (
-        pedidos_concluidos.extra(select={'dia': "date(data_criacao)"})
+        pedidos_concluidos.annotate(dia=TruncDate('data_criacao'))
         .values('dia')
         .annotate(total=Sum('valor_bruto'), lucro=Sum('lucro_liquido'))
         .order_by('dia')
     )
-    chart_dias_labels = [d['dia'] for d in faturamento_diario]
+    chart_dias_labels = [d['dia'].strftime('%d/%m') if d['dia'] else '' for d in faturamento_diario]
     chart_dias_valores = [float(d['total']) for d in faturamento_diario]
     chart_dias_lucro = [float(d['lucro']) for d in faturamento_diario]
 
@@ -287,7 +279,22 @@ def dashboard(request):
         'despesas_total': soma_despesas,
         'lucro': lucro,
         'ticket': ticket,
-        
+
+        # Regime de caixa + ponte para competência
+        'resultado_caixa': resultado_caixa,
+        'resultado_operacional': resultado_operacional,
+        'lucro_economico': lucro_economico,
+        'compras_insumo': compras_insumo,
+        'retiradas_socios': retiradas_socios,
+        'receita_entregas': resumo['receita_entregas'],
+        'autoconsumo_mes': mov['autoconsumo'],
+        'perdas_mes': mov['perdas'],
+
+        # "Foto" da empresa (não zera no mês)
+        'caixa_hoje': caixa_hoje,
+        'valor_estoque_hoje': valor_estoque_hoje,
+
+
         # Dados estruturados para Chart.js
         'chart_dias_labels': chart_dias_labels,
         'chart_dias_valores': chart_dias_valores,
@@ -323,25 +330,24 @@ def exportar_csv(request):
     writer = csv.writer(response, delimiter=';')
     writer.writerow([
         'ID Pedido', 
-        'Data Criação', 
-        'Canal de Venda', 
-        'Forma de Pagamento',
-        'Invocador (Cliente)', 
-        'Faturamento Bruto (R$)', 
-        'Taxas do App/Canal (R$)',
-        'Taxas de Pagamento/Cartão (R$)', 
-        'Custo Insumos (R$)', 
-        'Lucro Líquido Real (R$)'
+        'Data',
+        'Canal de Venda',
+        'Modo de Pagamento',
+        'Descrição',
+        'Faturamento Bruto (R$)',
+        'Comissão da Plataforma (R$)',
+        'Taxa de Pagamento (R$)',
+        'CMV Informativo (R$)',
+        'Líquido Recebido (R$)'
     ])
-    
+
     for p in pedidos:
-        forma_pagamento_nome = p.forma_pagamento.nome if p.forma_pagamento else 'Não informada'
         writer.writerow([
             p.id,
             p.data_criacao.strftime('%d/%m/%Y %H:%M:%S'),
             p.canal.nome,
-            forma_pagamento_nome,
-            p.cliente_nome or 'Cliente Avulso',
+            p.get_modo_pagamento_display(),
+            p.cliente_nome or 'Venda',
             str(p.valor_bruto).replace('.', ','),
             str(p.taxas_canal).replace('.', ','),
             str(p.taxas_pagamento).replace('.', ','),
@@ -356,44 +362,73 @@ def exportar_csv(request):
 @gestao_required
 def despesa_listar(request):
     gerar_despesas_fixas_pendentes()
-    
+
     busca = request.GET.get('busca', '')
     tipo_filtro = request.GET.get('tipo', '')
     categoria_filtro = request.GET.get('categoria', '')
-    
+    vista = request.GET.get('vista', 'a_pagar')  # a_pagar | pagas
+
     despesas = Despesa.objects.all()
-    
+    if vista == 'pagas':
+        despesas = despesas.filter(status='PAGO').order_by('-data_pagamento', '-id')
+    else:
+        vista = 'a_pagar'
+        despesas = despesas.filter(status='PREVISTO').order_by('data_vencimento')
+
     if busca:
         despesas = despesas.filter(Q(descricao__icontains=busca) | Q(observacao__icontains=busca))
-        
     if tipo_filtro:
         despesas = despesas.filter(tipo=tipo_filtro)
-        
     if categoria_filtro:
         despesas = despesas.filter(categoria=categoria_filtro)
-        
-    paginator = Paginator(despesas, 15)
-    page_number = request.GET.get('page', 1)
-    page_obj = paginator.get_page(page_number)
-    
-    # Soma total das despesas filtradas
+
+    paginator = Paginator(despesas, 20)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+
     total_despesas_filtradas = despesas.aggregate(total=Sum('valor'))['total'] or Decimal('0.00')
-    
+
+    # Contadores para as abas
+    hoje = timezone.localdate()
+    qs_prev = Despesa.objects.filter(status='PREVISTO')
+    total_a_pagar = qs_prev.aggregate(t=Sum('valor'))['t'] or Decimal('0.00')
+    total_atrasadas = qs_prev.filter(data_vencimento__lt=hoje).count()
+
     context = {
         'page_obj': page_obj,
+        'vista': vista,
         'busca': busca,
         'tipo_selecionado': tipo_filtro,
         'categoria_selecionada': categoria_filtro,
         'total_filtrado': total_despesas_filtradas,
+        'total_a_pagar': total_a_pagar,
+        'total_atrasadas': total_atrasadas,
+        'hoje': hoje,
         'categorias': CATEGORIA_CHOICES,
         'tipos': Despesa.TIPO_CHOICES,
         'recorrentes': DespesaRecorrente.objects.all(),
     }
-    
+
     if request.headers.get('HX-Request'):
         return render(request, 'relatorios/partials/despesas_tabela.html', context)
-        
+
     return render(request, 'relatorios/despesas_lista.html', context)
+
+
+@login_required
+@gestao_required
+def despesa_marcar_paga(request, id):
+    despesa = get_object_or_404(Despesa, id=id)
+    if request.method == 'POST':
+        data_str = request.POST.get('data_pagamento', '').strip()
+        try:
+            dp = datetime.strptime(data_str, '%Y-%m-%d').date() if data_str else timezone.localdate()
+        except ValueError:
+            dp = timezone.localdate()
+        despesa.data_pagamento = dp
+        despesa.status = 'PAGO'
+        despesa.save()
+        messages.success(request, f"'{despesa.descricao}' marcada como paga em {dp.strftime('%d/%m/%Y')}. Saiu do caixa nesse dia.")
+    return redirect('despesa_listar')
 
 
 @login_required

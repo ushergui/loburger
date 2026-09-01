@@ -2,97 +2,78 @@
     <table class="w-full text-left border-collapse text-xs">
         <thead>
             <tr class="border-b border-hex_dark_border text-hex_gold uppercase tracking-wider text-[10px] font-semibold bg-hex_dark_bg/40">
-                <th class="py-3.5 px-4">Vencimento</th>
+                {% if vista == 'pagas' %}
+                    <th class="py-3.5 px-4">Pago em</th>
+                {% else %}
+                    <th class="py-3.5 px-4">Vencimento</th>
+                {% endif %}
                 <th class="py-3.5 px-4">Descrição</th>
-                <th class="py-3.5 px-4">Status</th>
                 <th class="py-3.5 px-4">Categoria</th>
                 <th class="py-3.5 px-4 text-right">Valor</th>
                 <th class="py-3.5 px-4 text-center">Ações</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-hex_dark_border text-hex_gold_light/90">
-            {% if page_obj %}
-                {% for desp in page_obj %}
-                    <tr class="hover:bg-hex_dark_bg/30 transition-colors">
-                        <td class="py-3 px-4 font-mono">{{ desp.data_vencimento|date:"d/m/Y" }}</td>
-                        <td class="py-3 px-4 font-medium text-white">
-                            {{ desp.descricao }}
-                            {% if desp.despesa_matriz %}<span class="ml-1 text-[9px] px-1 py-0.5 bg-hex_blue/10 text-hex_blue border border-hex_blue/20 rounded uppercase tracking-wider">Auto</span>{% endif %}
-                        </td>
-                        <td class="py-3 px-4">
-                            {% if desp.status == 'PAGO' %}
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-green-950/40 text-green-400 border border-green-500/20" title="Pago em {{ desp.data_pagamento|date:'d/m/Y' }}">
-                                    Pago
-                                </span>
-                            {% else %}
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-amber-950/40 text-amber-500 border border-amber-500/20">
-                                    Previsto
-                                </span>
+            {% for desp in page_obj %}
+                <tr class="hover:bg-hex_dark_bg/30 transition-colors {% if vista == 'a_pagar' and desp.data_vencimento < hoje %}bg-hex_danger/5{% endif %}">
+                    <td class="py-3 px-4 font-mono whitespace-nowrap">
+                        {% if vista == 'pagas' %}
+                            {{ desp.data_pagamento|date:"d/m/Y" }}
+                        {% else %}
+                            {{ desp.data_vencimento|date:"d/m/Y" }}
+                            {% if desp.data_vencimento < hoje %}<span class="block text-[9px] text-hex_danger uppercase">atrasada</span>{% endif %}
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4 font-medium text-white">
+                        {{ desp.descricao }}
+                        {% if desp.despesa_matriz %}<span class="ml-1 text-[9px] px-1 py-0.5 bg-hex_blue/10 text-hex_blue border border-hex_blue/20 rounded uppercase">Fixa</span>{% endif %}
+                        {% if desp.origem == 'FECHAMENTO' or desp.origem == 'ESTOQUE' %}<span class="ml-1 text-[9px] px-1 py-0.5 bg-hex_gold/10 text-hex_gold border border-hex_gold/20 rounded uppercase">Auto</span>{% endif %}
+                    </td>
+                    <td class="py-3 px-4">{{ desp.get_categoria_display }}</td>
+                    <td class="py-3 px-4 text-right font-mono font-bold text-hex_gold">R$ {{ desp.valor|floatformat:2 }}</td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center justify-center space-x-2">
+                            {% if vista == 'a_pagar' %}
+                                <form method="post" action="{% url 'despesa_marcar_paga' desp.id %}" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="bg-hex_success/15 border border-hex_success/40 hover:bg-hex_success hover:text-white text-hex_success px-2 py-1 rounded text-[10px] uppercase tracking-wider font-bold transition-all" title="Marcar como paga hoje">
+                                        Pagar
+                                    </button>
+                                </form>
                             {% endif %}
-                        </td>
-                        <td class="py-3 px-4">{{ desp.get_categoria_display }}</td>
-                        <td class="py-3 px-4 text-right font-mono font-bold text-hex_gold">R$ {{ desp.valor }}</td>
-                        <td class="py-3 px-4 text-center">
-                            <div class="flex items-center justify-center space-x-2">
-                                <a href="{% url 'despesa_editar' desp.id %}" class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white p-1 rounded transition-all" title="Editar despesa">
-                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-                                </a>
-                                <a href="{% url 'despesa_excluir' desp.id %}" class="bg-hex_dark_bg border border-hex_danger/30 hover:border-hex_danger text-hex_danger hover:text-white p-1 rounded transition-all" title="Excluir despesa">
-                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                {% endfor %}
-                
-                <!-- Linha do Total Geral Filtrado -->
-                <tr class="bg-hex_dark_bg/60 font-bold border-t border-hex_gold/20">
-                    <td colspan="4" class="py-4 px-4 text-right uppercase tracking-wider text-hex_gold text-[10px]">Total Acumulado:</td>
-                    <td class="py-4 px-4 text-right font-mono text-sm text-hex_gold">R$ {{ total_filtrado }}</td>
-                    <td></td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="6" class="py-8 text-center text-hex_gold_dim/50 uppercase tracking-widest text-xs">
-                        Nenhuma despesa ou custo lançado para os filtros aplicados.
+                            <a href="{% url 'despesa_editar' desp.id %}" class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white p-1 rounded transition-all" title="Editar"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i></a>
+                            <a href="{% url 'despesa_excluir' desp.id %}" class="bg-hex_dark_bg border border-hex_danger/30 hover:border-hex_danger text-hex_danger hover:text-white p-1 rounded transition-all" title="Excluir"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></a>
+                        </div>
                     </td>
                 </tr>
+            {% empty %}
+                <tr><td colspan="5" class="py-8 text-center text-hex_gold_dim/50 uppercase tracking-widest text-xs">
+                    {% if vista == 'pagas' %}Nenhuma despesa paga no filtro.{% else %}Nenhuma conta a pagar. 🎉{% endif %}
+                </td></tr>
+            {% endfor %}
+            {% if page_obj %}
+            <tr class="bg-hex_dark_bg/60 font-bold border-t border-hex_gold/20">
+                <td colspan="3" class="py-4 px-4 text-right uppercase tracking-wider text-hex_gold text-[10px]">Total nesta página / filtro:</td>
+                <td class="py-4 px-4 text-right font-mono text-sm text-hex_gold">R$ {{ total_filtrado|floatformat:2 }}</td>
+                <td></td>
+            </tr>
             {% endif %}
         </tbody>
     </table>
 </div>
 
-<!-- Paginação -->
 {% if page_obj.has_other_pages %}
 <div class="p-4 border-t border-hex_dark_border flex items-center justify-between">
-    <div class="text-xxs text-hex_gold_dim/50 uppercase tracking-wider">
-        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-    </div>
-    
+    <div class="text-xxs text-hex_gold_dim/50 uppercase tracking-wider">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</div>
     <div class="flex items-center space-x-1">
         {% if page_obj.has_previous %}
-            <button 
-                hx-get="?page={{ page_obj.previous_page_number }}&busca={{ busca }}&tipo={{ tipo_selecionado }}&categoria={{ categoria_selecionada }}"
-                hx-target="#tabela-despesas"
-                class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white px-2 py-1 rounded text-xxs uppercase tracking-wider transition-all"
-            >
-                Anterior
-            </button>
+            <button hx-get="?vista={{ vista }}&page={{ page_obj.previous_page_number }}&busca={{ busca }}&tipo={{ tipo_selecionado }}&categoria={{ categoria_selecionada }}" hx-target="#tabela-despesas" class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white px-2 py-1 rounded text-xxs uppercase tracking-wider transition-all">Anterior</button>
         {% endif %}
-        
         {% if page_obj.has_next %}
-            <button 
-                hx-get="?page={{ page_obj.next_page_number }}&busca={{ busca }}&tipo={{ tipo_selecionado }}&categoria={{ categoria_selecionada }}"
-                hx-target="#tabela-despesas"
-                class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white px-2 py-1 rounded text-xxs uppercase tracking-wider transition-all"
-            >
-                Próxima
-            </button>
+            <button hx-get="?vista={{ vista }}&page={{ page_obj.next_page_number }}&busca={{ busca }}&tipo={{ tipo_selecionado }}&categoria={{ categoria_selecionada }}" hx-target="#tabela-despesas" class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white px-2 py-1 rounded text-xxs uppercase tracking-wider transition-all">Próxima</button>
         {% endif %}
     </div>
 </div>
 {% endif %}
 
-<script>
-    lucide.createIcons();
-</script>
+<script>lucide.createIcons();</script>

@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import inlineformset_factory
 from decimal import Decimal
-from .models import CanalVenda, TaxaFormaPagamento, FormaPagamento
+from .models import CanalVenda, TaxaFormaPagamento, FormaPagamento, Entregador, ConfiguracaoFinanceira
 from produtos.forms import ThemeFormMixin
 
 class CustomDecimalField(forms.DecimalField):
@@ -93,3 +93,37 @@ TaxaFormaPagamentoFormSet = inlineformset_factory(
     extra=4,
     can_delete=True
 )
+
+
+class EntregadorForm(ThemeFormMixin, forms.ModelForm):
+    class Meta:
+        model = Entregador
+        fields = ['nome', 'eh_socio', 'ativo']
+        widgets = {
+            'nome': forms.TextInput(attrs={'placeholder': 'Ex: Igor, João Moto, ...'}),
+        }
+
+
+class ConfiguracaoFinanceiraForm(ThemeFormMixin, forms.ModelForm):
+    taxa_maquininha = PercentageField(
+        label="Taxa da maquininha na entrega (%)",
+        help_text="Digite a porcentagem (Ex: 3,5 para 3,5%).",
+        widget=forms.TextInput(attrs={'placeholder': 'Ex: 3,5'}),
+    )
+    taxa_online_plataforma = PercentageField(
+        label="Acréscimo de pagamento on-line no app (%)",
+        help_text="Somado à comissão do canal quando o cliente paga dentro do app da plataforma (Ex: 3,2).",
+        widget=forms.TextInput(attrs={'placeholder': 'Ex: 3,2'}),
+    )
+    taxa_entrega = CustomDecimalField(
+        max_digits=6, decimal_places=2, label="Valor da entrega (R$)",
+        widget=forms.TextInput(attrs={'placeholder': 'Ex: 9,00'}),
+    )
+    caixa_inicial = CustomDecimalField(
+        max_digits=12, decimal_places=2, required=False, label="Saldo de caixa inicial (R$)",
+        widget=forms.TextInput(attrs={'placeholder': 'Ex: 0,00'}),
+    )
+
+    class Meta:
+        model = ConfiguracaoFinanceira
+        fields = ['taxa_maquininha', 'taxa_online_plataforma', 'taxa_entrega', 'caixa_inicial']

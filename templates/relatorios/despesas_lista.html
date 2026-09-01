@@ -5,75 +5,56 @@
 {% block content %}
 <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
     <div>
-        <h1 class="text-2xl font-bold title-hex text-hex_gold">Gestão de Despesas & Custos</h1>
-        <p class="text-xs uppercase tracking-wider text-hex_blue">Fluxo de Caixa / Custos Fixos e Variáveis</p>
+        <h1 class="text-2xl font-bold title-hex text-hex_gold">Custos & Despesas</h1>
+        <p class="text-xs uppercase tracking-wider text-hex_blue">Contas a pagar e histórico de pagas</p>
     </div>
-    
-    <a 
-        href="{% url 'despesa_criar' %}" 
-        class="bg-hex_gold hover:bg-hex_blue text-hex_dark_bg hover:text-white font-bold py-2 px-4 rounded transition-all uppercase tracking-wider text-xs border border-hex_gold/35 flex items-center justify-center space-x-1.5 self-start md:self-auto"
-    >
+    <a href="{% url 'despesa_criar' %}" class="bg-hex_gold hover:bg-hex_blue text-hex_dark_bg hover:text-white font-bold py-2 px-4 rounded transition-all uppercase tracking-wider text-xs border border-hex_gold/35 flex items-center justify-center space-x-1.5 self-start md:self-auto">
         <i data-lucide="plus" class="w-4 h-4"></i>
-        <span>Lançar Despesa</span>
+        <span>Lançar Despesa Avulsa</span>
     </a>
+</div>
+
+<!-- Abas -->
+<div class="flex items-center gap-2 mb-4 border-b border-hex_dark_border">
+    <a href="?vista=a_pagar" class="px-4 py-2.5 text-xs uppercase tracking-wider font-bold transition-all border-b-2 {% if vista == 'a_pagar' %}border-hex_gold text-hex_gold{% else %}border-transparent text-hex_gold_dim/60 hover:text-hex_gold_light{% endif %}">
+        Contas a Pagar
+        {% if total_atrasadas %}<span class="ml-1 text-[9px] bg-hex_danger text-white px-1.5 py-0.5 rounded-full">{{ total_atrasadas }} atrasada{{ total_atrasadas|pluralize }}</span>{% endif %}
+    </a>
+    <a href="?vista=pagas" class="px-4 py-2.5 text-xs uppercase tracking-wider font-bold transition-all border-b-2 {% if vista == 'pagas' %}border-hex_gold text-hex_gold{% else %}border-transparent text-hex_gold_dim/60 hover:text-hex_gold_light{% endif %}">
+        Pagas (histórico)
+    </a>
+    {% if vista == 'a_pagar' %}
+    <span class="ml-auto text-xs font-mono text-hex_gold_dim/70">Total previsto em aberto: <b class="text-hex_gold">R$ {{ total_a_pagar|floatformat:2 }}</b></span>
+    {% endif %}
 </div>
 
 <!-- Filtros e Busca -->
 <div class="bg-hex_dark_card border border-hex_dark_border p-4 rounded mb-6 flex flex-col lg:flex-row gap-4">
+    <input type="hidden" name="vista" value="{{ vista }}">
     <div class="flex-1">
         <label for="busca" class="block text-xxs uppercase tracking-wider text-hex_gold_dim/60 mb-1">Buscar Despesa</label>
         <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold_dim/40">
-                <i data-lucide="search" class="w-4 h-4"></i>
-            </span>
-            <input 
-                type="text" 
-                name="busca" 
-                id="busca" 
-                placeholder="Pesquisar por descrição..." 
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold_dim/40"><i data-lucide="search" class="w-4 h-4"></i></span>
+            <input type="text" name="busca" id="busca" placeholder="Pesquisar por descrição..."
                 class="w-full bg-hex_dark_bg border border-hex_gold/25 rounded py-2 pl-9 pr-4 text-xs text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all placeholder-hex_gold_light/30"
-                hx-get="{% url 'despesa_listar' %}"
-                hx-trigger="keyup changed delay:300ms, search"
-                hx-target="#tabela-despesas"
-                hx-include="[name='tipo'], [name='categoria']"
-                value="{{ busca }}"
-            >
+                hx-get="{% url 'despesa_listar' %}" hx-trigger="keyup changed delay:300ms, search"
+                hx-target="#tabela-despesas" hx-include="[name='tipo'], [name='categoria'], [name='vista']" value="{{ busca }}">
         </div>
     </div>
-    
-    <!-- Filtro por Tipo de Custo -->
     <div class="w-full lg:w-48">
         <label for="tipo" class="block text-xxs uppercase tracking-wider text-hex_gold_dim/60 mb-1">Tipo de Custo</label>
-        <select 
-            name="tipo" 
-            id="tipo" 
-            class="w-full bg-hex_dark_bg border border-hex_gold/25 rounded py-2 px-3 text-xs text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
-            hx-get="{% url 'despesa_listar' %}"
-            hx-target="#tabela-despesas"
-            hx-include="[name='busca'], [name='categoria']"
-        >
+        <select name="tipo" id="tipo" class="w-full bg-hex_dark_bg border border-hex_gold/25 rounded py-2 px-3 text-xs text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
+            hx-get="{% url 'despesa_listar' %}" hx-target="#tabela-despesas" hx-include="[name='busca'], [name='categoria'], [name='vista']">
             <option value="">Todos os Tipos</option>
-            {% for t_val, t_lbl in tipos %}
-                <option value="{{ t_val }}" {% if tipo_selecionado == t_val %}selected{% endif %}>{{ t_lbl }}</option>
-            {% endfor %}
+            {% for t_val, t_lbl in tipos %}<option value="{{ t_val }}" {% if tipo_selecionado == t_val %}selected{% endif %}>{{ t_lbl }}</option>{% endfor %}
         </select>
     </div>
-
-    <!-- Filtro por Categoria -->
     <div class="w-full lg:w-56">
         <label for="categoria" class="block text-xxs uppercase tracking-wider text-hex_gold_dim/60 mb-1">Categoria</label>
-        <select 
-            name="categoria" 
-            id="categoria" 
-            class="w-full bg-hex_dark_bg border border-hex_gold/25 rounded py-2 px-3 text-xs text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
-            hx-get="{% url 'despesa_listar' %}"
-            hx-target="#tabela-despesas"
-            hx-include="[name='busca'], [name='tipo']"
-        >
+        <select name="categoria" id="categoria" class="w-full bg-hex_dark_bg border border-hex_gold/25 rounded py-2 px-3 text-xs text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
+            hx-get="{% url 'despesa_listar' %}" hx-target="#tabela-despesas" hx-include="[name='busca'], [name='tipo'], [name='vista']">
             <option value="">Todas as Categorias</option>
-            {% for c_val, c_lbl in categorias %}
-                <option value="{{ c_val }}" {% if categoria_selecionada == c_val %}selected{% endif %}>{{ c_lbl }}</option>
-            {% endfor %}
+            {% for c_val, c_lbl in categorias %}<option value="{{ c_val }}" {% if categoria_selecionada == c_val %}selected{% endif %}>{{ c_lbl }}</option>{% endfor %}
         </select>
     </div>
 </div>

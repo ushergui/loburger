@@ -4,8 +4,10 @@ from django.conf import settings
 class MovimentacaoEstoque(models.Model):
     TIPOS_MOVIMENTACAO = (
         ('ENTRADA', 'Entrada (Compra / Reposição)'),
+        ('ABERTURA', 'Carga Inicial / Abertura'),
         ('SAIDA_VENDA', 'Saída Automática (Venda)'),
         ('SAIDA_PERDA', 'Saída por Perda / Descarte'),
+        ('SAIDA_AUTOCONSUMO', 'Saída por Autoconsumo'),
         ('AJUSTE', 'Ajuste de Inventário'),
     )
 
@@ -24,4 +26,11 @@ class MovimentacaoEstoque(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_display()} - {self.quantidade} {self.ingrediente.unidade_medida} de {self.ingrediente.nome}"
+
+    @property
+    def valor_movimento(self):
+        # Valor financeiro da movimentação, pelo custo (informado na entrada ou custo médio atual).
+        from decimal import Decimal
+        custo = self.valor_unitario if self.valor_unitario else self.ingrediente.custo_unitario
+        return (self.quantidade * (custo or Decimal('0'))).quantize(Decimal('0.01'))
 

@@ -38,10 +38,10 @@
                     <!-- Taxa Comissão -->
                     <div>
                         <label for="{{ form.taxa_comissao.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">
-                            Comissão Canal (Decimal) <span class="text-hex_blue font-bold">*</span>
+                            Comissão do Canal (%) <span class="text-hex_blue font-bold">*</span>
                         </label>
                         {{ form.taxa_comissao }}
-                        <p class="text-xxs text-hex_gold_dim/50 mt-1">Ex: "0.1200" para 12%, "0.0000" para zero</p>
+                        <p class="text-xxs text-hex_gold_dim/50 mt-1">Ex: "8" para 8%, "12,50" para 12,5%, "0" para sem taxa</p>
                         {% if form.taxa_comissao.errors %}
                             <p class="text-red-400 text-xs mt-1">{{ form.taxa_comissao.errors.0 }}</p>
                         {% endif %}
@@ -50,10 +50,10 @@
                     <!-- Taxa Fixa -->
                     <div>
                         <label for="{{ form.taxa_fixa.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-2">
-                            Taxa Fixa por Pedido (R$) <span class="text-hex_blue font-bold">*</span>
+                            Taxa Fixa por Pedido (R$)
                         </label>
                         {{ form.taxa_fixa }}
-                        <p class="text-xxs text-hex_gold_dim/50 mt-1">Ex: "1.50" para R$ 1,50</p>
+                        <p class="text-xxs text-hex_gold_dim/50 mt-1">Ex: "1,50" para R$ 1,50 (ou 0,00)</p>
                         {% if form.taxa_fixa.errors %}
                             <p class="text-red-400 text-xs mt-1">{{ form.taxa_fixa.errors.0 }}</p>
                         {% endif %}

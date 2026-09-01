@@ -29,7 +29,7 @@ NOVOS_INGREDIENTES = [
 
 # ---------------------------------------------------------------------------
 # HAMBÚRGUERES  — nome no banco -> {ingrediente: quantidade na unidade de consumo}
-# Fatia de queijo padronizada em 20 g (Duplo = 40 g, "4 fatias" = 80 g, "6 fatias" = 120 g)
+# Fatia de queijo = 35 g (Duplo = 70 g, "4 fatias" = 140 g, "6 fatias" = 210 g)
 # Alface: 0,1 un (um pé rende ~10 lanches)
 # ---------------------------------------------------------------------------
 BURGERS = {
@@ -38,40 +38,40 @@ BURGERS = {
         'GELEIA DE PIMENTA': 20, 'RUCULA': 15, 'PIMENTA JALAPENO': 10,
     },
     'BLITSMAH': {
-        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 90, 'CHEDDAR': 40, 'BACON': 25,
+        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 90, 'CHEDDAR': 70, 'BACON': 25,
         'CEBOLA CARAMELIZADA': 20, 'MOLHO DA CASA': 30,
     },
     'BLITSMAH DUPLO': {
-        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 180, 'CHEDDAR': 40, 'BACON': 50,
+        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 180, 'CHEDDAR': 70, 'BACON': 50,
         'CEBOLA CARAMELIZADA': 40, 'MOLHO DA CASA': 30,
     },
     'BRIAR': {
-        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 90, 'MUSSARELA': 20, 'OVO': 1,
+        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 90, 'MUSSARELA': 35, 'OVO': 1,
         'CEBOLA ROXA': 20, 'TOMATE': 20, 'ALFACE': Decimal('0.1'), 'MAIONESE VERDE CASEIRA': 30,
     },
     'DARIUS': {
-        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 170, 'MUSSARELA': 20, 'PICKLES': 15,
+        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 170, 'MUSSARELA': 35, 'PICKLES': 15,
         'TOMATE': 20, 'ALFACE': Decimal('0.1'), 'MOLHO DA CASA': 30,
     },
     'DRAVEN': {
-        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 170, 'MUSSARELA': 20, 'BACON': 25, 'OVO': 1,
+        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 170, 'MUSSARELA': 35, 'BACON': 25, 'OVO': 1,
         'CEBOLA ROXA': 20, 'REQUEIJAO CREMOSO': 25, 'TOMATE': 20, 'ALFACE': Decimal('0.1'),
         'MOLHO DA CASA': 30,
     },
     'EKKO': {
-        'PAO TRADICIONAL': 1, 'CATUPIRY EMPANADO': 1, 'CHEDDAR': 20, 'OVO': 1,
+        'PAO TRADICIONAL': 1, 'CATUPIRY EMPANADO': 1, 'CHEDDAR': 35, 'OVO': 1,
         'CEBOLA ROXA': 20, 'ALFACE': Decimal('0.1'), 'TOMATE': 20,
     },
     'GANGPLANK': {
-        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 170, 'CHEDDAR': 20, 'FAROFA DE BACON': 15,
+        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 170, 'CHEDDAR': 35, 'FAROFA DE BACON': 15,
         'REQUEIJAO CREMOSO': 25, 'CEBOLA CRISPY': 15,
     },
     'GAREN': {
-        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 170, 'CHEDDAR': 40, 'BACON': 25,
+        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 170, 'CHEDDAR': 70, 'BACON': 25,
         'CEBOLA CARAMELIZADA': 20, 'MOLHO DA CASA': 30,
     },
     'GNAR': {
-        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 170, 'MUSSARELA': 20, 'MAIONESE VERDE CASEIRA': 30,
+        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 170, 'MUSSARELA': 35, 'MAIONESE VERDE CASEIRA': 30,
     },
     'JAX': {
         'PAO TRADICIONAL': 1, 'CARNE ANGUS': 170, 'REQUEIJAO CREMOSO': 25,
@@ -82,11 +82,11 @@ BURGERS = {
         'MOLHO BARBECUE': 30, 'ALFACE': Decimal('0.1'), 'TOMATE': 20,
     },
     'KENNEN': {
-        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 170, 'QUEIJO PRATO': 20, 'CEBOLA ROXA': 20,
+        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 170, 'QUEIJO PRATO': 35, 'CEBOLA ROXA': 20,
         'TOMATE': 20, 'RUCULA': 15, 'MAIONESE VERDE CASEIRA': 30,
     },
     'PYKE': {
-        'PAO TRADICIONAL COM GERGELIM': 1, 'CARNE ANGUS': 180, 'CHEDDAR': 80,
+        'PAO TRADICIONAL COM GERGELIM': 1, 'CARNE ANGUS': 180, 'CHEDDAR': 140,
         'CEBOLA BRANCA': 15, 'PICKLES': 15, 'ALFACE': Decimal('0.1'), 'MOLHO DA CASA': 30,
     },
     'RENGAR': {
@@ -94,19 +94,19 @@ BURGERS = {
         'BACON': 25, 'PICKLES': 15, 'MAIONESE VERDE CASEIRA': 30,
     },
     'XIN ZHAO': {
-        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 340, 'MUSSARELA': 20, 'CHEDDAR': 20,
+        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 340, 'MUSSARELA': 35, 'CHEDDAR': 35,
         'BACON': 25, 'MAIONESE VERDE CASEIRA': 30, 'MOLHO DA CASA': 30,
     },
     'YASUO': {
-        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 270, 'CHEDDAR': 120, 'CEBOLA ROXA': 20,
+        'PAO TRADICIONAL': 1, 'CARNE ANGUS': 270, 'CHEDDAR': 210, 'CEBOLA ROXA': 20,
         'BACON': 25, 'MOLHO DA CASA': 30,
     },
     # Lux e Sett: montados pela descrição do produto (não vieram na lista de ingredientes)
     'LUX': {
-        'PAO TRADICIONAL MENOR': 1, 'CARNE ANGUS': 90, 'MUSSARELA': 20,
+        'PAO TRADICIONAL MENOR': 1, 'CARNE ANGUS': 90, 'MUSSARELA': 35,
     },
     'SETT': {
-        'PAO TRADICIONAL MENOR': 1, 'MUSSARELA': 40,
+        'PAO TRADICIONAL MENOR': 1, 'MUSSARELA': 70,
     },
 }
 

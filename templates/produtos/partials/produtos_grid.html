@@ -1,3 +1,4 @@
+{% load canais_extras %}
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
     {% for prod in produtos %}
         <div class="bg-hex_dark_card border {% if prod.status %}border-hex_dark_border hover:border-hex_gold/40 shadow-md hover:shadow-hex-gold{% else %}border-hex_danger/20 opacity-60{% endif %} rounded overflow-hidden flex flex-col justify-between transition-all duration-300 relative group">
@@ -41,7 +42,7 @@
                         <span class="text-xxs uppercase tracking-wider text-hex_blue/70 font-semibold block mb-1">Preços de Venda:</span>
                         {% for preco in prod.precos_canais.all %}
                             <div class="flex justify-between items-center">
-                                <span class="text-hex_gold_dim/70">{{ preco.canal.nome }}:</span>
+                                <span class="text-hex_gold_dim/70 inline-flex items-center gap-1">{% canal_logo preco.canal.nome 14 as logo_canal %}{% if logo_canal %}{{ logo_canal }}{% endif %}{{ preco.canal.nome }}:</span>
                                 <span class="font-mono text-hex_gold_light font-medium">R$ {{ preco.preco|floatformat:2 }}</span>
                             </div>
                         {% empty %}

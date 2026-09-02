@@ -1,3 +1,4 @@
+{% load canais_extras %}
 <style>
     /* Esconde setinhas nativas (spinners) do input type="number" no Chrome, Safari, Edge, Opera */
     input.no-spinners::-webkit-outer-spin-button,
@@ -25,7 +26,12 @@
             <!-- Canal e Regras -->
             <div class="flex-1">
                 <div class="flex items-center space-x-2">
-                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: {% if item.canal.nome == 'iFood Delivery' %}#EA1D2C{% elif 'UaiRango' in item.canal.nome %}#FF8C00{% else %}#C89B3C{% endif %};"></span>
+                    {% canal_logo item.canal.nome 18 as logo_canal %}
+                    {% if logo_canal %}
+                        {{ logo_canal }}
+                    {% else %}
+                        <span class="w-2.5 h-2.5 rounded-full" style="background-color: #C89B3C;"></span>
+                    {% endif %}
                     <h3 class="font-bold text-hex_gold_light text-sm">{{ item.canal.nome }}</h3>
                 </div>
                 <p class="text-xxs text-hex_gold_dim/60 mt-1 uppercase tracking-wider">

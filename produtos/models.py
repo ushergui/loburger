@@ -90,6 +90,7 @@ class Produto(models.Model):
         ('ENTRADA', 'Entradas e Porções'),
         ('CROISSANT', 'Croissants'),
         ('SOBREMESA', 'Sobremesas e Mimos'),
+        ('ADICIONAL', 'Adicionais (extras do lanche)'),
     )
 
     nome = models.CharField(max_length=100, verbose_name="Nome do Produto")

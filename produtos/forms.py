@@ -1,5 +1,17 @@
+from decimal import Decimal
 from django import forms
+from core.utils import parse_numero_ptbr
 from .models import Ingrediente, Produto, FichaTecnicaItem, PrecoCanal
+
+
+class MoedaField(forms.DecimalField):
+    """Campo de dinheiro que aceita o formato brasileiro (1.234,56)."""
+    def to_python(self, value):
+        if value in (None, '', 'None'):
+            return Decimal('0.00')
+        if isinstance(value, Decimal):
+            return value
+        return super().to_python(parse_numero_ptbr(value, Decimal('0.00')))
 
 class ThemeFormMixin:
     # Mixin para injetar estilos Tailwind / Hextech nos campos automaticamente
@@ -27,6 +39,11 @@ class ThemeFormMixin:
 
 
 class IngredienteForm(ThemeFormMixin, forms.ModelForm):
+    estoque_minimo = MoedaField(
+        required=False, label="Estoque mínimo (na unidade de consumo)",
+        widget=forms.TextInput(attrs={'inputmode': 'decimal', 'placeholder': 'Ex: 2000'}),
+    )
+
     class Meta:
         model = Ingrediente
         fields = ['nome', 'unidade_medida', 'unidade_compra', 'fornecedor', 'estoque_minimo', 'categoria']
@@ -47,12 +64,14 @@ class IngredienteForm(ThemeFormMixin, forms.ModelForm):
 
 
 class ProdutoForm(ThemeFormMixin, forms.ModelForm):
+    custo_aquisicao = MoedaField(
+        required=False, label="Custo de aquisição (revenda)",
+        widget=forms.TextInput(attrs={'inputmode': 'decimal', 'placeholder': 'Ex: 2,50'}),
+    )
+
     class Meta:
         model = Produto
         fields = ['nome', 'categoria', 'descricao', 'foto', 'status', 'custo_aquisicao']
-        widgets = {
-            'custo_aquisicao': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
-        }
 
 
 class FichaTecnicaItemForm(ThemeFormMixin, forms.ModelForm):
@@ -62,6 +81,9 @@ class FichaTecnicaItemForm(ThemeFormMixin, forms.ModelForm):
 
 
 class PrecoCanalForm(ThemeFormMixin, forms.ModelForm):
+    preco = MoedaField(label="Preço no Canal (R$)",
+                       widget=forms.TextInput(attrs={'inputmode': 'decimal', 'placeholder': 'Ex: 44,00'}))
+
     class Meta:
         model = PrecoCanal
         fields = ['canal', 'preco']

@@ -44,14 +44,14 @@
             
             <div class="w-full md:w-32">
                 <label for="quantidade" class="block text-xs uppercase tracking-wider text-hex_gold_light mb-1.5">Qtd Utilizada</label>
-                <input 
-                    type="number" 
-                    name="quantidade" 
-                    id="quantidade" 
-                    step="0.001" 
-                    required 
+                <input
+                    type="text"
+                    inputmode="decimal"
+                    name="quantidade"
+                    id="quantidade"
+                    required
                     class="w-full bg-hex_dark_bg border border-hex_gold/30 rounded py-2 px-3 text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
-                    placeholder="Qtd..."
+                    placeholder="Ex: 30 ou 0,1"
                 >
             </div>
             
@@ -78,7 +78,7 @@
             </div>
             <div class="w-full md:w-24">
                 <label for="quantidade_comp" class="block text-xs uppercase tracking-wider text-hex_blue mb-1.5">Qtd</label>
-                <input type="number" name="quantidade" id="quantidade_comp" step="0.001" value="1" required
+                <input type="text" inputmode="decimal" name="quantidade" id="quantidade_comp" value="1" required
                     class="w-full bg-hex_dark_bg border border-hex_blue/30 rounded py-2 px-3 text-hex_gold_light focus:outline-none focus:border-hex_blue">
             </div>
             <button type="submit" class="w-full md:w-auto bg-hex_blue hover:bg-hex_gold text-hex_dark_bg font-bold py-2.5 px-4 rounded transition-all uppercase tracking-wider text-xs shrink-0 flex items-center justify-center space-x-1">

@@ -1,6 +1,7 @@
 from django import forms
 from django.forms import inlineformset_factory
 from decimal import Decimal
+from core.utils import parse_numero_ptbr
 from .models import CanalVenda, TaxaFormaPagamento, FormaPagamento, Entregador, ConfiguracaoFinanceira
 from produtos.forms import ThemeFormMixin
 
@@ -10,8 +11,7 @@ class CustomDecimalField(forms.DecimalField):
             return Decimal('0.00')
         if isinstance(value, Decimal):
             return value
-        clean_val = str(value).replace(',', '.').strip()
-        return super().to_python(clean_val)
+        return super().to_python(parse_numero_ptbr(value, Decimal('0.00')))
 
 class PercentageField(forms.Field):
     def __init__(self, *args, **kwargs):
@@ -23,12 +23,10 @@ class PercentageField(forms.Field):
             return Decimal('0.0000')
         if isinstance(value, Decimal):
             return value
-        clean_val = str(value).replace('%', '').replace(',', '.').strip()
-        try:
-            val = Decimal(clean_val)
-        except Exception:
+        val = parse_numero_ptbr(value)
+        if val is None:
             raise forms.ValidationError("Informe uma porcentagem válida (Ex: 8 ou 8,50).")
-        
+
         # Converte porcentagem para decimal (Ex: 8 -> 0.0800)
         return (val / Decimal('100.0')).quantize(Decimal('0.0001'))
 

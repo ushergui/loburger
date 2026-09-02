@@ -54,17 +54,9 @@
                 <label for="{{ form.valor_base.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">
                     {{ form.valor_base.label }}
                 </label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold_dim/50 text-xs">R$</span>
-                    <input 
-                        type="number" 
-                        name="valor_base" 
-                        id="{{ form.valor_base.id_for_label }}" 
-                        step="0.01" 
-                        required 
-                        class="w-full bg-hex_dark_bg/80 border border-hex_gold/30 rounded py-2.5 pl-8 pr-3 text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
-                        value="{% if form.valor_base.value %}{{ form.valor_base.value }}{% endif %}"
-                    >
+                <div class="relative [&_input]:pl-8">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold_dim/50 text-xs z-10">R$</span>
+                    {{ form.valor_base }}
                 </div>
                 {% if form.valor_base.errors %}
                     <p class="text-xxs text-hex_danger mt-1">{{ form.valor_base.errors.as_text }}</p>

@@ -54,6 +54,32 @@ class Ingrediente(models.Model):
             return Decimal('1000.00')
         return Decimal('1.00')
 
+    def _fmt(self, valor, casas=3):
+        from django.utils.formats import number_format
+        q = Decimal(valor).quantize(Decimal('1.' + '0' * casas)).normalize()
+        return number_format(q, use_l10n=True, force_grouping=True)
+
+    @property
+    def estoque_display(self):
+        """Estoque numa unidade amigável e no formato brasileiro
+        (compra em kg/l → mostra em kg/l; ex.: 5.450 g vira '5,450 kg')."""
+        fator = self.obter_fator_conversao
+        if fator > 1:
+            return f"{self._fmt((self.estoque_atual or 0) / fator)} {self.unidade_compra}"
+        return f"{self._fmt(self.estoque_atual or 0)} {self.unidade_medida}"
+
+    @property
+    def estoque_minimo_display(self):
+        fator = self.obter_fator_conversao
+        if fator > 1:
+            return f"{self._fmt((self.estoque_minimo or 0) / fator)} {self.unidade_compra}"
+        return f"{self._fmt(self.estoque_minimo or 0)} {self.unidade_medida}"
+
+    @property
+    def custo_por_unidade_compra(self):
+        """Custo por kg / litro / unidade (como você compra)."""
+        return (self.custo_unitario * self.obter_fator_conversao).quantize(Decimal('0.01'))
+
 
 class Produto(models.Model):
     CATEGORIAS = (

@@ -405,11 +405,11 @@ def pedido_atualizar_status(request, pk):
 # FECHAMENTO DIÁRIO DE VENDAS EM LOTE
 # ==========================================
 
+from core.utils import parse_numero_ptbr
+
+
 def _parse_decimal(valor, padrao=Decimal('0.00')):
-    try:
-        return Decimal(str(valor).replace('R$', '').replace(' ', '').replace(',', '.').strip())
-    except Exception:
-        return padrao
+    return parse_numero_ptbr(valor, padrao)
 
 
 @login_required

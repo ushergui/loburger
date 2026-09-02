@@ -18,10 +18,10 @@
                     </td>
                     <td class="p-4 font-medium">{{ mov.ingrediente.nome }}</td>
                     <td class="p-4 font-mono font-bold">
-                        {% if mov.tipo == 'ENTRADA' %}
-                            <span class="text-hex_success">+{{ mov.quantidade }}</span>
+                        {% if mov.tipo == 'ENTRADA' or mov.tipo == 'ABERTURA' %}
+                            <span class="text-hex_success">+{{ mov.quantidade|floatformat:"-3" }}</span>
                         {% else %}
-                            <span class="text-hex_danger">-{{ mov.quantidade }}</span>
+                            <span class="text-hex_danger">-{{ mov.quantidade|floatformat:"-3" }}</span>
                         {% endif %}
                         <span class="text-xs text-hex_gold_dim/50 font-normal"> {{ mov.ingrediente.unidade_medida }}</span>
                     </td>

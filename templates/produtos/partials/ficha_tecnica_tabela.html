@@ -16,7 +16,7 @@
                         {{ item.componente_nome }}
                         {% if item.produto_componente_id %}<span class="ml-1 text-[9px] px-1 py-0.5 bg-hex_blue/10 text-hex_blue border border-hex_blue/20 rounded uppercase">Produto</span>{% endif %}
                     </td>
-                    <td class="p-3 text-right font-mono font-semibold">{{ item.quantidade }} {{ item.unidade }}</td>
+                    <td class="p-3 text-right font-mono font-semibold">{{ item.quantidade|floatformat:"-3" }} {{ item.unidade }}</td>
                     <td class="p-3 text-right font-mono text-hex_gold_dim/60">{% if item.ingrediente_id %}R$ {{ item.ingrediente.custo_unitario|floatformat:4 }}{% else %}R$ {{ item.produto_componente.custo_total|floatformat:2 }}{% endif %}</td>
                     <td class="p-3 text-right font-mono text-hex_gold font-semibold">R$ {{ item.custo_item|floatformat:2 }}</td>
                     <td class="p-3 text-center">

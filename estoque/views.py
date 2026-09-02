@@ -3,9 +3,19 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from django.core.paginator import Paginator
+from django.utils.formats import number_format
 from decimal import Decimal
 
 from core.decorators import gestao_required
+
+
+def _n(valor, casas=3):
+    """Número no formato brasileiro (1.234,560)."""
+    try:
+        q = Decimal(valor).quantize(Decimal('1.' + '0' * casas)).normalize()
+    except Exception:
+        q = Decimal(valor or 0)
+    return number_format(q, use_l10n=True, force_grouping=True)
 from produtos.models import Ingrediente
 from .models import MovimentacaoEstoque
 from .forms import MovimentacaoEstoqueForm
@@ -139,11 +149,12 @@ def estoque_ajustar(request):
 
                 ingrediente.estoque_atual += qtd_nova
                 rotulo = "Carga inicial" if mov.tipo == 'ABERTURA' else "Entrada"
+                custo_kg = _n(ingrediente.custo_unitario * fator, 2)
                 messages.success(
                     request,
-                    f"{rotulo}: +{qtd_original} {ingrediente.unidade_compra} "
-                    f"(= {qtd_nova} {ingrediente.unidade_medida}) em '{ingrediente.nome}'. "
-                    f"Custo médio: R$ {ingrediente.custo_unitario:.4f}/{ingrediente.unidade_medida}."
+                    f"{rotulo}: +{_n(qtd_original)} {ingrediente.unidade_compra} "
+                    f"em '{ingrediente.nome}'. "
+                    f"Custo médio: R$ {custo_kg}/{ingrediente.unidade_compra}."
                     + ("" if mov.tipo == 'ENTRADA' else " Não gerou despesa (abertura).")
                 )
             else:
@@ -155,8 +166,8 @@ def estoque_ajustar(request):
                 }.get(mov.tipo, 'ajuste')
                 messages.success(
                     request,
-                    f"Baixa por {motivo}: -{qtd_original} {ingrediente.unidade_compra} "
-                    f"(= {mov.quantidade} {ingrediente.unidade_medida}) em '{ingrediente.nome}'. "
+                    f"Baixa por {motivo}: -{_n(qtd_original)} {ingrediente.unidade_compra} "
+                    f"em '{ingrediente.nome}'. "
                     "Não gera despesa — o insumo já foi pago na compra."
                 )
             

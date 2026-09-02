@@ -29,7 +29,7 @@
                     <h3 class="font-bold text-hex_gold_light text-sm">{{ item.canal.nome }}</h3>
                 </div>
                 <p class="text-xxs text-hex_gold_dim/60 mt-1 uppercase tracking-wider">
-                    Repasse: {{ item.canal.dias_repasse }} dias • Taxa: {{ item.canal.taxa_comissao|stringformat:".2f" }}% + R$ {{ item.canal.taxa_fixa }}
+                    Comissão: {{ item.canal.taxa_comissao_pct }}% na entrega • {{ item.canal.taxa_online_pct }}% no app
                 </p>
             </div>
             
@@ -46,14 +46,14 @@
                 
                 <div class="relative w-32">
                     <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-hex_gold_dim/50 text-xs">R$</span>
-                    <input 
-                        type="number" 
-                        name="preco" 
-                        step="0.01" 
-                        required 
+                    <input
+                        type="text"
+                        inputmode="decimal"
+                        name="preco"
+                        required
                         class="w-full bg-hex_dark_bg border border-hex_gold/20 rounded py-1.5 pl-7 pr-2.5 text-xs text-hex_gold_light focus:outline-none focus:border-hex_blue text-right font-mono no-spinners"
                         placeholder="0,00"
-                        value="{% if p_obj %}{{ p_obj.preco }}{% endif %}"
+                        value="{% if p_obj %}{{ p_obj.preco|floatformat:2 }}{% endif %}"
                     >
                 </div>
                 
@@ -67,18 +67,18 @@
                 {% if p_obj %}
                     <div>
                         <span class="text-xxs text-hex_gold_dim/60 block uppercase tracking-wider">Taxa Canal</span>
-                        <span class="text-hex_gold_light/70">- R$ {{ p_obj.taxa_valor }}</span>
+                        <span class="text-hex_gold_light/70">- R$ {{ p_obj.taxa_valor|floatformat:2 }}</span>
                     </div>
                     <div>
                         <span class="text-xxs text-hex_gold_dim/60 block uppercase tracking-wider">Lucro Líq.</span>
                         <span class="font-bold {% if p_obj.lucro_liquido < 0 %}text-hex_danger{% else %}text-hex_success{% endif %}">
-                            R$ {{ p_obj.lucro_liquido }}
+                            R$ {{ p_obj.lucro_liquido|floatformat:2 }}
                         </span>
                     </div>
                     <div class="col-span-2 mt-1">
                         <span class="text-xxs text-hex_gold_dim/60 block uppercase tracking-wider">Margem Líquida</span>
                         <span class="font-bold text-sm {% if p_obj.margem_lucro_pct >= 40 %}text-hex_success{% elif p_obj.margem_lucro_pct >= 20 %}text-hex_warning{% else %}text-hex_danger{% endif %}">
-                            {{ p_obj.margem_lucro_pct }}%
+                            {{ p_obj.margem_lucro_pct|floatformat:2 }}%
                         </span>
                     </div>
                 {% else %}

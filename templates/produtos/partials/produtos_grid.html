@@ -42,7 +42,7 @@
                         {% for preco in prod.precos_canais.all %}
                             <div class="flex justify-between items-center">
                                 <span class="text-hex_gold_dim/70">{{ preco.canal.nome }}:</span>
-                                <span class="font-mono text-hex_gold_light font-medium">R$ {{ preco.preco }}</span>
+                                <span class="font-mono text-hex_gold_light font-medium">R$ {{ preco.preco|floatformat:2 }}</span>
                             </div>
                         {% empty %}
                             <p class="text-xxs text-hex_danger/70 italic">Sem preços cadastrados.</p>

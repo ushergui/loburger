@@ -21,9 +21,9 @@
                         </span>
                     </td>
                     <td class="p-4 font-mono font-bold {% if ing.status_estoque == 'CRITICO' %}text-hex_danger{% elif ing.status_estoque == 'BAIXO' %}text-hex_warning{% else %}text-white{% endif %}">
-                        {{ ing.estoque_atual }} {{ ing.unidade_medida }}
+                        {{ ing.estoque_display }}
                     </td>
-                    <td class="p-4 font-mono text-hex_gold_dim/60">{{ ing.estoque_minimo }} {{ ing.unidade_medida }}</td>
+                    <td class="p-4 font-mono text-hex_gold_dim/60">{{ ing.estoque_minimo_display }}</td>
                     <td class="p-4">
                         {% if ing.status_estoque == 'CRITICO' %}
                             <a href="{% url 'estoque_ajustar' %}?ingrediente_id={{ ing.id }}" class="bg-red-950/40 border border-red-500/50 text-red-400 px-2.5 py-1 rounded text-xs font-semibold uppercase tracking-wider animate-pulse flex items-center w-fit space-x-1 hover:bg-red-900/60 transition-all hover:scale-105" title="Clique para Lançar Entrada">
@@ -46,7 +46,7 @@
                         {% endif %}
                     </td>
                     <td class="p-4 font-mono text-hex_gold_dim/70">
-                        R$ {{ ing.custo_unitario|floatformat:4 }} <span class="text-xs">/ {{ ing.unidade_medida }}</span>
+                        R$ {{ ing.custo_por_unidade_compra|floatformat:2 }} <span class="text-xs">/ {{ ing.unidade_compra }}</span>
                     </td>
                     <td class="p-4 flex items-center justify-center space-x-2">
                         <a href="{% url 'ingrediente_editar' ing.id %}" class="text-hex_gold hover:text-white border border-hex_gold/30 hover:border-hex_gold rounded px-3 py-1 text-xs uppercase tracking-wider transition-all bg-hex_dark_bg/50" title="Editar cadastro e estoque inicial">

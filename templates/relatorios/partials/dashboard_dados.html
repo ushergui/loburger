@@ -222,9 +222,19 @@
         var d = window.lbDashboardData;
         var c = (typeof lbThemeColors === 'function') ? lbThemeColors()
                 : { gold: '#C8AA6E', teal: '#0AC8B9', text: '#F0E6D2', dim: '#A0B0B9', grid: 'rgba(30,40,53,0.7)', card: '#010A13' };
+        var brl = function (v) { return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 0 }); };
         var base = {
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: c.text, font: { family: 'Inter' } } } },
+            plugins: {
+                legend: { labels: { color: c.text, font: { family: 'Inter' } } },
+                tooltip: { callbacks: { label: function (ctx) { return ctx.dataset.label + ': ' + brl(ctx.parsed.y); } } }
+            },
+            scales: { x: { grid: { color: c.grid }, ticks: { color: c.dim } },
+                      y: { grid: { color: c.grid }, ticks: { color: c.dim, callback: brl } } }
+        };
+        var baseUnid = {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
             scales: { x: { grid: { color: c.grid }, ticks: { color: c.dim } },
                       y: { grid: { color: c.grid }, ticks: { color: c.dim } } }
         };
@@ -251,7 +261,10 @@
                 borderColor: c.card, borderWidth: 2
             }]},
             options: { responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { color: c.text, font: { family: 'Inter' } } } } }
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: c.text, font: { family: 'Inter' } } },
+                    tooltip: { callbacks: { label: function (ctx) { return ctx.label + ': ' + brl(ctx.parsed); } } }
+                } }
         });
 
         new Chart(document.getElementById('chartProdutos'), {
@@ -260,7 +273,7 @@
                 label: 'Unidades Vendidas', data: d.prodValores,
                 backgroundColor: tint(c.teal, 0.6), borderColor: c.teal, borderWidth: 1
             }]},
-            options: Object.assign({}, base, { plugins: { legend: { display: false } } })
+            options: baseUnid
         });
     };
 

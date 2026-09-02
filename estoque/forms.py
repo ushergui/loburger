@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django import forms
+from core.utils import parse_numero_ptbr
 from .models import MovimentacaoEstoque
 from produtos.forms import ThemeFormMixin
 
@@ -10,8 +11,7 @@ class CommaDecimalField(forms.DecimalField):
             return None
         if isinstance(value, Decimal):
             return value
-        clean = str(value).replace('R$', '').replace(' ', '').replace(',', '.').strip()
-        return super().to_python(clean)
+        return super().to_python(parse_numero_ptbr(value))
 
 TIPOS_MANUAIS = (
     ('ENTRADA', 'Entrada (Compra / Reposição) — gera despesa paga'),
@@ -23,10 +23,14 @@ TIPOS_MANUAIS = (
 
 
 class MovimentacaoEstoqueForm(ThemeFormMixin, forms.ModelForm):
-    quantidade = CommaDecimalField(max_digits=10, decimal_places=2, label="Quantidade movimentada")
+    quantidade = CommaDecimalField(
+        max_digits=10, decimal_places=3, label="Quantidade movimentada",
+        widget=forms.TextInput(attrs={'inputmode': 'decimal', 'placeholder': 'Ex: 5,450'}),
+    )
     valor_unitario = CommaDecimalField(
         max_digits=10, decimal_places=4, required=False,
         label="Custo unitário da compra (R$) — só para Entrada / Abertura",
+        widget=forms.TextInput(attrs={'inputmode': 'decimal', 'placeholder': 'Ex: 65,50'}),
     )
 
     class Meta:

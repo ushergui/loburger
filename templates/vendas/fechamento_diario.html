@@ -90,7 +90,7 @@
             <p class="text-xxs text-hex_gold_dim/60 mb-3">Valor promocional ou abatimento concedido no total do dia. Aplicado uma vez.</p>
             <div class="relative w-48">
                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold_dim/50 text-base font-mono">R$</span>
-                <input type="number" name="desconto_dia" step="0.01" value="{{ desconto_dia }}"
+                <input type="text" inputmode="decimal" name="desconto_dia" value="{{ desconto_dia|floatformat:2 }}"
                     class="w-full bg-hex_dark_bg border border-hex_gold/30 rounded py-1.5 pl-10 pr-3 text-xl text-hex_gold_light focus:outline-none focus:border-hex_blue text-right font-mono no-spinners"
                     placeholder="0,00">
             </div>

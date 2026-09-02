@@ -22,7 +22,7 @@
         <div>
             <h2 class="text-lg font-bold text-white mb-2">Atenção! Ação Irreversível</h2>
             <p class="mb-3 text-sm text-hex_gold_dim/90">
-                Você está prestes a excluir o molde de despesa fixa <strong>"{{ molde.descricao }}"</strong> (Valor Base: R$ {{ molde.valor_base }}).
+                Você está prestes a excluir o molde de despesa fixa <strong>"{{ molde.descricao }}"</strong> (Valor Base: R$ {{ molde.valor_base|floatformat:2 }}).
             </p>
             <p class="mb-1 text-sm text-hex_gold_dim/90 font-semibold text-hex_danger">
                 O que acontecerá:

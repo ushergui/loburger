@@ -7,6 +7,7 @@ from django.db.models import Q
 from decimal import Decimal
 
 from core.decorators import gestao_required
+from core.utils import parse_numero_ptbr
 from vendas.models import CanalVenda
 from .models import Ingrediente, Produto, FichaTecnicaItem, PrecoCanal
 from .forms import IngredienteForm, ProdutoForm, FichaTecnicaItemForm, PrecoCanalForm
@@ -192,9 +193,9 @@ def ficha_tecnica_montar(request, pk):
             ingrediente = get_object_or_404(Ingrediente, id=ingrediente_id)
             item, _ = FichaTecnicaItem.objects.get_or_create(
                 produto=produto, ingrediente=ingrediente, produto_componente=None,
-                defaults={'quantidade': Decimal(quantidade.replace(',', '.'))},
+                defaults={'quantidade': parse_numero_ptbr(quantidade)},
             )
-            item.quantidade = Decimal(quantidade.replace(',', '.'))
+            item.quantidade = parse_numero_ptbr(quantidade)
             item.save()
             if request.headers.get('HX-Request'):
                 return render(request, 'produtos/partials/ficha_tecnica_tabela.html', {'produto': produto})
@@ -212,9 +213,9 @@ def ficha_tecnica_montar(request, pk):
             else:
                 item, _ = FichaTecnicaItem.objects.get_or_create(
                     produto=produto, produto_componente=comp, ingrediente=None,
-                    defaults={'quantidade': Decimal(quantidade.replace(',', '.'))},
+                    defaults={'quantidade': parse_numero_ptbr(quantidade)},
                 )
-                item.quantidade = Decimal(quantidade.replace(',', '.'))
+                item.quantidade = parse_numero_ptbr(quantidade)
                 item.save()
                 if request.headers.get('HX-Request'):
                     return render(request, 'produtos/partials/ficha_tecnica_tabela.html', {'produto': produto})
@@ -228,10 +229,11 @@ def ficha_tecnica_montar(request, pk):
         
         if canal_id and preco:
             canal = get_object_or_404(CanalVenda, id=canal_id)
+            preco_dec = parse_numero_ptbr(preco)
             PrecoCanal.objects.update_or_create(
                 produto=produto,
                 canal=canal,
-                defaults={'preco': Decimal(preco)}
+                defaults={'preco': preco_dec}
             )
             
             if request.headers.get('HX-Request'):

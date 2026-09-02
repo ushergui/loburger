@@ -1,6 +1,7 @@
 from decimal import Decimal
 from django import forms
 from django.utils import timezone
+from core.utils import parse_numero_ptbr
 from .models import Despesa, DespesaRecorrente, CATEGORIA_CHOICES, CATEGORIAS_AUTOMATICAS
 
 CATEGORIAS_MANUAIS = [(v, l) for v, l in CATEGORIA_CHOICES if v not in CATEGORIAS_AUTOMATICAS]
@@ -34,8 +35,7 @@ class MoneyDecimalField(forms.DecimalField):
             return None
         if isinstance(value, Decimal):
             return value
-        clean_val = str(value).replace('R$', '').replace(' ', '').replace(',', '.').strip()
-        return super().to_python(clean_val)
+        return super().to_python(parse_numero_ptbr(value))
 
 class DespesaRecorrenteForm(ThemeFormMixin, forms.ModelForm):
     valor_base = MoneyDecimalField(

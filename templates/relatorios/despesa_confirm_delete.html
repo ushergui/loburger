@@ -37,7 +37,7 @@
         </div>
         <div class="flex justify-between border-t border-hex_dark_border pt-1.5 mt-1.5 font-bold">
             <span class="text-hex_gold_dim/60 uppercase">Valor:</span>
-            <span class="text-hex_gold text-sm">R$ {{ despesa.valor }}</span>
+            <span class="text-hex_gold text-sm">R$ {{ despesa.valor|floatformat:2 }}</span>
         </div>
     </div>
 

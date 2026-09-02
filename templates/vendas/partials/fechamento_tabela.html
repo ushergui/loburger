@@ -3,6 +3,14 @@
     input.no-spinners::-webkit-outer-spin-button,
     input.no-spinners::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input.no-spinners[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
+    /* Divisórias e leve tonalidade por canal (evita confundir as colunas) */
+    .fc-col-app   { background-color: rgba(10, 200, 185, 0.06); }
+    .fc-col-uai   { background-color: rgba(234, 179, 8, 0.09); }
+    .fc-col-ifood { background-color: rgba(234, 29, 44, 0.07); }
+    .fc-div-app   { border-left: 3px solid rgba(10, 200, 185, 0.60); }
+    .fc-div-uai   { border-left: 3px solid rgba(255, 140, 0, 0.80); }
+    .fc-div-ifood { border-left: 3px solid rgba(234, 29, 44, 0.75); }
 </style>
 
 <div class="overflow-x-auto overflow-y-auto max-h-[65vh] relative custom-scrollbar">
@@ -12,7 +20,7 @@
             <tr class="text-hex_gold uppercase tracking-wider text-xs font-bold bg-hex_dark_bg border-b-2 border-hex_gold/50">
                 <th class="py-3 px-4 min-w-[200px] bg-hex_dark_bg" rowspan="2">Item do Cardápio</th>
                 {% for canal in canais %}
-                    <th class="py-2.5 px-2 text-center border-l border-hex_dark_border bg-hex_dark_bg/90 text-hex_gold font-bold" colspan="{{ num_modos }}">
+                    <th class="py-2.5 px-2 text-center bg-hex_dark_bg/90 text-hex_gold font-bold fc-div-{{ canal.grupo_css }}" colspan="{{ num_modos }}">
                         <span class="inline-flex items-center gap-1.5">
                             {% canal_logo canal.nome 16 as logo_canal %}{% if logo_canal %}{{ logo_canal }}{% endif %}
                             {{ canal.nome }}
@@ -25,7 +33,7 @@
             <tr class="border-b-2 border-hex_dark_border text-hex_gold uppercase tracking-wider text-[10px] font-mono font-bold bg-hex_dark_bg">
                 {% for canal in canais %}
                     {% for m_val, m_label in modos %}
-                        <th class="py-2 px-1 text-center border-l border-hex_dark_border leading-tight min-w-[90px] max-w-[130px]" title="{{ m_label }}">
+                        <th class="py-2 px-1 text-center leading-tight min-w-[90px] max-w-[130px] {% if forloop.first %}fc-div-{{ canal.grupo_css }}{% else %}border-l border-hex_dark_border{% endif %}" title="{{ m_label }}">
                             {{ m_label }}
                         </th>
                     {% endfor %}
@@ -52,7 +60,7 @@
                         </div>
                     </td>
                     {% for cel in linha.celulas %}
-                        <td class="py-2.5 px-1.5 border-l border-hex_dark_border text-center align-middle">
+                        <td class="py-2.5 px-1.5 text-center align-middle transition-colors fc-col-{{ cel.grupo_css }} group-hover:bg-hex_blue/20 {% if cel.inicio_grupo %}fc-div-{{ cel.grupo_css }}{% else %}border-l border-hex_dark_border{% endif %}">
                             <input type="number" min="0" inputmode="numeric"
                                    name="{{ cel.name }}"
                                    value="{{ cel.qtd }}"

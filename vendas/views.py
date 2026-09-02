@@ -427,6 +427,10 @@ def fechamento_diario(request):
     modos = Pedido.MODO_PAGAMENTO_CHOICES
 
     canais = list(CanalVenda.objects.all().order_by('nome'))
+    # identificador visual por canal — usado para as divisórias coloridas do fechamento
+    for _c in canais:
+        _n = (_c.nome or '').lower()
+        _c.grupo_css = 'ifood' if 'ifood' in _n else ('uai' if 'uai' in _n else 'app')
     produtos = Produto.objects.filter(status=True).annotate(
         ordem_categoria=Case(
             When(categoria='BURGER', then=Value(1)),
@@ -563,11 +567,13 @@ def fechamento_diario(request):
         gravadas_p = vendas_gravadas.get(p.id, {})
         for c in canais:
             preco = precos_matriz.get(p.id, {}).get(c.id, Decimal('0.00'))
-            for m_val, _m_label in modos:
+            for m_idx, (m_val, _m_label) in enumerate(modos):
                 celulas.append({
                     'name': f"qtd_{p.id}_{c.id}_{m_val}",
                     'qtd': gravadas_p.get(f"{c.id}_{m_val}", ''),
                     'preco': preco,
+                    'grupo_css': c.grupo_css,
+                    'inicio_grupo': m_idx == 0,
                 })
         linhas.append({'produto': p, 'celulas': celulas})
 

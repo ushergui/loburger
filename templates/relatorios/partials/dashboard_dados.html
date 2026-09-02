@@ -207,107 +207,63 @@
 
 <!-- Script de Inicialização dos Gráficos com Chart.js -->
 <script>
-    (function() {
-        lucide.createIcons();
+    window.lbDashboardData = {
+        diasLabels: {{ chart_dias_labels|safe }},
+        diasValores: {{ chart_dias_valores|safe }},
+        diasLucro: {{ chart_dias_lucro|safe }},
+        canaisLabels: {{ chart_canais_labels|safe }},
+        canaisValores: {{ chart_canais_valores|safe }},
+        prodLabels: {{ chart_produtos_labels|safe }},
+        prodValores: {{ chart_produtos_valores|safe }}
+    };
 
-        // 1. Gráfico de Faturamento Diário (Linha)
-        const ctxFat = document.getElementById('chartFaturamento').getContext('2d');
-        let existingChartFat = Chart.getChart("chartFaturamento");
-        if (existingChartFat) existingChartFat.destroy();
+    window.lbRenderCharts = function () {
+        if (!window.Chart) return;
+        var d = window.lbDashboardData;
+        var c = (typeof lbThemeColors === 'function') ? lbThemeColors()
+                : { gold: '#C8AA6E', teal: '#0AC8B9', text: '#F0E6D2', dim: '#A0B0B9', grid: 'rgba(30,40,53,0.7)', card: '#010A13' };
+        var base = {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: c.text, font: { family: 'Inter' } } } },
+            scales: { x: { grid: { color: c.grid }, ticks: { color: c.dim } },
+                      y: { grid: { color: c.grid }, ticks: { color: c.dim } } }
+        };
+        var tint = function (rgb, a) { return rgb.replace('rgb(', 'rgba(').replace(')', ',' + a + ')'); };
 
-        new Chart(ctxFat, {
+        ['chartFaturamento', 'chartCanais', 'chartProdutos'].forEach(function (id) {
+            var ex = Chart.getChart(id); if (ex) ex.destroy();
+        });
+
+        new Chart(document.getElementById('chartFaturamento'), {
             type: 'line',
-            data: {
-                labels: {{ chart_dias_labels|safe }},
-                datasets: [
-                    {
-                        label: 'Faturamento Bruto (R$)',
-                        data: {{ chart_dias_valores|safe }},
-                        borderColor: '#C8AA6E',
-                        backgroundColor: 'rgba(200, 170, 110, 0.1)',
-                        fill: true,
-                        tension: 0.3
-                    },
-                    {
-                        label: 'Líquido recebido (R$)',
-                        data: {{ chart_dias_lucro|safe }},
-                        borderColor: '#0AC8B9',
-                        backgroundColor: 'rgba(10, 200, 185, 0.1)',
-                        fill: true,
-                        tension: 0.3
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { labels: { color: '#F0E6D2', font: { family: 'Inter' } } }
-                },
-                scales: {
-                    x: { grid: { color: '#1E2835' }, ticks: { color: '#A0B0B9' } },
-                    y: { grid: { color: '#1E2835' }, ticks: { color: '#A0B0B9' } }
-                }
-            }
+            data: { labels: d.diasLabels, datasets: [
+                { label: 'Faturamento Bruto (R$)', data: d.diasValores, borderColor: c.gold, backgroundColor: tint(c.gold, 0.12), fill: true, tension: 0.3 },
+                { label: 'Líquido recebido (R$)', data: d.diasLucro, borderColor: c.teal, backgroundColor: tint(c.teal, 0.12), fill: true, tension: 0.3 }
+            ]},
+            options: base
         });
 
-        // 2. Gráfico de Canais (Rosca)
-        const ctxCan = document.getElementById('chartCanais').getContext('2d');
-        let existingChartCan = Chart.getChart("chartCanais");
-        if (existingChartCan) existingChartCan.destroy();
-
-        new Chart(ctxCan, {
+        new Chart(document.getElementById('chartCanais'), {
             type: 'doughnut',
-            data: {
-                labels: {{ chart_canais_labels|safe }},
-                datasets: [{
-                    data: {{ chart_canais_valores|safe }},
-                    backgroundColor: ['#C8AA6E', '#EA1D2C', '#FF8C00', '#0AC8B9', '#005A82'],
-                    borderColor: '#010A13',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { 
-                        position: 'bottom',
-                        labels: { color: '#F0E6D2', font: { family: 'Inter' } } 
-                    }
-                }
-            }
+            data: { labels: d.canaisLabels, datasets: [{
+                data: d.canaisValores,
+                backgroundColor: [c.gold, '#D34C4C', '#E08C3A', c.teal, '#3B7A8C'],
+                borderColor: c.card, borderWidth: 2
+            }]},
+            options: { responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { color: c.text, font: { family: 'Inter' } } } } }
         });
 
-        // 3. Gráfico de Ranking de Lanches (Barras)
-        const ctxProd = document.getElementById('chartProdutos').getContext('2d');
-        let existingChartProd = Chart.getChart("chartProdutos");
-        if (existingChartProd) existingChartProd.destroy();
-
-        new Chart(ctxProd, {
+        new Chart(document.getElementById('chartProdutos'), {
             type: 'bar',
-            data: {
-                labels: {{ chart_produtos_labels|safe }},
-                datasets: [{
-                    label: 'Unidades Vendidas',
-                    data: {{ chart_produtos_valores|safe }},
-                    backgroundColor: 'rgba(10, 200, 185, 0.65)',
-                    borderColor: '#0AC8B9',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    x: { grid: { color: 'rgba(30, 40, 53, 0.3)' }, ticks: { color: '#A0B0B9', font: { size: 10 } } },
-                    y: { grid: { color: '#1E2835' }, ticks: { color: '#A0B0B9' } }
-                }
-            }
+            data: { labels: d.prodLabels, datasets: [{
+                label: 'Unidades Vendidas', data: d.prodValores,
+                backgroundColor: tint(c.teal, 0.6), borderColor: c.teal, borderWidth: 1
+            }]},
+            options: Object.assign({}, base, { plugins: { legend: { display: false } } })
         });
+    };
 
-    })();
+    lucide.createIcons();
+    window.lbRenderCharts();
 </script>

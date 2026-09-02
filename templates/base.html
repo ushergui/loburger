@@ -3,9 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}LOL BURGUER - Gestão Hextech{% endblock %}</title>
-    <!-- Favicon -->
+    <title>{% block title %}LOL BURGUER - Gestão{% endblock %}</title>
     <link rel="icon" type="image/x-icon" href="/media/favicon.ico">
+
+    <!-- Tema salvo (aplica antes de pintar para não piscar) -->
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem('lb-theme') === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                }
+            } catch (e) {}
+        })();
+    </script>
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -13,26 +24,28 @@
             theme: {
                 extend: {
                     colors: {
-                        hex_dark_bg: '#010A13',
-                        hex_dark_card: '#09141D',
-                        hex_dark_border: '#1E2835',
-                        hex_gold: '#C8AA6E',
-                        hex_gold_light: '#F0E6D2',
-                        hex_gold_dim: '#A0B0B9',
-                        hex_blue: '#0AC8B9',
-                        hex_blue_dark: '#005A82',
-                        hex_danger: '#E84057',
-                        hex_success: '#00BBA3',
-                        hex_warning: '#E9A400'
+                        white: 'rgb(var(--c-invert) / <alpha-value>)',
+                        hex_dark_bg: 'rgb(var(--c-bg) / <alpha-value>)',
+                        hex_dark_card: 'rgb(var(--c-card) / <alpha-value>)',
+                        hex_dark_border: 'rgb(var(--c-border) / <alpha-value>)',
+                        hex_active: 'rgb(var(--c-active) / <alpha-value>)',
+                        hex_gold: 'rgb(var(--c-gold) / <alpha-value>)',
+                        hex_gold_light: 'rgb(var(--c-text) / <alpha-value>)',
+                        hex_gold_dim: 'rgb(var(--c-text-dim) / <alpha-value>)',
+                        hex_blue: 'rgb(var(--c-teal) / <alpha-value>)',
+                        hex_blue_dark: 'rgb(var(--c-teal-dark) / <alpha-value>)',
+                        hex_danger: 'rgb(var(--c-danger) / <alpha-value>)',
+                        hex_success: 'rgb(var(--c-success) / <alpha-value>)',
+                        hex_warning: 'rgb(var(--c-warning) / <alpha-value>)'
                     },
                     fontFamily: {
                         cinzel: ['Cinzel', 'Marcellus', 'serif'],
                         inter: ['Inter', 'Rubik', 'sans-serif']
                     },
                     boxShadow: {
-                        'hex-gold': '0 0 15px rgba(200, 170, 110, 0.25)',
-                        'hex-blue': '0 0 15px rgba(10, 200, 185, 0.25)',
-                        'hex-glow': '0 0 10px var(--tw-shadow-color)'
+                        'hex-gold': 'var(--shadow-soft)',
+                        'hex-blue': 'var(--shadow-soft)',
+                        'hex-glow': 'var(--shadow-soft)'
                     }
                 }
             }
@@ -51,32 +64,98 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
+        /* ===== Paleta — TEMA ESCURO (padrão) ===== */
+        :root {
+            --c-bg: 1 10 19;
+            --c-card: 9 20 29;
+            --c-border: 30 40 53;
+            --c-active: 11 29 44;
+            --c-gold: 200 170 110;
+            --c-text: 240 230 210;       /* texto principal (hex_gold_light) */
+            --c-text-dim: 160 176 185;   /* texto secundário (hex_gold_dim) */
+            --c-teal: 10 200 185;
+            --c-teal-dark: 0 90 130;
+            --c-danger: 232 64 87;
+            --c-success: 0 187 163;
+            --c-warning: 233 164 0;
+            --c-invert: 255 255 255;     /* o que "white" significa */
+            --bg-image: radial-gradient(ellipse at 50% 0%, #0B1D2C 0%, #04101A 45%, #010A13 100%);
+            --shadow-soft: 0 0 15px rgba(200, 170, 110, 0.18);
+            --scroll-thumb: #C8AA6E;
+            --scroll-track: #010A13;
+        }
+
+        /* ===== Paleta — TEMA CLARO ===== */
+        :root[data-theme="light"] {
+            --c-bg: 246 247 249;
+            --c-card: 255 255 255;
+            --c-border: 226 229 234;
+            --c-active: 237 241 245;
+            --c-gold: 156 120 56;        /* bronze legível — não “amarelo berrante” */
+            --c-text: 27 36 48;          /* tinta azul-grafite */
+            --c-text-dim: 92 103 118;
+            --c-teal: 13 122 111;        /* verde-azulado profundo */
+            --c-teal-dark: 10 90 100;
+            --c-danger: 193 47 63;
+            --c-success: 15 129 105;
+            --c-warning: 166 114 8;
+            --c-invert: 27 36 48;        /* “white” vira tinta escura no claro */
+            --bg-image: radial-gradient(ellipse at 50% -8%, #ffffff 0%, #f5f6f8 55%);
+            --shadow-soft: 0 1px 2px rgba(16, 24, 40, 0.05), 0 8px 24px rgba(16, 24, 40, 0.07);
+            --scroll-thumb: #c4c8cf;
+            --scroll-track: #eef0f3;
+        }
+
         body {
             font-family: 'Inter', 'Rubik', sans-serif;
-            background-color: #010A13;
-            background-image: radial-gradient(ellipse at 50% 0%, #0B1D2C 0%, #04101A 45%, #010A13 100%);
-            color: #F0E6D2;
+            background-color: rgb(var(--c-bg));
+            background-image: var(--bg-image);
+            background-attachment: fixed;
+            color: rgb(var(--c-text));
         }
-        .title-hex {
-            font-family: 'Marcellus', 'Cinzel', serif;
-            letter-spacing: 0.1em;
-        }
-        /* Custom scrollbar matching Hextech / LoL Client theme */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #010A13;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #C8AA6E;
-            border-radius: 4px;
-            border: 2px solid #010A13;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #F0E6D2;
-        }
+        .title-hex { font-family: 'Marcellus', 'Cinzel', serif; letter-spacing: 0.08em; }
+
+        ::-webkit-scrollbar { width: 9px; height: 9px; }
+        ::-webkit-scrollbar-track { background: var(--scroll-track); }
+        ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 5px; border: 2px solid var(--scroll-track); }
+        ::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-gold)); }
+
+        /* ===== Ajustes finos só no tema claro ===== */
+        :root[data-theme="light"] body { background-attachment: scroll; }
+        /* backdrop-blur em cima de branco fica leitoso */
+        :root[data-theme="light"] .backdrop-blur-sm { backdrop-filter: none; }
+        /* texto branco só faz sentido em cima de fundo colorido sólido */
+        :root[data-theme="light"] .hover\:text-white:hover { color: #fff; }
+        :root[data-theme="light"] .bg-hex_gold,
+        :root[data-theme="light"] [class*="from-hex_gold"],
+        :root[data-theme="light"] .bg-hex_danger.text-white,
+        :root[data-theme="light"] .bg-hex_success.text-white,
+        :root[data-theme="light"] .bg-hex_blue.text-white,
+        :root[data-theme="light"] .bg-red-600.text-white,
+        :root[data-theme="light"] .bg-red-700.text-white,
+        :root[data-theme="light"] .bg-hex_blue.text-hex_dark_bg,
+        :root[data-theme="light"] .bg-hex_warning.text-hex_dark_bg,
+        :root[data-theme="light"] .bg-hex_success.text-hex_dark_bg,
+        :root[data-theme="light"] .bg-hex_danger.text-hex_dark_bg { color: #fff; }
+        /* badges/realces que usavam cores cruas do Tailwind */
+        :root[data-theme="light"] .text-red-400,
+        :root[data-theme="light"] .text-red-500 { color: #c0344a; }
+        :root[data-theme="light"] .text-green-400 { color: #15803d; }
+        :root[data-theme="light"] .text-amber-400,
+        :root[data-theme="light"] .text-amber-500 { color: #b45309; }
+        :root[data-theme="light"] [class*="bg-red-9"] { background-color: #fdecec !important; }
+        :root[data-theme="light"] [class*="bg-green-9"] { background-color: #e5f6ea !important; }
+        :root[data-theme="light"] [class*="bg-amber-9"] { background-color: #fdf1dd !important; }
+        :root[data-theme="light"] [class*="border-red-5"] { border-color: #f2c2c2 !important; }
+        :root[data-theme="light"] [class*="border-green-5"] { border-color: #b6e0c1 !important; }
+        :root[data-theme="light"] [class*="border-amber-5"] { border-color: #f0d59a !important; }
+        /* a logo tem glow dourado que some no claro */
+        :root[data-theme="light"] img[alt="LOL BURGUER Logo"] { filter: none; }
+
+        /* ícone do botão de tema */
+        .lb-icon-light { display: none; }
+        :root[data-theme="light"] .lb-icon-dark { display: none; }
+        :root[data-theme="light"] .lb-icon-light { display: inline-block; }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
@@ -85,7 +164,7 @@
     <!-- Top navigation bar (Estilo LoL Client TopBar) -->
     <header class="bg-hex_dark_bg/95 border-b border-hex_gold/30 px-4 py-3 flex items-center justify-between z-20 shadow-lg backdrop-blur-sm">
         <div class="flex items-center space-x-3">
-            <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="text-hex_gold hover:text-white lg:hidden focus:outline-none">
+            <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="text-hex_gold hover:text-hex_gold_light lg:hidden focus:outline-none">
                 <i data-lucide="menu" class="w-6 h-6"></i>
             </button>
             <div class="flex items-center space-x-3">
@@ -99,6 +178,13 @@
         </div>
 
         <div class="flex items-center space-x-4">
+            <!-- Alternar tema claro / escuro -->
+            <button type="button" onclick="lbToggleTheme()" title="Alternar tema claro / escuro"
+                class="text-hex_gold_dim hover:text-hex_gold p-1.5 rounded hover:bg-hex_active transition-all">
+                <i data-lucide="sun" class="w-5 h-5 lb-icon-dark"></i>
+                <i data-lucide="moon" class="w-5 h-5 lb-icon-light"></i>
+            </button>
+
             {% if user.is_authenticated %}
                 <!-- Notification Bell (HTMX) -->
                 <div hx-get="{% url 'notificacoes_badge' %}" hx-trigger="load, every 60s" class="relative group cursor-pointer mr-2">
@@ -139,15 +225,15 @@
                         <span>Operação</span>
                     </h3>
                     <nav class="space-y-1">
-                        <a href="{% url 'fechamento_diario' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'fechamento_diario' %}bg-[#0B1D2C] text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
+                        <a href="{% url 'fechamento_diario' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'fechamento_diario' %}bg-hex_active text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="calendar-check" class="w-4 h-4 text-hex_gold"></i>
                             <span>Fechamento Diário</span>
                         </a>
-                        <a href="{% url 'estoque_resumo' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'estoque_resumo' %}bg-[#0B1D2C] text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
+                        <a href="{% url 'estoque_resumo' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'estoque_resumo' %}bg-hex_active text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="package" class="w-4 h-4 text-hex_gold"></i>
                             <span>Estoque Atual</span>
                         </a>
-                        <a href="{% url 'estoque_ajustar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'estoque_ajustar' %}bg-[#0B1D2C] text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
+                        <a href="{% url 'estoque_ajustar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'estoque_ajustar' %}bg-hex_active text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="arrow-up-right" class="w-4 h-4 text-hex_gold"></i>
                             <span>Lançar Entrada/Ajuste</span>
                         </a>
@@ -162,47 +248,47 @@
                         <span>Gestão Hextech</span>
                     </h3>
                     <nav class="space-y-1">
-                        <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'dashboard' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                        <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'dashboard' %}bg-hex_active text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="layout-dashboard" class="w-4 h-4 text-hex_blue"></i>
                             <span>Dashboard KPIs</span>
                         </a>
-                        <a href="{% url 'fluxo_caixa_projetado' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'fluxo_caixa_projetado' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                        <a href="{% url 'fluxo_caixa_projetado' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'fluxo_caixa_projetado' %}bg-hex_active text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="trending-up" class="w-4 h-4 text-hex_blue"></i>
                             <span>Fluxo de Caixa</span>
                         </a>
-                        <a href="{% url 'despesa_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'despesa_listar' or 'despesa_criar' in request.resolver_match.url_name or 'despesa_editar' in request.resolver_match.url_name %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                        <a href="{% url 'despesa_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'despesa_listar' or 'despesa_criar' in request.resolver_match.url_name or 'despesa_editar' in request.resolver_match.url_name %}bg-hex_active text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="wallet" class="w-4 h-4 text-hex_blue"></i>
                             <span>Custos & Despesas</span>
                         </a>
-                        <a href="{% url 'ingrediente_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'ingrediente_listar' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                        <a href="{% url 'ingrediente_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'ingrediente_listar' %}bg-hex_active text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="chef-hat" class="w-4 h-4 text-hex_blue"></i>
                             <span>Ingredientes / Insumos</span>
                         </a>
-                        <a href="{% url 'produto_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'produto_listar' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                        <a href="{% url 'produto_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'produto_listar' %}bg-hex_active text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="sandwich" class="w-4 h-4 text-hex_blue"></i>
                             <span>Cardápio (Campeões)</span>
                         </a>
-                        <a href="{% url 'estoque_historico' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'estoque_historico' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                        <a href="{% url 'estoque_historico' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'estoque_historico' %}bg-hex_active text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="history" class="w-4 h-4 text-hex_blue"></i>
                             <span>Movimentações Estoque</span>
                         </a>
-                        <a href="{% url 'canal_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'canal_listar' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                        <a href="{% url 'canal_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'canal_listar' %}bg-hex_active text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="sliders" class="w-4 h-4 text-hex_blue"></i>
                             <span>Canais de Venda</span>
                         </a>
-                        <a href="{% url 'entregador_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'entregador_listar' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                        <a href="{% url 'entregador_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'entregador_listar' %}bg-hex_active text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="bike" class="w-4 h-4 text-hex_blue"></i>
                             <span>Entregadores</span>
                         </a>
-                        <a href="{% url 'configuracao_financeira' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'configuracao_financeira' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                        <a href="{% url 'configuracao_financeira' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'configuracao_financeira' %}bg-hex_active text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="settings" class="w-4 h-4 text-hex_blue"></i>
                             <span>Configuração</span>
                         </a>
-                        <a href="{% url 'usuario_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if 'usuario' in request.resolver_match.url_name %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                        <a href="{% url 'usuario_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if 'usuario' in request.resolver_match.url_name %}bg-hex_active text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="users" class="w-4 h-4 text-hex_blue"></i>
                             <span>Usuários</span>
                         </a>
-                        <a href="{% url 'auditoria_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'auditoria_listar' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                        <a href="{% url 'auditoria_listar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'auditoria_listar' %}bg-hex_active text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="scroll-text" class="w-4 h-4 text-hex_blue"></i>
                             <span>Auditoria</span>
                         </a>
@@ -217,7 +303,7 @@
                         <span>Suporte</span>
                     </h3>
                     <nav class="space-y-1">
-                        <a href="{% url 'tutorial' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'tutorial' %}bg-[#0B1D2C] text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
+                        <a href="{% url 'tutorial' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_blue {% if request.resolver_match.url_name == 'tutorial' %}bg-hex_active text-hex_blue border-l-4 border-hex_blue font-bold shadow-[0_0_10px_rgba(10,200,185,0.2)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="book-open-check" class="w-4 h-4 text-hex_blue"></i>
                             <span>Manual / Tutorial</span>
                         </a>
@@ -301,7 +387,7 @@
                     </template>
                     <span class="text-sm font-medium" x-text="toast.message"></span>
                 </div>
-                <button @click="removeToast(toast.id)" class="text-hex_gold_dim hover:text-white focus:outline-none">
+                <button @click="removeToast(toast.id)" class="text-hex_gold_dim hover:text-hex_gold focus:outline-none">
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
@@ -330,11 +416,39 @@
     <!-- Global Lucide Icon Initialization -->
     <script>
         lucide.createIcons();
-        
+
         // Listen to HTMX swaps to re-initialize lucide icons
         document.body.addEventListener('htmx:afterSwap', function(evt) {
             lucide.createIcons();
+            lbSyncCharts();
         });
+
+        // Alternância de tema
+        function lbToggleTheme() {
+            var el = document.documentElement;
+            var light = el.getAttribute('data-theme') === 'light';
+            if (light) { el.removeAttribute('data-theme'); }
+            else { el.setAttribute('data-theme', 'light'); }
+            try { localStorage.setItem('lb-theme', light ? 'dark' : 'light'); } catch (e) {}
+            lbSyncCharts();
+        }
+
+        // Cores de tema para o Chart.js (lidas das variáveis CSS)
+        window.lbThemeColors = function () {
+            var s = getComputedStyle(document.documentElement);
+            var rgb = function (name) { return 'rgb(' + s.getPropertyValue(name).trim() + ')'; };
+            var rgba = function (name, a) { return 'rgba(' + s.getPropertyValue(name).trim().replace(/ /g, ',') + ',' + a + ')'; };
+            return {
+                gold: rgb('--c-gold'), teal: rgb('--c-teal'), text: rgb('--c-text'),
+                dim: rgb('--c-text-dim'), grid: rgba('--c-border', 0.7), card: rgb('--c-card'),
+            };
+        };
+        // Redesenha os gráficos da página (se houver) ao trocar o tema
+        function lbSyncCharts() {
+            if (window.Chart && typeof window.lbRenderCharts === 'function') {
+                try { window.lbRenderCharts(); } catch (e) {}
+            }
+        }
     </script>
 </body>
 </html>

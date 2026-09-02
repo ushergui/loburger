@@ -3,31 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOL BURGUER - Login Hextech</title>
-    <!-- Tailwind CSS CDN -->
+    <title>LOL BURGUER - Login</title>
+    <script>
+        (function () { try { if (localStorage.getItem('lb-theme') === 'light') document.documentElement.setAttribute('data-theme', 'light'); } catch (e) {} })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        hex_dark_bg: '#0A1428',
-                        hex_dark_card: '#0A1E2C',
-                        hex_gold: '#C89B3C',
-                        hex_gold_light: '#F0E6D2',
-                        hex_blue: '#0AC8B9',
-                        hex_danger: '#C62828'
-                    },
-                    fontFamily: {
-                        cinzel: ['Cinzel', 'Marcellus', 'serif'],
-                        inter: ['Inter', 'Rubik', 'sans-serif']
-                    },
-                    boxShadow: {
-                        'hex-gold': '0 0 20px rgba(200, 155, 60, 0.3)',
-                        'hex-blue': '0 0 20px rgba(10, 200, 185, 0.3)'
-                    }
-                }
-            }
+            theme: { extend: {
+                colors: {
+                    white: 'rgb(var(--c-invert) / <alpha-value>)',
+                    hex_dark_bg: 'rgb(var(--c-bg) / <alpha-value>)',
+                    hex_dark_card: 'rgb(var(--c-card) / <alpha-value>)',
+                    hex_gold: 'rgb(var(--c-gold) / <alpha-value>)',
+                    hex_gold_light: 'rgb(var(--c-text) / <alpha-value>)',
+                    hex_blue: 'rgb(var(--c-teal) / <alpha-value>)',
+                    hex_blue_dark: 'rgb(var(--c-teal-dark) / <alpha-value>)',
+                    hex_danger: 'rgb(var(--c-danger) / <alpha-value>)'
+                },
+                fontFamily: { cinzel: ['Cinzel', 'Marcellus', 'serif'], inter: ['Inter', 'Rubik', 'sans-serif'] },
+                boxShadow: { 'hex-gold': 'var(--shadow-soft)', 'hex-blue': 'var(--shadow-soft)' }
+            }}
         }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,21 +32,36 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        :root {
+            --c-bg: 10 20 40; --c-card: 10 30 44; --c-gold: 200 155 60;
+            --c-text: 240 230 210; --c-teal: 10 200 185; --c-teal-dark: 0 90 110; --c-danger: 198 40 40;
+            --c-invert: 255 255 255;
+            --bg-image: radial-gradient(circle at center, #0A1E2C 0%, #0A1428 100%);
+            --shadow-soft: 0 0 20px rgba(200, 155, 60, 0.25);
+            --card-border: rgba(200, 155, 60, 0.4);
+        }
+        :root[data-theme="light"] {
+            --c-bg: 240 242 245; --c-card: 255 255 255; --c-gold: 156 120 56;
+            --c-text: 27 36 48; --c-teal: 13 122 111; --c-teal-dark: 10 90 100; --c-danger: 193 47 63;
+            --c-invert: 27 36 48;
+            --bg-image: radial-gradient(circle at 50% 0%, #ffffff 0%, #eef0f3 70%);
+            --shadow-soft: 0 1px 3px rgba(16,24,40,.08), 0 12px 32px rgba(16,24,40,.10);
+            --card-border: #e2e5ea;
+        }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0A1428;
-            background-image: radial-gradient(circle at center, #0A1E2C 0%, #0A1428 100%);
-            color: #F0E6D2;
+            background-color: rgb(var(--c-bg));
+            background-image: var(--bg-image);
+            color: rgb(var(--c-text));
         }
-        .title-hex {
-            font-family: 'Marcellus', serif;
-            letter-spacing: 0.15em;
-        }
-        /* Chamfered corners effect */
+        .title-hex { font-family: 'Marcellus', serif; letter-spacing: 0.15em; }
         .hex-card {
-            border: 1px solid rgba(200, 155, 60, 0.4);
+            border: 1px solid var(--card-border);
             clip-path: polygon(10px 0%, calc(100% - 10px) 0%, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0% calc(100% - 10px), 0% 10px);
         }
+        :root[data-theme="light"] [class*="from-hex_gold"] { color: #fff; }
+        :root[data-theme="light"] img[alt="LOL BURGUER Logo"] { filter: none; }
+        :root[data-theme="light"] .hover\:text-white:hover { color: #fff; }
     </style>
 </head>
 <body class="h-full flex items-center justify-center p-4">

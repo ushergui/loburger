@@ -1,354 +1,261 @@
 {% extends "base.html" %}
 
-{% block title %}Tutorial & Manual de Operações - LOL BURGUER{% endblock %}
+{% block title %}Primeiros Passos - LOL BURGUER{% endblock %}
 
 {% block content %}
-<div x-data="{ search: '' }" class="space-y-8 pb-10">
+<div class="max-w-4xl mx-auto space-y-8 pb-16">
 
-    <!-- Cabeçalho Principal com Busca Interativa -->
-    <div class="bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg relative overflow-hidden">
-        <div class="absolute -right-6 -bottom-6 opacity-10 text-hex_blue">
-            <i data-lucide="book-open-check" class="w-44 h-44"></i>
-        </div>
-
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-                <span class="text-xs uppercase font-mono tracking-widest text-hex_blue border border-hex_blue/40 bg-hex_blue/10 px-2.5 py-1 rounded">
-                    Guia Oficial do Gestor
-                </span>
-                <h1 class="text-3xl font-bold title-hex text-hex_gold mt-2 flex items-center space-x-3">
-                    <i data-lucide="graduation-cap" class="w-8 h-8 text-hex_gold"></i>
-                    <span>Manual de Operações Visuais</span>
-                </h1>
-                <p class="text-sm text-hex_gold_dim/80 mt-1 max-w-2xl">
-                    Aprenda visualmente como registrar o fechamento diário, controlar o estoque físico, lançar despesas fixas e analisar os relatórios.
-                </p>
-            </div>
-
-            <!-- Campo de Busca em Tempo Real -->
-            <div class="w-full md:w-80">
-                <label for="search-tutorial" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-mono">
-                    <i data-lucide="search" class="w-3.5 h-3.5 inline mr-1"></i> Pesquisar Tutorial
-                </label>
-                <div class="relative">
-                    <input 
-                        type="text" 
-                        id="search-tutorial"
-                        x-model="search" 
-                        placeholder="Ex: estoque, ifood, despesa..." 
-                        class="w-full bg-hex_dark_bg border border-hex_gold/40 rounded py-2.5 px-4 pr-10 text-xs text-white placeholder-hex_gold_dim/40 focus:outline-none focus:border-hex_blue focus:ring-1 focus:ring-hex_blue transition-all"
-                    >
-                    <button x-show="search.length > 0" @click="search = ''" class="absolute right-3 top-2.5 text-hex_gold_dim hover:text-white">
-                        <i data-lucide="x" class="w-4 h-4"></i>
-                    </button>
-                </div>
-            </div>
+    <!-- Cabeçalho -->
+    <div class="bg-hex_dark_card border border-hex_dark_border p-6 md:p-8 rounded shadow-lg">
+        <span class="text-xs uppercase font-mono tracking-widest text-hex_blue border border-hex_blue/40 bg-hex_blue/10 px-2.5 py-1 rounded">Guia de início</span>
+        <h1 class="text-3xl font-bold title-hex text-hex_gold mt-3 flex items-center space-x-3">
+            <i data-lucide="graduation-cap" class="w-8 h-8 text-hex_gold"></i>
+            <span>Primeiros passos — Igor e Jaqueline</span>
+        </h1>
+        <p class="text-sm text-hex_gold_light/90 mt-3 leading-relaxed">
+            Vocês são craques em fazer lanche. Contabilidade e planilha <strong>quem faz é o sistema</strong> — de vocês, ele só
+            precisa de duas coisas: <strong>o que foi vendido</strong> e <strong>o que foi gasto</strong>. O resto ele calcula sozinho.
+        </p>
+        <div class="mt-4 bg-hex_success/10 border border-hex_success/30 rounded p-3 text-sm text-hex_gold_light/90 flex items-start space-x-2">
+            <i data-lucide="shield-check" class="w-5 h-5 text-hex_success shrink-0 mt-0.5"></i>
+            <span>Pode errar sem medo. Quase tudo dá para <strong>corrigir ou apagar e refazer</strong>. E o sistema guarda quem fez cada coisa (menu <em>Auditoria</em>).</span>
         </div>
     </div>
 
-    <!-- Mensagem se nenhum tutorial for encontrado -->
-    <div x-show="search.length > 0 && $el.nextElementSibling.querySelectorAll('.tutorial-section:not([style*=\'display: none\'])').length === 0" class="bg-hex_dark_card border border-hex_danger/40 p-8 rounded text-center text-hex_gold_dim">
-        <i data-lucide="alert-circle" class="w-10 h-10 text-hex_danger mx-auto mb-2"></i>
-        <p class="font-bold text-white">Nenhum tópico encontrado para "<span x-text="search"></span>"</p>
-        <p class="text-xs mt-1">Tente buscar por termos como: <em>estoque, despesa, fechamento, insumo</em>.</p>
+    <!-- Índice -->
+    <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md">
+        <p class="text-xxs uppercase tracking-widest text-hex_gold_dim/70 font-mono mb-3">O que tem neste guia</p>
+        <div class="grid sm:grid-cols-3 gap-2 text-sm">
+            <a href="#preparar" class="flex items-center space-x-2 text-hex_gold hover:text-hex_blue transition-colors"><span class="font-mono text-xs">1</span><span>Preparar o sistema</span></a>
+            <a href="#dia-a-dia" class="flex items-center space-x-2 text-hex_gold hover:text-hex_blue transition-colors"><span class="font-mono text-xs">2</span><span>O dia a dia</span></a>
+            <a href="#numeros" class="flex items-center space-x-2 text-hex_gold hover:text-hex_blue transition-colors"><span class="font-mono text-xs">3</span><span>Ler os números</span></a>
+        </div>
     </div>
 
-    <!-- Lista de Tutoriais (Stack) -->
-    <div class="space-y-12">
+    <!-- ================= PARTE 1 ================= -->
+    <section id="preparar" class="scroll-mt-6">
+        <div class="flex items-center space-x-3 mb-2">
+            <span class="w-9 h-9 rounded-full bg-hex_gold text-white font-bold flex items-center justify-center title-hex">1</span>
+            <h2 class="text-2xl font-bold title-hex text-hex_gold">Preparar o sistema — só uma vez</h2>
+        </div>
+        <p class="text-sm text-hex_gold_dim/80 mb-6 ml-12">
+            Faça com calma, pode levar um dia inteiro. Depois disso, quase nunca mais mexe aqui. Faça na ordem.
+        </p>
 
-        <!-- 1. Fechamento Diário em Lote -->
-        <div x-show="!search || 'fechamento diario lote vendas caixa dia desconto motoboy entregas reabrir'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
-            <div class="flex flex-col lg:flex-row gap-8">
-                <div class="lg:w-1/3">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_gold border border-hex_gold/30 bg-hex_gold/10 px-2 py-0.5 rounded">
-                            Produtividade
-                        </span>
-                        <a href="{% url 'fechamento_diario' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                            <span>Abrir Tela</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                        </a>
-                    </div>
-                    <h3 class="text-xl font-bold text-hex_gold title-hex flex items-center space-x-2">
-                        <i data-lucide="calendar-check" class="w-6 h-6 text-hex_gold"></i>
-                        <span>Fechamento Diário em Lote</span>
-                    </h3>
-                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
-                        Ideal para digitar todas as vendas do dia de uma só vez no final do expediente.
-                    </p>
-                    <div class="mt-6 space-y-4 text-sm">
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">1</span>
-                            <p class="text-hex_gold_light mt-0.5">Escolha a <strong>Data de Referência</strong> no topo da tela.</p>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">2</span>
-                            <p class="text-hex_gold_light mt-0.5">Digite as quantidades vendidas de cada lanche nas colunas.</p>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">3</span>
-                            <p class="text-hex_gold_light mt-0.5">Clique em <strong>Gravar Fechamento</strong>. O estoque e financeiro são atualizados juntos!</p>
-                        </div>
-                    </div>
+        <div class="space-y-4 ml-0 md:ml-4">
+
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="sun-moon" class="w-4 h-4 text-hex_gold"></i><span>Passo 1 — Tema claro ou escuro (gosto de vocês)</span></h3>
                 </div>
-                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2 relative overflow-hidden group">
-                    <img src="/media/tutorial/fechamento.png" alt="Tela de Fechamento" class="w-full h-auto rounded shadow-inner opacity-90 group-hover:opacity-100 transition-opacity">
+                <p class="text-sm text-hex_gold_light/85 mt-2">No canto de cima da tela tem um botão de <strong>sol / lua</strong>. Clica e escolhe o que cansa menos a vista de vocês. A escolha fica guardada nesse computador.</p>
+            </div>
+
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="users" class="w-4 h-4 text-hex_gold"></i><span>Passo 2 — Criar o login da Jaqueline</span></h3>
+                    <a href="{% url 'usuario_listar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
+                <ol class="mt-3 space-y-2 text-sm text-hex_gold_light/85 list-decimal list-inside marker:text-hex_gold">
+                    <li>Menu <strong>Usuários</strong> → botão <strong>Novo Usuário</strong>.</li>
+                    <li>Nome de usuário (o login), nome e uma senha.</li>
+                    <li>Perfil: <strong>Gestão</strong> (vê tudo, igual ao Igor).</li>
+                    <li>Salvar. Pronto, ela já pode entrar com esse login.</li>
+                </ol>
+                <p class="text-xs text-hex_gold_dim/70 mt-2">Se alguém esquecer a senha, é só entrar em Usuários e clicar no ícone de chave para trocar.</p>
+            </div>
+
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="settings" class="w-4 h-4 text-hex_gold"></i><span>Passo 3 — Conferir as taxas</span></h3>
+                    <a href="{% url 'configuracao_financeira' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                </div>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Em <strong>Configuração</strong>: taxa da maquininha (hoje <strong>3,5%</strong>) e valor da entrega (<strong>R$ 9</strong>).</p>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Em <strong>Canais de Venda</strong> (menu ao lado), confira cada um:</p>
+                <div class="mt-2 overflow-x-auto">
+                    <table class="text-xs w-full border border-hex_dark_border rounded">
+                        <thead><tr class="bg-hex_dark_bg/50 text-hex_gold uppercase text-[10px]"><th class="p-2 text-left">Canal</th><th class="p-2">Na entrega</th><th class="p-2">Pago no app</th></tr></thead>
+                        <tbody class="text-hex_gold_light/85">
+                            <tr class="border-t border-hex_dark_border"><td class="p-2">iFood</td><td class="p-2 text-center font-mono">12%</td><td class="p-2 text-center font-mono">15,2%</td></tr>
+                            <tr class="border-t border-hex_dark_border"><td class="p-2">UaiRango</td><td class="p-2 text-center font-mono">8%</td><td class="p-2 text-center font-mono">11,5%</td></tr>
+                            <tr class="border-t border-hex_dark_border"><td class="p-2">App próprio</td><td class="p-2 text-center font-mono">0%</td><td class="p-2 text-center font-mono">0%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-xs text-hex_gold_dim/70 mt-2">A "taxa fixa por pedido" tem que ficar em <strong>R$ 0,00</strong> nos três.</p>
+            </div>
+
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="bike" class="w-4 h-4 text-hex_gold"></i><span>Passo 4 — Cadastrar os entregadores</span></h3>
+                    <a href="{% url 'entregador_listar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                </div>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Entregadores</strong> → cadastre cada moto. Marque <strong>Igor</strong> (e a Jaqueline, se ela entregar) como <strong>sócio</strong> — assim as entregas deles não viram custo de motoboy, o dinheiro fica na empresa.</p>
+            </div>
+
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="chef-hat" class="w-4 h-4 text-hex_gold"></i><span>Passo 5 — Conferir os ingredientes</span></h3>
+                    <a href="{% url 'ingrediente_listar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                </div>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Ingredientes / Insumos</strong>. A lista já vem pronta. Só confira: o <strong>nome</strong> está certo? A <strong>unidade de compra</strong> bate com como vocês compram (carne em <em>kg</em>, molho em <em>litro</em>, pão em <em>unidade</em>)?</p>
+            </div>
+
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="sandwich" class="w-4 h-4 text-hex_gold"></i><span>Passo 6 — Conferir a receita e o preço de cada lanche</span></h3>
+                    <a href="{% url 'produto_listar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                </div>
+                <ol class="mt-3 space-y-2 text-sm text-hex_gold_light/85 list-decimal list-inside marker:text-hex_gold">
+                    <li>Menu <strong>Cardápio</strong> → clique num lanche → <strong>Ficha Técnica</strong>.</li>
+                    <li>Confira os gramas de cada ingrediente. Comece pelo <strong>Barão Nashor</strong>, que já está certo, e compare os outros com ele.</li>
+                    <li>Do lado direito, coloque o <strong>preço</strong> de cada lanche em cada canal (o preço que o cliente vê no app).</li>
+                    <li><strong>Combo?</strong> Na ficha do combo, use "Adicionar produto" para colocar o lanche e a batata; o refrigerante entra como ingrediente com o "custo de aquisição" (quanto vocês pagam nele).</li>
+                </ol>
+                <p class="text-xs text-hex_gold_dim/70 mt-2">O custo de cada lanche aparece sozinho depois do Passo 7.</p>
+            </div>
+
+            <div class="bg-hex_dark_card border border-hex_gold/40 rounded p-5 shadow-hex-gold">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_gold flex items-center space-x-2"><i data-lucide="package-open" class="w-4 h-4 text-hex_gold"></i><span>Passo 7 — Lançar o estoque que vocês têm HOJE</span></h3>
+                    <a href="{% url 'estoque_ajustar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                </div>
+                <ol class="mt-3 space-y-2 text-sm text-hex_gold_light/90 list-decimal list-inside marker:text-hex_gold">
+                    <li>Menu <strong>Lançar Entrada/Ajuste</strong>.</li>
+                    <li>Escolha o insumo, tipo <strong>"Carga Inicial / Abertura"</strong>.</li>
+                    <li>Quanto tem hoje (na unidade de compra: kg, litro, unidade) e quanto custou.</li>
+                    <li>Repita para cada insumo que já está na geladeira / no estoque.</li>
+                </ol>
+                <p class="text-sm text-hex_warning mt-3 font-semibold">Isso NÃO é despesa e NÃO mexe no caixa — é só o ponto de partida.</p>
+                <p class="text-xs text-hex_gold_dim/70 mt-1">Depois que o sistema estiver rodando, <strong>toda compra é "Entrada"</strong> (aí sim vira despesa). "Carga Inicial" é só agora.</p>
+            </div>
+
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="repeat" class="w-4 h-4 text-hex_gold"></i><span>Passo 8 — Cadastrar as contas fixas</span></h3>
+                    <a href="{% url 'despesa_recorrente_criar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                </div>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Custos &amp; Despesas</strong> → <strong>Novo Molde</strong>. Uma por uma: aluguel, luz, água, internet, gás, MEI, contador, mensalidade do app próprio, material de limpeza...</p>
+                <p class="text-sm text-hex_gold_light/85 mt-1">Pra cada uma: nome, quem recebe, o dia que vence e o valor médio. O sistema já cria as contas dos próximos 12 meses sozinho.</p>
+            </div>
+
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="banknote" class="w-4 h-4 text-hex_gold"></i><span>Passo 9 — (opcional) O dinheiro em caixa hoje</span></h3>
+                    <a href="{% url 'configuracao_financeira' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                </div>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Em <strong>Configuração</strong>, no campo <strong>"Saldo de caixa inicial"</strong>, coloque quanto vocês têm de dinheiro/conta agora. Assim o "Caixa acumulado" começa certo.</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ================= PARTE 2 ================= -->
+    <section id="dia-a-dia" class="scroll-mt-6">
+        <div class="flex items-center space-x-3 mb-2">
+            <span class="w-9 h-9 rounded-full bg-hex_blue text-white font-bold flex items-center justify-center title-hex">2</span>
+            <h2 class="text-2xl font-bold title-hex text-hex_blue">O dia a dia</h2>
+        </div>
+        <p class="text-sm text-hex_gold_dim/80 mb-6 ml-12">Isto vocês fazem sempre. É rápido.</p>
+
+        <div class="space-y-4 ml-0 md:ml-4">
+
+            <div class="bg-hex_dark_card border border-hex_blue/40 rounded p-5 shadow-hex-blue">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_blue flex items-center space-x-2"><i data-lucide="calendar-check" class="w-5 h-5 text-hex_blue"></i><span>Todo fim de noite — o Fechamento Diário</span></h3>
+                    <a href="{% url 'fechamento_diario' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                </div>
+                <p class="text-sm text-hex_gold_light/90 mt-2">É o passo mais importante. É onde vocês contam o que vendeu.</p>
+                <ol class="mt-3 space-y-2.5 text-sm text-hex_gold_light/90 list-decimal list-inside marker:text-hex_blue">
+                    <li>Menu <strong>Fechamento Diário</strong>. Confira a <strong>data</strong> (normalmente é hoje).</li>
+                    <li>Pra cada lanche que vendeu, digite <strong>quantos</strong> na coluna certa. Cada canal (iFood, UaiRango, App) tem <strong>3 colunas</strong>:
+                        <div class="mt-2 ml-5 space-y-1 text-xs text-hex_gold_light/80">
+                            <div>• <strong>Pago no app</strong> — o cliente pagou dentro do iFood/UaiRango</div>
+                            <div>• <strong>Dinheiro na entrega</strong> — pagou em dinheiro (ou pix) na porta</div>
+                            <div>• <strong>Maquininha na entrega</strong> — passou cartão na sua maquininha</div>
+                        </div>
+                    </li>
+                    <li>Lá embaixo, quantas <strong>entregas</strong> cada entregador fez naquela noite.</li>
+                    <li>Se deu algum <strong>desconto</strong> geral no dia, coloque o valor.</li>
+                    <li>Clique em <strong>Salvar Fechamento do Dia</strong>.</li>
+                </ol>
+                <p class="text-sm text-hex_success mt-3">Pronto. O sistema baixa o estoque dos lanches, calcula as taxas do iFood/UaiRango/maquininha e paga os motoboys — tudo sozinho.</p>
+                <p class="text-xs text-hex_gold_dim/70 mt-1">Errou? Abra o mesmo dia de novo, arrume o número e salve. Ele recalcula tudo.</p>
+            </div>
+
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="shopping-cart" class="w-4 h-4 text-hex_gold"></i><span>Quando comprar insumo</span></h3>
+                    <a href="{% url 'estoque_ajustar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                </div>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Comprou carne, pão, queijo? Menu <strong>Lançar Entrada/Ajuste</strong> → tipo <strong>"Entrada"</strong> → o insumo, a quantidade (kg, litro, unidade) e quanto pagou. Isso já vira uma <strong>despesa paga</strong> e sobe o estoque.</p>
+            </div>
+
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-hex_gold"></i><span>Quando pagar uma conta</span></h3>
+                    <a href="{% url 'despesa_listar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                </div>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Custos &amp; Despesas</strong> → aba <strong>Contas a Pagar</strong> → botão <strong>Pagar</strong> na conta → confirme a <strong>data</strong> que pagou. O valor só sai do caixa nesse dia.</p>
+                <p class="text-sm text-hex_gold_light/85 mt-2"><strong>Conta que só vou pagar depois</strong> (um conserto, por ex.): clique em <strong>Lançar Despesa Avulsa</strong>, coloque o valor e a data prevista, deixe em "Previsto". No dia que pagar, é o botão Pagar. <strong>Comprou parcelado?</strong> Preencha o campo "Parcelas".</p>
+            </div>
+
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="utensils" class="w-4 h-4 text-hex_gold"></i><span>Comeram um lanche ou estragou algo</span></h3>
+                    <a href="{% url 'estoque_ajustar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                </div>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Lançar Entrada/Ajuste</strong> → tipo <strong>"Autoconsumo"</strong> (a família comeu) ou <strong>"Perda / Descarte"</strong> (estragou). Só baixa do estoque — não vira despesa nova, porque o insumo já foi pago quando comprou.</p>
+            </div>
+
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="bell" class="w-4 h-4 text-hex_gold"></i><span>O sino no topo</span></h3>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Acende quando tem conta atrasada ou vencendo em até 3 dias. Clique nele para ver e pagar.</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ================= PARTE 3 ================= -->
+    <section id="numeros" class="scroll-mt-6">
+        <div class="flex items-center space-x-3 mb-2">
+            <span class="w-9 h-9 rounded-full bg-hex_gold text-white font-bold flex items-center justify-center title-hex">3</span>
+            <h2 class="text-2xl font-bold title-hex text-hex_gold">Ler os números — 1 vez por semana</h2>
+        </div>
+        <p class="text-sm text-hex_gold_dim/80 mb-6 ml-12">Não precisa entender de contabilidade. Só olhar.</p>
+
+        <div class="space-y-4 ml-0 md:ml-4">
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="layout-dashboard" class="w-4 h-4 text-hex_blue"></i><span>Dashboard</span></h3>
+                    <a href="{% url 'dashboard' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                </div>
+                <ul class="mt-2 space-y-1.5 text-sm text-hex_gold_light/85 list-disc list-inside marker:text-hex_gold">
+                    <li><strong>Resultado de Caixa do mês</strong> — quanto sobrou de dinheiro esse mês.</li>
+                    <li><strong>Caixa acumulado</strong> e <strong>Valor do estoque</strong> — a "foto" da empresa; não zera de um mês pro outro.</li>
+                    <li><strong>Margem por lanche</strong> — se o preço de cada lanche está bom.</li>
+                </ul>
+            </div>
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="trending-up" class="w-4 h-4 text-hex_blue"></i><span>Fluxo de Caixa</span></h3>
+                    <a href="{% url 'fluxo_caixa_projetado' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                </div>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Mostra os próximos 6 meses. Se algum mês aparecer <span class="text-hex_danger font-semibold">em vermelho</span>, é aviso: pode faltar dinheiro pra pagar as contas — hora de segurar uma compra ou vender mais.</p>
             </div>
         </div>
+    </section>
 
-        <!-- 2. Estoque Físico e Alertas -->
-        <div x-show="!search || 'estoque atual insumos materias criticoc baixo gramas kg litros balanço'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
-            <div class="flex flex-col lg:flex-row gap-8">
-                <div class="lg:w-1/3">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_blue border border-hex_blue/30 bg-hex_blue/10 px-2 py-0.5 rounded">
-                            Gestão de Estoque
-                        </span>
-                        <a href="{% url 'estoque_resumo' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                            <span>Abrir Tela</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                        </a>
-                    </div>
-                    <h3 class="text-xl font-bold text-hex_blue title-hex flex items-center space-x-2">
-                        <i data-lucide="package" class="w-6 h-6 text-hex_blue"></i>
-                        <span>Controle de Estoque & Alertas</span>
-                    </h3>
-                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
-                        Monitoramento do saldo de cada carne, queijo e embalagem.
-                    </p>
-                    <div class="mt-6 space-y-4 text-sm">
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_blue text-hex_dark_bg font-bold flex items-center justify-center shrink-0">1</span>
-                            <p class="text-hex_gold_light mt-0.5">Acompanhe as quantidades atuais deduzidas após cada fechamento.</p>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_warning text-hex_dark_bg font-bold flex items-center justify-center shrink-0">2</span>
-                            <p class="text-hex_gold_light mt-0.5">Badges alertam quando o insumo atingir o limite configurado (Baixo/Crítico).</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2">
-                    <img src="/media/tutorial/estoque.png" alt="Estoque" class="w-full h-auto rounded shadow-inner opacity-90 hover:opacity-100 transition-opacity">
-                </div>
-            </div>
-        </div>
-
-        <!-- 3. Entrada e Ajuste de Insumos -->
-        <div x-show="!search || 'entrada compra fornecedor ajuste perda balanco estoque abastecer'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
-            <div class="flex flex-col lg:flex-row gap-8">
-                <div class="lg:w-1/3">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_gold border border-hex_gold/30 bg-hex_gold/10 px-2 py-0.5 rounded">
-                            Lançamentos de Compras
-                        </span>
-                        <a href="{% url 'estoque_ajustar' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                            <span>Abrir Tela</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                        </a>
-                    </div>
-                    <h3 class="text-xl font-bold text-hex_gold title-hex flex items-center space-x-2">
-                        <i data-lucide="arrow-up-right" class="w-6 h-6 text-hex_gold"></i>
-                        <span>Lançar Compras & Ajustes</span>
-                    </h3>
-                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
-                        Registra o abastecimento ao comprar matérias-primas.
-                    </p>
-                    <div class="mt-6 space-y-4 text-sm">
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">1</span>
-                            <p class="text-hex_gold_light mt-0.5">Selecione o Insumo.</p>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">2</span>
-                            <p class="text-hex_gold_light mt-0.5">Escolha <strong>ENTRADA POR COMPRA</strong>.</p>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">3</span>
-                            <p class="text-hex_gold_light mt-0.5">Digite a quantidade. O sistema recalcula o <strong>custo unitário</strong>.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2">
-                    <img src="/media/tutorial/estoque_ajuste.png" alt="Ajuste" class="w-full h-auto rounded shadow-inner opacity-90 hover:opacity-100 transition-opacity">
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. Dashboard & Relatório Mensal -->
-        <div x-show="!search || 'dashboard relatorio mensal kpi lucro faturamento despesas graficos excel csv mes'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
-            <div class="flex flex-col lg:flex-row gap-8">
-                <div class="lg:w-1/3">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_blue border border-hex_blue/30 bg-hex_blue/10 px-2 py-0.5 rounded">
-                            Análise Financeira
-                        </span>
-                        <a href="{% url 'dashboard' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                            <span>Abrir Tela</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                        </a>
-                    </div>
-                    <h3 class="text-xl font-bold text-hex_blue title-hex flex items-center space-x-2">
-                        <i data-lucide="layout-dashboard" class="w-6 h-6 text-hex_blue"></i>
-                        <span>Dashboard & Relatório Mensal</span>
-                    </h3>
-                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
-                        Painel executivo com navegação mês a mês e DRE completo.
-                    </p>
-                    <div class="mt-6 space-y-4 text-sm">
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_blue text-hex_dark_bg font-bold flex items-center justify-center shrink-0">1</span>
-                            <p class="text-hex_gold_light mt-0.5">Use o seletor para navegar entre os meses.</p>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_blue text-hex_dark_bg font-bold flex items-center justify-center shrink-0">2</span>
-                            <p class="text-hex_gold_light mt-0.5">O <strong>Lucro Líquido Real</strong> já desconta todas as taxas, insumos e despesas fixas.</p>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_blue text-hex_dark_bg font-bold flex items-center justify-center shrink-0">3</span>
-                            <p class="text-hex_gold_light mt-0.5">Clique em <strong>Exportar CSV</strong> para auditar as taxas por pedido no Excel.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2">
-                    <img src="/media/tutorial/dashboard.png" alt="Dashboard" class="w-full h-auto rounded shadow-inner opacity-90 hover:opacity-100 transition-opacity">
-                </div>
-            </div>
-        </div>
-
-        <!-- 5. Custos e Despesas Fixas -->
-        <div x-show="!search || 'despesas custos fixos variaveis aluguel agua luz contador imposto funcionario influencer'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
-            <div class="flex flex-col lg:flex-row gap-8">
-                <div class="lg:w-1/3">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_gold border border-hex_gold/30 bg-hex_gold/10 px-2 py-0.5 rounded">
-                            Gestão de Gastos
-                        </span>
-                        <a href="{% url 'despesa_listar' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                            <span>Abrir Tela</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                        </a>
-                    </div>
-                    <h3 class="text-xl font-bold text-hex_gold title-hex flex items-center space-x-2">
-                        <i data-lucide="wallet" class="w-6 h-6 text-hex_gold"></i>
-                        <span>Custos & Despesas</span>
-                    </h3>
-                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
-                        Registro de contas (energia, água, internet, etc).
-                    </p>
-                    <div class="mt-6 space-y-4 text-sm">
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">1</span>
-                            <p class="text-hex_gold_light mt-0.5">Clique em <strong>Lançar Nova Despesa</strong>.</p>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">2</span>
-                            <p class="text-hex_gold_light mt-0.5">A listagem diferencia Despesas Fixas (recorrentes) e Variáveis.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2">
-                    <img src="/media/tutorial/despesas.png" alt="Despesas" class="w-full h-auto rounded shadow-inner opacity-90 hover:opacity-100 transition-opacity">
-                </div>
-            </div>
-        </div>
-
-        <!-- 6. Cardápio de Campeões & Ficha Técnica -->
-        <div x-show="!search || 'cardapio produtos campeoes receita ficha tecnica precificacao lanches foto'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
-            <div class="flex flex-col lg:flex-row gap-8">
-                <div class="lg:w-1/3">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_blue border border-hex_blue/30 bg-hex_blue/10 px-2 py-0.5 rounded">
-                            Engenharia de Cardápio
-                        </span>
-                        <a href="{% url 'produto_listar' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                            <span>Abrir Tela</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                        </a>
-                    </div>
-                    <h3 class="text-xl font-bold text-hex_blue title-hex flex items-center space-x-2">
-                        <i data-lucide="sandwich" class="w-6 h-6 text-hex_blue"></i>
-                        <span>Cardápio & Ficha Técnica</span>
-                    </h3>
-                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
-                        Cadastro de lanches e suas receitas exatas.
-                    </p>
-                    <div class="mt-6 space-y-4 text-sm">
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_blue text-hex_dark_bg font-bold flex items-center justify-center shrink-0">1</span>
-                            <p class="text-hex_gold_light mt-0.5">Botão para Cadastrar Novo Lanche.</p>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_blue text-hex_dark_bg font-bold flex items-center justify-center shrink-0">2</span>
-                            <p class="text-hex_gold_light mt-0.5">Acesso à <strong>Ficha Técnica</strong> para configurar os insumos de cada lanche.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2">
-                    <img src="/media/tutorial/produtos.png" alt="Cardápio" class="w-full h-auto rounded shadow-inner opacity-90 hover:opacity-100 transition-opacity">
-                </div>
-            </div>
-        </div>
-
-        <!-- 7. Canais de Venda e Taxas de Plataformas -->
-        <div x-show="!search || 'canais de venda taxas ifood uairango aplicativo online cartao pix comissao'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
-            <div class="flex flex-col lg:flex-row gap-8">
-                <div class="lg:w-1/3">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_gold border border-hex_gold/30 bg-hex_gold/10 px-2 py-0.5 rounded">
-                            Precificação
-                        </span>
-                        <a href="{% url 'canal_listar' %}" class="text-xs text-hex_blue hover:underline flex items-center space-x-1 font-mono">
-                            <span>Abrir Tela</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                        </a>
-                    </div>
-                    <h3 class="text-xl font-bold text-hex_gold title-hex flex items-center space-x-2">
-                        <i data-lucide="sliders" class="w-6 h-6 text-hex_gold"></i>
-                        <span>Canais & Taxas</span>
-                    </h3>
-                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
-                        Configuração de comissões do iFood, App próprio e maquininhas.
-                    </p>
-                    <div class="mt-6 space-y-4 text-sm">
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_gold text-hex_dark_bg font-bold flex items-center justify-center shrink-0">1</span>
-                            <p class="text-hex_gold_light mt-0.5">Ajuste as <strong>taxas do canal</strong> e taxas das máquinas de cartão clicando no ícone de engrenagem/lápis.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2">
-                    <img src="/media/tutorial/canais.png" alt="Canais" class="w-full h-auto rounded shadow-inner opacity-90 hover:opacity-100 transition-opacity">
-                </div>
-            </div>
-        </div>
-
-        <!-- 8. Guia Rápido de Correções, Edição e Exclusão (CRUD) -->
-        <div x-show="!search || 'editar excluir deletar correcoes erro alterar crud refazer'.toLowerCase().includes(search.toLowerCase())" class="tutorial-section bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-lg transition-all">
-            <div class="flex flex-col lg:flex-row gap-8">
-                <div class="lg:w-1/3">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xxs uppercase font-mono tracking-wider text-hex_blue border border-hex_blue/30 bg-hex_blue/10 px-2 py-0.5 rounded">
-                            Correções Básicas
-                        </span>
-                    </div>
-                    <h3 class="text-xl font-bold text-hex_blue title-hex flex items-center space-x-2">
-                        <i data-lucide="edit-3" class="w-6 h-6 text-hex_blue"></i>
-                        <span>Como Editar ou Excluir Lançamentos</span>
-                    </h3>
-                    <p class="text-sm text-hex_gold_dim/70 mt-2 leading-relaxed">
-                        Todas as tabelas do sistema possuem botões padrão.
-                    </p>
-                    <div class="mt-6 space-y-4 text-sm">
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_dark_bg text-hex_blue font-bold flex items-center justify-center shrink-0 border border-hex_blue">✏️</span>
-                            <p class="text-hex_gold_light mt-0.5"><strong>Editar:</strong> Lápis azul para corrigir valores e dados.</p>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="w-7 h-7 rounded-full bg-hex_dark_bg text-hex_danger font-bold flex items-center justify-center shrink-0 border border-hex_danger">🗑️</span>
-                            <p class="text-hex_gold_light mt-0.5"><strong>Excluir:</strong> Lixeira vermelha para remover.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="lg:w-2/3 bg-hex_dark_bg rounded border border-hex_dark_border/50 p-2">
-                    <img src="/media/tutorial/crud.png" alt="Ações" class="w-full h-auto rounded shadow-inner opacity-90 hover:opacity-100 transition-opacity">
-                </div>
-            </div>
-        </div>
-
+    <!-- Regras de ouro -->
+    <div class="bg-hex_gold/10 border border-hex_gold/40 rounded p-6">
+        <h3 class="font-bold title-hex text-hex_gold text-lg mb-3 flex items-center space-x-2"><i data-lucide="star" class="w-5 h-5 text-hex_gold"></i><span>4 regras de ouro</span></h3>
+        <ul class="space-y-2 text-sm text-hex_gold_light/90 list-disc list-inside marker:text-hex_gold">
+            <li>Tudo que vocês mudarem (um preço, uma taxa, o custo de um insumo) <strong>vale daí pra frente</strong>. O passado não muda.</li>
+            <li><strong>"Carga Inicial"</strong> só no começo. Depois, toda compra é <strong>"Entrada"</strong>.</li>
+            <li>O preço do lanche <strong>não muda sozinho</strong> — só quando vocês decidirem. O custo dele, sim, acompanha o preço dos insumos.</li>
+            <li>Errou? Abre, corrige e salva. Ou apaga e refaz. Sem drama.</li>
+        </ul>
     </div>
+
 </div>
 {% endblock %}

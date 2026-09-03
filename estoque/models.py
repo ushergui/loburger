@@ -18,6 +18,10 @@ class MovimentacaoEstoque(models.Model):
     data_movimentacao = models.DateTimeField(auto_now_add=True, verbose_name="Data / Hora")
     observacao = models.TextField(blank=True, null=True, verbose_name="Observações / Justificativa")
     responsavel = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Responsável")
+    # Entradas feitas pelo carrinho "Registrar Compra": mesmo grupo = mesma nota.
+    grupo_compra = models.CharField(max_length=32, blank=True, default='', verbose_name="Grupo da compra")
+    custo_medio_antes = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True,
+                                            verbose_name="Custo médio antes desta entrada")
 
     class Meta:
         verbose_name = "Movimentação de Estoque"

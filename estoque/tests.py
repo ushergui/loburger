@@ -118,6 +118,47 @@ class EstoqueCompraTests(TestCase):
         self.assertRedirects(resp, reverse('estoque_compra'))
         self.assertEqual(Despesa.objects.filter(origem='ESTOQUE').count(), 0)
 
+    def test_editar_compra_reabre_carrinho_e_estorna(self):
+        self._add(self.carne, '2', '45,00')   # 2 kg a 45 -> 90
+        self._add(self.pao, '10', '2,00')     # 10 un a 2 -> 20
+        self.client.post(reverse('estoque_compra'), {
+            'acao': 'finalizar', 'forma_pagamento': 'CARTAO',
+            'credor': 'Cartão X', 'data_vencimento': '2026-10-10'})
+        self.carne.refresh_from_db()
+        self.assertEqual(self.carne.estoque_atual, Decimal('2000'))
+        d = Despesa.objects.get(origem='ESTOQUE')
+
+        # abre a confirmação e confirma
+        self.assertEqual(self.client.get(reverse('estoque_compra_editar', args=[d.id])).status_code, 200)
+        resp = self.client.post(reverse('estoque_compra_editar', args=[d.id]))
+        self.assertRedirects(resp, reverse('estoque_compra'))
+
+        # despesa e movimentações sumiram, estoque estornado
+        self.assertEqual(Despesa.objects.filter(origem='ESTOQUE').count(), 0)
+        self.assertEqual(MovimentacaoEstoque.objects.filter(tipo='ENTRADA').count(), 0)
+        self.carne.refresh_from_db(); self.pao.refresh_from_db()
+        self.assertEqual(self.carne.estoque_atual, Decimal('0'))
+        self.assertEqual(self.pao.estoque_atual, Decimal('0'))
+
+        # carrinho recarregado com os 2 itens, na unidade de compra
+        cart = self.client.session['compra_cart']
+        self.assertEqual(len(cart), 2)
+        nomes = {c['nome'] for c in cart}
+        self.assertEqual(nomes, {'CARNE', 'PAO'})
+        carne_item = next(c for c in cart if c['nome'] == 'CARNE')
+        self.assertEqual(Decimal(carne_item['quantidade']), Decimal('2'))
+        self.assertEqual(Decimal(carne_item['valor_unitario']), Decimal('45'))
+
+    def test_excluir_compra_estorna_estoque(self):
+        self._add(self.carne, '1', '50,00')
+        self.client.post(reverse('estoque_compra'), {
+            'acao': 'finalizar', 'forma_pagamento': 'AVISTA'})
+        d = Despesa.objects.get(origem='ESTOQUE')
+        self.client.post(reverse('despesa_excluir', args=[d.id]))
+        self.carne.refresh_from_db()
+        self.assertEqual(self.carne.estoque_atual, Decimal('0'))
+        self.assertEqual(Despesa.objects.filter(origem='ESTOQUE').count(), 0)
+
     def test_pagar_lote(self):
         d1 = Despesa.objects.create(descricao='c1', categoria='FORNECEDORES', valor=Decimal('100'),
                                     status='PREVISTO', data_vencimento='2026-10-10', forma_pagamento='CARTAO')

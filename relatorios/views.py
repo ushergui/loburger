@@ -26,12 +26,15 @@ DIAS_ALERTA_LISTA = 7     # o que aparece na lista de "próximas"
 
 
 def _horizonte_recorrente(rec, hoje):
-    """Até quando gerar faturas previstas de uma recorrente."""
+    """Até quando adiantar as contas previstas de uma recorrente. É uma JANELA
+    ROLANTE: a geração roda todo dia e empurra o horizonte pra frente, então a
+    recorrente é perpétua — o usuário nunca precisa recadastrar. O horizonte só
+    limita quantas contas ficam "prontas" na lista de uma vez."""
     if rec.frequencia in ('SEMANAL', 'QUINZENAL'):
-        return hoje + timedelta(days=90)     # ~3 meses de contas semanais
+        return hoje + timedelta(days=180)     # ~6 meses de contas semanais/quinzenais
     if rec.frequencia == 'ANUAL':
-        return hoje + timedelta(days=430)
-    return hoje + timedelta(days=370)         # ~12 meses das mensais/bimestrais...
+        return hoje + timedelta(days=365 * 4)  # 4 anos
+    return hoje + timedelta(days=365 * 2 + 30)  # ~2 anos das mensais/bimestrais...
 
 
 def gerar_despesas_fixas_pendentes(meses_a_frente=MESES_PROJECAO_PADRAO, forcar=False):
@@ -53,10 +56,10 @@ def gerar_despesas_fixas_pendentes(meses_a_frente=MESES_PROJECAO_PADRAO, forcar=
         limite = _horizonte_recorrente(rec, hoje)
         d = rec.primeiro_vencimento
         guard = 0
-        while d < piso and guard < 800:
+        while d < piso and guard < 4000:
             d = rec.proxima_data(d)
             guard += 1
-        while d <= limite and guard < 800:
+        while d <= limite and guard < 4000:
             existe = Despesa.objects.filter(despesa_matriz=rec, data_vencimento=d).exists()
             if not existe:
                 Despesa.objects.create(
@@ -646,10 +649,16 @@ def despesa_excluir(request, id):
     despesa = get_object_or_404(Despesa, id=id)
     if request.method == 'POST':
         descricao = despesa.descricao
-        despesa.delete()
-        messages.success(request, f"Despesa '{descricao}' excluída com sucesso!")
+        # Se veio do carrinho de compra: devolve o estoque também
+        if despesa.origem == 'ESTOQUE' and despesa.grupo_compra:
+            from estoque.services import estornar_compra
+            estornar_compra(despesa)  # já apaga a despesa e as movimentações
+            messages.success(request, f"Compra '{descricao}' excluída — estoque e despesa desfeitos.")
+        else:
+            despesa.delete()
+            messages.success(request, f"Despesa '{descricao}' excluída com sucesso!")
         return redirect('despesa_listar')
-        
+
     return render(request, 'relatorios/despesa_confirm_delete.html', {
         'despesa': despesa
     })
@@ -662,7 +671,12 @@ def despesa_recorrente_criar(request):
         if form.is_valid():
             form.save()
             n = gerar_despesas_fixas_pendentes(forcar=True)
-            messages.success(request, f"Despesa recorrente cadastrada. {n} conta(s) prevista(s) já gerada(s) em Contas a Pagar.")
+            messages.success(
+                request,
+                f"Despesa recorrente cadastrada. {n} conta(s) prevista(s) já em Contas a Pagar. "
+                "O sistema cria as próximas sozinho e vai renovando pra sempre — "
+                "você nunca precisa recadastrar."
+            )
             return redirect('despesa_listar')
     else:
         form = DespesaRecorrenteForm()

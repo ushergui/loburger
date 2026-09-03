@@ -239,6 +239,7 @@ def estoque_compra(request):
                 itens, forma, credor, data_venc, descricao, responsavel=request.user)
 
             request.session['compra_cart'] = []
+            request.session.pop('compra_meta', None)
             request.session.modified = True
 
             if despesa.status == 'PAGO':
@@ -266,6 +267,61 @@ def estoque_compra(request):
         'total': total,
         'ingredientes_json': ingredientes_json,
         'formas': Despesa.FORMA_PAGAMENTO_CHOICES,
+        'meta': request.session.get('compra_meta', {}),
+    })
+
+
+@login_required
+@gestao_required
+def estoque_compra_editar(request, despesa_id):
+    """Reabre no carrinho uma compra lançada pelo carrinho, para o usuário
+    corrigir (quantidade errada de um insumo, etc.)."""
+    from relatorios.models import Despesa
+    despesa = get_object_or_404(Despesa, id=despesa_id, origem='ESTOQUE')
+
+    if not despesa.grupo_compra:
+        messages.info(request, "Essa despesa não veio do carrinho — edite os campos direto.")
+        return redirect('despesa_editar', id=despesa.id)
+
+    movs = MovimentacaoEstoque.objects.filter(grupo_compra=despesa.grupo_compra, tipo='ENTRADA')
+
+    if request.method == 'POST':
+        itens, meta = services.estornar_compra(despesa)
+        cart = []
+        for it in itens:
+            sub = (it['quantidade'] * it['valor_unitario']).quantize(Decimal('0.01'))
+            cart.append({
+                'ingrediente_id': it['ingrediente_id'],
+                'nome': it['nome'],
+                'unidade': it['unidade'],
+                'quantidade': str(it['quantidade']),
+                'valor_unitario': str(it['valor_unitario']),
+                'subtotal': str(sub),
+                'q_disp': _n(it['quantidade']),
+                'vu_disp': _money(it['valor_unitario']),
+                'sub_disp': _money(sub),
+            })
+        request.session['compra_cart'] = cart
+        request.session['compra_meta'] = meta
+        request.session.modified = True
+        messages.info(
+            request,
+            f"Compra reaberta no carrinho ({len(cart)} item(ns)). O lançamento anterior "
+            "(estoque e despesa) foi desfeito — ajuste o que precisar e finalize de novo."
+        )
+        return redirect('estoque_compra')
+
+    linhas = []
+    for m in movs:
+        fator = m.ingrediente.obter_fator_conversao
+        linhas.append({
+            'nome': m.ingrediente.nome,
+            'qtd': _n(m.quantidade / fator if fator else m.quantidade),
+            'unidade': m.ingrediente.unidade_compra,
+        })
+    return render(request, 'estoque/compra_editar_confirm.html', {
+        'despesa': despesa,
+        'linhas': linhas,
     })
 
 

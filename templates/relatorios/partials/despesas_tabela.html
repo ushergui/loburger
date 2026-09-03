@@ -68,7 +68,11 @@
                             {% if vista == 'a_pagar' %}
                                 <a href="{% url 'despesa_marcar_paga' desp.id %}" class="bg-hex_success/15 border border-hex_success/40 hover:bg-hex_success hover:text-white text-hex_success px-2 py-1 rounded text-[10px] uppercase tracking-wider font-bold transition-all" title="Registrar pagamento">Pagar</a>
                             {% endif %}
-                            <a href="{% url 'despesa_editar' desp.id %}" class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white p-1 rounded transition-all" title="Editar"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i></a>
+                            {% if desp.origem == 'ESTOQUE' and desp.grupo_compra %}
+                                <a href="{% url 'estoque_compra_editar' desp.id %}" class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white p-1 rounded transition-all" title="Editar a compra (reabre o carrinho)"><i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i></a>
+                            {% else %}
+                                <a href="{% url 'despesa_editar' desp.id %}" class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white p-1 rounded transition-all" title="Editar"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i></a>
+                            {% endif %}
                             <a href="{% url 'despesa_excluir' desp.id %}" class="bg-hex_dark_bg border border-hex_danger/30 hover:border-hex_danger text-hex_danger hover:text-white p-1 rounded transition-all" title="Excluir"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></a>
                         </div>
                     </td>

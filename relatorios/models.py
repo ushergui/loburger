@@ -140,6 +140,9 @@ class Despesa(models.Model):
     data_referencia = models.DateField(null=True, blank=True, verbose_name="Dia de referência",
         help_text="Dia ao qual a despesa automática se refere (fechamento / entrada de estoque).")
 
+    # Compra pelo carrinho "Registrar Compra" — liga a despesa às movimentações da nota
+    grupo_compra = models.CharField(max_length=32, blank=True, default='', verbose_name="Grupo da compra")
+
     # Parcelamento (compra em Nx)
     grupo_parcelas = models.CharField(max_length=32, blank=True, default='', verbose_name="Grupo de parcelamento")
     parcela_num = models.PositiveIntegerField(default=1, verbose_name="Nº da parcela")

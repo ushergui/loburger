@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Editar compra - LOL BURGUER{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto my-10">
+    <div class="bg-hex_dark_card border border-hex_gold/40 p-6 md:p-8 rounded shadow-md">
+        <div class="flex items-center space-x-2 mb-4">
+            <i data-lucide="shopping-cart" class="w-6 h-6 text-hex_gold"></i>
+            <h1 class="text-xl font-bold title-hex text-hex_gold">Reabrir esta compra no carrinho</h1>
+        </div>
+
+        <p class="text-sm text-hex_gold_light/90 mb-3">
+            A despesa <strong>"{{ despesa.descricao }}"</strong> (R$ {{ despesa.valor|floatformat:2 }})
+            veio do carrinho de compra. Para corrigir a quantidade de um insumo, o jeito certo é
+            <strong>reabrir a nota inteira</strong>.
+        </p>
+
+        <div class="bg-hex_dark_bg/60 border border-hex_dark_border rounded p-4 mb-4 text-sm space-y-1">
+            <p class="text-xxs uppercase tracking-wider text-hex_gold_dim/60 mb-1">Itens desta nota</p>
+            {% for l in linhas %}
+            <div class="flex justify-between">
+                <span class="text-hex_gold_light">{{ l.nome }}</span>
+                <span class="text-hex_gold_dim/70 font-mono">{{ l.qtd }} {{ l.unidade }}</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="bg-hex_warning/10 border border-hex_warning/30 rounded p-3 mb-5 text-xs text-hex_gold_light/90 flex items-start space-x-2">
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-hex_warning shrink-0 mt-0.5"></i>
+            <span>Ao confirmar, o lançamento atual é <strong>desfeito</strong>: o estoque volta ao que era antes desta compra e a despesa some. Os itens vão para o carrinho e você <strong>refaz e finaliza</strong>.
+            {% if despesa.status == 'PAGO' %}<strong class="block mt-1">Atenção: esta despesa já está marcada como paga.</strong>{% endif %}
+            </span>
+        </div>
+
+        <form method="post" class="flex items-center justify-end space-x-3">
+            {% csrf_token %}
+            <a href="{% url 'despesa_listar' %}" class="px-4 py-2.5 rounded text-xs font-semibold text-hex_gold hover:text-white uppercase tracking-wider">Cancelar</a>
+            <button type="submit" class="bg-hex_gold hover:bg-hex_blue text-hex_dark_bg hover:text-white font-bold py-2.5 px-6 rounded uppercase tracking-wider text-xs border border-hex_gold/40 flex items-center space-x-2">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+                <span>Reabrir no carrinho</span>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

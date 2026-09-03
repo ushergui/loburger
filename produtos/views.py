@@ -252,7 +252,7 @@ def ficha_tecnica_montar(request, pk):
         return redirect('ficha_tecnica_montar', pk=produto.pk)
 
     # Consultar ingredientes, produtos e canais cadastrados
-    ingredientes_disponiveis = Ingrediente.objects.all()
+    ingredientes_disponiveis = Ingrediente.objects.all().order_by('nome')
     produtos_disponiveis = Produto.objects.exclude(id=produto.id).order_by('categoria', 'nome')
     precos_canais_ricos = []
     for c in CanalVenda.objects.all():
@@ -261,10 +261,22 @@ def ficha_tecnica_montar(request, pk):
             'preco_obj': produto.precos_canais.filter(canal=c).first(),
         })
 
+    # Listas para o campo de busca (filtro no navegador, sem recarregar)
+    ingredientes_json = [
+        {'id': i.id, 'nome': f"{i.nome} ({i.get_unidade_medida_display()})"}
+        for i in ingredientes_disponiveis
+    ]
+    produtos_json = [
+        {'id': p.id, 'nome': f"{p.nome} ({p.get_categoria_display()})"}
+        for p in produtos_disponiveis
+    ]
+
     return render(request, 'produtos/ficha_tecnica.html', {
         'produto': produto,
         'ingredientes': ingredientes_disponiveis,
         'produtos_componentes': produtos_disponiveis,
+        'ingredientes_json': ingredientes_json,
+        'produtos_json': produtos_json,
         'precos_canais_ricos': precos_canais_ricos
     })
 

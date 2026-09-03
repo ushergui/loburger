@@ -39,42 +39,48 @@
             <h2 class="text-2xl font-bold title-hex text-hex_gold">Preparar o sistema — só uma vez</h2>
         </div>
         <p class="text-sm text-hex_gold_dim/80 mb-6 ml-12">
-            Faça com calma, pode levar um dia inteiro. Depois disso, quase nunca mais mexe aqui. Faça na ordem.
+            Faça com calma, pode levar um dia. Depois disso quase nunca mais mexe aqui. <strong>Faça na ordem dos passos.</strong>
         </p>
 
         <div class="space-y-4 ml-0 md:ml-4">
 
+            <!-- 1 -->
             <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
-                <div class="flex items-start justify-between gap-3">
-                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="sun-moon" class="w-4 h-4 text-hex_gold"></i><span>Passo 1 — Tema claro ou escuro (gosto de vocês)</span></h3>
-                </div>
-                <p class="text-sm text-hex_gold_light/85 mt-2">No canto de cima da tela tem um botão de <strong>sol / lua</strong>. Clica e escolhe o que cansa menos a vista de vocês. A escolha fica guardada nesse computador.</p>
+                <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="sun-moon" class="w-4 h-4 text-hex_gold"></i><span>Passo 1 — Tema claro ou escuro (gosto de vocês)</span></h3>
+                <p class="text-sm text-hex_gold_light/85 mt-2">No canto de cima da tela tem um botão de <strong>sol / lua</strong>. Clica e escolhe o que cansa menos a vista. A escolha fica guardada nesse computador — cada um pode deixar do seu jeito.</p>
             </div>
 
+            <!-- 2 -->
             <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
                 <div class="flex items-start justify-between gap-3">
-                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="users" class="w-4 h-4 text-hex_gold"></i><span>Passo 2 — Criar o login da Jaqueline</span></h3>
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="users" class="w-4 h-4 text-hex_gold"></i><span>Passo 2 — Criar o login da Jaqueline <span class="text-hex_gold_dim/60 font-normal">(opcional)</span></span></h3>
                     <a href="{% url 'usuario_listar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
-                <ol class="mt-3 space-y-2 text-sm text-hex_gold_light/85 list-decimal list-inside marker:text-hex_gold">
+                <p class="text-sm text-hex_gold_light/85 mt-2">Se quiserem cada um com o seu login (o sistema anota quem fez cada lançamento):</p>
+                <ol class="mt-2 space-y-1.5 text-sm text-hex_gold_light/85 list-decimal list-inside marker:text-hex_gold">
                     <li>Menu <strong>Usuários</strong> → botão <strong>Novo Usuário</strong>.</li>
                     <li>Nome de usuário (o login), nome e uma senha.</li>
                     <li>Perfil: <strong>Gestão</strong> (vê tudo, igual ao Igor).</li>
-                    <li>Salvar. Pronto, ela já pode entrar com esse login.</li>
+                    <li>Salvar.</li>
                 </ol>
-                <p class="text-xs text-hex_gold_dim/70 mt-2">Se alguém esquecer a senha, é só entrar em Usuários e clicar no ícone de chave para trocar.</p>
+                <p class="text-xs text-hex_gold_dim/70 mt-2">Esqueceu a senha? Menu Usuários → ícone de chave para trocar. Não quer criar agora? Sem problema, dá pra fazer depois.</p>
             </div>
 
+            <!-- 3 -->
             <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
                 <div class="flex items-start justify-between gap-3">
-                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="settings" class="w-4 h-4 text-hex_gold"></i><span>Passo 3 — Conferir as taxas</span></h3>
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="settings" class="w-4 h-4 text-hex_gold"></i><span>Passo 3 — Conferir as taxas e a maquininha</span></h3>
                     <a href="{% url 'configuracao_financeira' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
-                <p class="text-sm text-hex_gold_light/85 mt-2">Em <strong>Configuração</strong>: taxa da maquininha (hoje <strong>3,5%</strong>) e valor da entrega (<strong>R$ 9</strong>).</p>
-                <p class="text-sm text-hex_gold_light/85 mt-2">Em <strong>Canais de Venda</strong> (menu ao lado), confira cada um:</p>
+                <p class="text-sm text-hex_gold_light/85 mt-2">No menu <strong>Configuração</strong> confira dois campos:</p>
+                <ul class="mt-1 text-sm text-hex_gold_light/85 list-disc list-inside marker:text-hex_gold">
+                    <li><strong>Taxa da maquininha</strong> — hoje <strong>3,5%</strong>. Se a operadora de vocês cobra outro valor, é aqui que muda.</li>
+                    <li><strong>Valor da entrega</strong> — <strong>R$ 9,00</strong> (o que o cliente paga de taxa de entrega).</li>
+                </ul>
+                <p class="text-sm text-hex_gold_light/85 mt-3">Agora no menu <strong>Canais de Venda</strong>, confira cada canal:</p>
                 <div class="mt-2 overflow-x-auto">
                     <table class="text-xs w-full border border-hex_dark_border rounded">
-                        <thead><tr class="bg-hex_dark_bg/50 text-hex_gold uppercase text-[10px]"><th class="p-2 text-left">Canal</th><th class="p-2">Na entrega</th><th class="p-2">Pago no app</th></tr></thead>
+                        <thead><tr class="bg-hex_dark_bg/50 text-hex_gold uppercase text-[10px]"><th class="p-2 text-left">Canal</th><th class="p-2">Comissão na entrega</th><th class="p-2">Pago dentro do app</th></tr></thead>
                         <tbody class="text-hex_gold_light/85">
                             <tr class="border-t border-hex_dark_border"><td class="p-2">iFood</td><td class="p-2 text-center font-mono">12%</td><td class="p-2 text-center font-mono">15,2%</td></tr>
                             <tr class="border-t border-hex_dark_border"><td class="p-2">UaiRango</td><td class="p-2 text-center font-mono">8%</td><td class="p-2 text-center font-mono">11,5%</td></tr>
@@ -82,69 +88,128 @@
                         </tbody>
                     </table>
                 </div>
-                <p class="text-xs text-hex_gold_dim/70 mt-2">A "taxa fixa por pedido" tem que ficar em <strong>R$ 0,00</strong> nos três.</p>
+                <p class="text-xs text-hex_gold_dim/70 mt-2">A "taxa fixa por pedido" tem que ficar em <strong>R$ 0,00</strong> nos três. Mudou uma taxa? Vale só dos pedidos novos pra frente.</p>
             </div>
 
+            <!-- 4 -->
             <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
                 <div class="flex items-start justify-between gap-3">
                     <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="bike" class="w-4 h-4 text-hex_gold"></i><span>Passo 4 — Cadastrar os entregadores</span></h3>
                     <a href="{% url 'entregador_listar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
-                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Entregadores</strong> → cadastre cada moto. Marque <strong>Igor</strong> (e a Jaqueline, se ela entregar) como <strong>sócio</strong> — assim as entregas deles não viram custo de motoboy, o dinheiro fica na empresa.</p>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Entregadores</strong> → cadastre cada moto. Marque <strong>Igor</strong> (e a Jaqueline, se ela entregar) como <strong>sócio</strong> — assim as entregas deles não viram custo de motoboy, o dinheiro da taxa fica na empresa.</p>
             </div>
 
+            <!-- 5 -->
             <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
                 <div class="flex items-start justify-between gap-3">
-                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="chef-hat" class="w-4 h-4 text-hex_gold"></i><span>Passo 5 — Conferir os ingredientes</span></h3>
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="carrot" class="w-4 h-4 text-hex_gold"></i><span>Passo 5 — Conferir os ingredientes</span></h3>
                     <a href="{% url 'ingrediente_listar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
-                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Ingredientes / Insumos</strong>. A lista já vem pronta. Só confira: o <strong>nome</strong> está certo? A <strong>unidade de compra</strong> bate com como vocês compram (carne em <em>kg</em>, molho em <em>litro</em>, pão em <em>unidade</em>)?</p>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Ingredientes / Insumos</strong>. A lista já vem pronta, com um <strong>preço de referência</strong> em cada um. Passe item por item conferindo:</p>
+                <ul class="mt-2 text-sm text-hex_gold_light/85 list-disc list-inside marker:text-hex_gold">
+                    <li>O <strong>nome</strong> está certo? Falta algum insumo que vocês usam? (botão <em>Novo Ingrediente</em>).</li>
+                    <li>A <strong>unidade de compra</strong> bate com como vocês compram? Carne em <em>kg</em>, molho e refrigerante em <em>litro</em>, pão e ovo em <em>unidade</em>.</li>
+                    <li>O <strong>preço</strong> está perto do que vocês pagam hoje? Não precisa ser exato — quando fizerem a primeira compra de verdade (Passo 8), o sistema corrige sozinho.</li>
+                </ul>
             </div>
 
+            <!-- 6 -->
             <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
                 <div class="flex items-start justify-between gap-3">
-                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="sandwich" class="w-4 h-4 text-hex_gold"></i><span>Passo 6 — Conferir a receita e o preço de cada lanche</span></h3>
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="sandwich" class="w-4 h-4 text-hex_gold"></i><span>Passo 6 — Ajustar a receita e o preço de cada lanche</span></h3>
                     <a href="{% url 'produto_listar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Cardápio</strong>. Este é o passo mais trabalhoso — é onde vocês ensinam ao sistema como cada lanche é montado.</p>
                 <ol class="mt-3 space-y-2 text-sm text-hex_gold_light/85 list-decimal list-inside marker:text-hex_gold">
-                    <li>Menu <strong>Cardápio</strong> → clique num lanche → <strong>Ficha Técnica</strong>.</li>
-                    <li>Confira os gramas de cada ingrediente. Comece pelo <strong>Barão Nashor</strong>, que já está certo, e compare os outros com ele.</li>
-                    <li>Do lado direito, coloque o <strong>preço</strong> de cada lanche em cada canal (o preço que o cliente vê no app).</li>
-                    <li><strong>Combo?</strong> Na ficha do combo, use "Adicionar produto" para colocar o lanche e a batata; o refrigerante entra como ingrediente com o "custo de aquisição" (quanto vocês pagam nele).</li>
+                    <li>Clique num lanche → <strong>Ficha Técnica / Receita</strong>.</li>
+                    <li>Confira <strong>quantos gramas / unidades</strong> de cada ingrediente entram. Comece pelo <strong>Barão Nashor</strong>, que já está certinho, e use ele de régua para os outros (carne 170 g, fatia de queijo 35 g, molho 30 ml, pão 1 un...).</li>
+                    <li>Faltou um ingrediente na receita? Use <strong>"Adicionar ingrediente"</strong>. Sobrou? Clique na lixeira do item.</li>
+                    <li>Do lado direito, em <strong>Preços por canal</strong>, coloque o <strong>preço de venda</strong> em cada canal — é o preço que o cliente vê no app do iFood, do UaiRango e no de vocês.</li>
+                    <li><strong>Combo?</strong> Na ficha do combo use <strong>"Adicionar produto"</strong> para colocar o lanche e a batata que já existem; o refrigerante entra como ingrediente (com o "custo de aquisição" = quanto vocês pagam na lata/garrafa).</li>
+                    <li><strong>Adicionais</strong> (bacon, cheddar, troca de pão, molho extra...): já estão cadastrados na categoria <em>"Adicionais"</em> com preço nos 3 canais. Só confira os valores.</li>
                 </ol>
-                <p class="text-xs text-hex_gold_dim/70 mt-2">O custo de cada lanche aparece sozinho depois do Passo 7.</p>
+                <p class="text-xs text-hex_gold_dim/70 mt-2">O <strong>custo</strong> e a <strong>margem</strong> de cada lanche aparecem sozinhos, embaixo do preço. Se aparecer margem vermelha, o preço está baixo demais para aquele canal.</p>
             </div>
 
+            <!-- 7 - CUSTOS E DESPESAS (detalhado) -->
             <div class="bg-hex_dark_card border border-hex_gold/40 rounded p-5 shadow-hex-gold">
                 <div class="flex items-start justify-between gap-3">
-                    <h3 class="font-bold text-hex_gold flex items-center space-x-2"><i data-lucide="package-open" class="w-4 h-4 text-hex_gold"></i><span>Passo 7 — Lançar o estoque que vocês têm HOJE</span></h3>
+                    <h3 class="font-bold text-hex_gold flex items-center space-x-2"><i data-lucide="wallet" class="w-4 h-4 text-hex_gold"></i><span>Passo 7 — Cadastrar as contas / despesas</span></h3>
+                    <a href="{% url 'despesa_listar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                </div>
+                <p class="text-sm text-hex_gold_light/90 mt-2">Menu <strong>Custos &amp; Despesas</strong>. Existem <strong>dois jeitos</strong> de lançar, e a escolha é simples:</p>
+
+                <!-- 7a: molde / conta fixa -->
+                <div class="mt-4 bg-hex_dark_bg/50 border border-hex_dark_border rounded p-4">
+                    <p class="text-sm font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="repeat" class="w-4 h-4 text-hex_blue"></i><span>A) Conta que se repete todo mês → <span class="text-hex_blue">Molde</span></span></p>
+                    <p class="text-sm text-hex_gold_light/85 mt-1">Aluguel, luz, água, internet, gás, MEI/DAS, contador, mensalidade do app próprio, material de limpeza que compra sempre...
+                    <strong>Mesmo que o valor mude um pouco a cada mês</strong> (a luz nunca vem igual), é aqui.</p>
+                    <ol class="mt-2 space-y-1.5 text-sm text-hex_gold_light/85 list-decimal list-inside marker:text-hex_blue">
+                        <li>Na página, seção <strong>"Despesas Fixas Automáticas (Moldes)"</strong> → botão <strong>Novo Molde</strong>.</li>
+                        <li>Preencha: <strong>Descrição</strong> (ex.: "Energia elétrica"), <strong>Fornecedor / Credor</strong> (ex.: "CEMIG"), <strong>Categoria</strong> (ex.: "Energia Elétrica (luz)"), <strong>Dia do vencimento</strong> (ex.: 15) e o <strong>Valor base previsto</strong> — coloque a <strong>média</strong> dos últimos meses (ex.: 480,00).</li>
+                        <li>Salvar. O sistema <strong>já cria sozinho</strong> as contas previstas dos próximos 12 meses, todo dia 15.</li>
+                    </ol>
+                    <p class="text-sm text-hex_gold_light/90 mt-2 bg-hex_blue/10 border border-hex_blue/30 rounded p-2">
+                        <strong>Quando a conta de luz chegar</strong> com o valor real (ex.: R$ 523,90): vá na aba <strong>Contas a Pagar</strong>, ache a linha daquele mês, clique no <strong>lápis (editar)</strong>, troque o valor para 523,90 e salve. Depois é só clicar em <strong>Pagar</strong>. Se quiser que os <strong>próximos meses</strong> também passem a usar esse novo valor, marque a caixinha <em>"Atualizar este novo valor e data para os próximos meses"</em>.
+                    </p>
+                </div>
+
+                <!-- 7b: avulsa -->
+                <div class="mt-3 bg-hex_dark_bg/50 border border-hex_dark_border rounded p-4">
+                    <p class="text-sm font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="file-plus" class="w-4 h-4 text-hex_gold"></i><span>B) Gasto de uma vez só → <span class="text-hex_gold">Despesa Avulsa</span></span></p>
+                    <p class="text-sm text-hex_gold_light/85 mt-1">Um conserto da chapa, uma compra de embalagem/guardanapo, um imposto extra, uma peça da moto — coisas que <strong>não se repetem sempre</strong>.</p>
+                    <ol class="mt-2 space-y-1.5 text-sm text-hex_gold_light/85 list-decimal list-inside marker:text-hex_gold">
+                        <li>Botão <strong>Lançar Despesa Avulsa</strong> (no alto da página).</li>
+                        <li><strong>Descrição</strong>: o que foi (ex.: "Conserto da chapa").</li>
+                        <li><strong>Fornecedor / Credor</strong>: quem recebe (ex.: "João Refrigeração").</li>
+                        <li><strong>Tipo</strong>: "Custo Variável" (muda conforme o movimento, ex.: embalagem) ou "Custo Fixo" (não depende do movimento).</li>
+                        <li><strong>Categoria</strong>: a que mais parece (Manutenção, Materiais de Limpeza, Impostos, Outros...).</li>
+                        <li><strong>Valor</strong>: quanto é (ex.: 250,00).</li>
+                        <li><strong>Status</strong>:
+                            <div class="mt-1 ml-4 space-y-1 text-xs text-hex_gold_light/80">
+                                <div>• <strong>Já paguei</strong> → escolha <em>"Pago"</em> e ponha a <strong>data do pagamento</strong>. Sai do caixa nesse dia.</div>
+                                <div>• <strong>Vou pagar depois</strong> (o cara cobra em 20 dias) → deixe <em>"Previsto"</em> e ponha a <strong>data de vencimento</strong> (a data prevista). Fica na aba <strong>Contas a Pagar</strong>, e o dinheiro <strong>só sai</strong> quando você clicar em <strong>Pagar</strong> lá, no dia certo.</div>
+                            </div>
+                        </li>
+                        <li><strong>Parcelado?</strong> No campo <strong>Parcelas</strong> ponha o número de vezes (ex.: 3). O valor que você digitou é o <strong>total</strong>; o sistema cria 3 contas previstas, uma por mês.</li>
+                        <li>Salvar.</li>
+                    </ol>
+                </div>
+                <p class="text-xs text-hex_gold_dim/70 mt-3">Taxas do iFood/UaiRango, maquininha, motoboy e compra de insumo <strong>não</strong> se lança aqui — o sistema cria sozinho (no Fechamento e na entrada de estoque).</p>
+            </div>
+
+            <!-- 8 - ESTOQUE INICIAL (detalhado) -->
+            <div class="bg-hex_dark_card border border-hex_gold/40 rounded p-5 shadow-hex-gold">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_gold flex items-center space-x-2"><i data-lucide="package-open" class="w-4 h-4 text-hex_gold"></i><span>Passo 8 — Lançar o estoque que vocês têm HOJE</span></h3>
                     <a href="{% url 'estoque_ajustar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
+                <p class="text-sm text-hex_gold_light/90 mt-2">O sistema começa com <strong>estoque zerado</strong>. Antes de abrir a loja, façam uma <strong>contagem física</strong> — abram a geladeira, o freezer, a despensa — e lancem o que tem:</p>
                 <ol class="mt-3 space-y-2 text-sm text-hex_gold_light/90 list-decimal list-inside marker:text-hex_gold">
                     <li>Menu <strong>Lançar Entrada/Ajuste</strong>.</li>
-                    <li>Escolha o insumo, tipo <strong>"Carga Inicial / Abertura"</strong>.</li>
-                    <li>Quanto tem hoje (na unidade de compra: kg, litro, unidade) e quanto custou.</li>
-                    <li>Repita para cada insumo que já está na geladeira / no estoque.</li>
+                    <li><strong>Ingrediente</strong>: escolha o insumo.</li>
+                    <li><strong>Tipo</strong>: <strong>"Carga Inicial / Abertura — NÃO gera despesa"</strong>.</li>
+                    <li><strong>Quantidade</strong>: quanto tem, <strong>na unidade de compra</strong>. Comprou 5 kg e 450 g de carne? Digite <strong>5,450</strong>. Tem 30 pães? Digite <strong>30</strong>.</li>
+                    <li><strong>Valor unitário</strong>: quanto custa <strong>1 kg / 1 litro / 1 unidade</strong> hoje (ex.: carne 45,00 o kg).</li>
+                    <li>Salvar. Repita para <strong>cada</strong> insumo que tem em casa.</li>
                 </ol>
-                <p class="text-sm text-hex_warning mt-3 font-semibold">Isso NÃO é despesa e NÃO mexe no caixa — é só o ponto de partida.</p>
-                <p class="text-xs text-hex_gold_dim/70 mt-1">Depois que o sistema estiver rodando, <strong>toda compra é "Entrada"</strong> (aí sim vira despesa). "Carga Inicial" é só agora.</p>
+                <p class="text-sm text-hex_warning mt-3 font-semibold">"Carga Inicial" NÃO é despesa e NÃO mexe no caixa — é só dizer o ponto de partida.</p>
+                <p class="text-xs text-hex_gold_dim/70 mt-1">Errou a quantidade? Faça outra "Carga Inicial" com a diferença, ou use <em>"Perda / Descarte"</em> pra tirar o excesso. Depois que a loja abrir, <strong>toda compra é "Entrada"</strong> (aí sim vira despesa paga).</p>
             </div>
 
+            <!-- 9 - caixa inicial -->
             <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
                 <div class="flex items-start justify-between gap-3">
-                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="repeat" class="w-4 h-4 text-hex_gold"></i><span>Passo 8 — Cadastrar as contas fixas</span></h3>
-                    <a href="{% url 'despesa_recorrente_criar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
-                </div>
-                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Custos &amp; Despesas</strong> → <strong>Novo Molde</strong>. Uma por uma: aluguel, luz, água, internet, gás, MEI, contador, mensalidade do app próprio, material de limpeza...</p>
-                <p class="text-sm text-hex_gold_light/85 mt-1">Pra cada uma: nome, quem recebe, o dia que vence e o valor médio. O sistema já cria as contas dos próximos 12 meses sozinho.</p>
-            </div>
-
-            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
-                <div class="flex items-start justify-between gap-3">
-                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="banknote" class="w-4 h-4 text-hex_gold"></i><span>Passo 9 — (opcional) O dinheiro em caixa hoje</span></h3>
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="banknote" class="w-4 h-4 text-hex_gold"></i><span>Passo 9 — O dinheiro em caixa hoje</span></h3>
                     <a href="{% url 'configuracao_financeira' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
-                <p class="text-sm text-hex_gold_light/85 mt-2">Em <strong>Configuração</strong>, no campo <strong>"Saldo de caixa inicial"</strong>, coloque quanto vocês têm de dinheiro/conta agora. Assim o "Caixa acumulado" começa certo.</p>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Em <strong>Configuração</strong>, campo <strong>"Saldo de caixa inicial"</strong>: quanto vocês têm hoje entre dinheiro na gaveta + conta do banco/pix da lanchonete. Assim o "Caixa acumulado" do sistema começa batendo com a realidade.</p>
+            </div>
+
+            <div class="bg-hex_success/10 border border-hex_success/30 rounded p-4 text-sm text-hex_gold_light/90 flex items-start space-x-2">
+                <i data-lucide="party-popper" class="w-5 h-5 text-hex_success shrink-0 mt-0.5"></i>
+                <span>Terminou os 9 passos? <strong>O sistema está pronto.</strong> Daqui pra frente é só a Parte 2, todo dia.</span>
             </div>
 
         </div>
@@ -156,61 +221,83 @@
             <span class="w-9 h-9 rounded-full bg-hex_blue text-white font-bold flex items-center justify-center title-hex">2</span>
             <h2 class="text-2xl font-bold title-hex text-hex_blue">O dia a dia</h2>
         </div>
-        <p class="text-sm text-hex_gold_dim/80 mb-6 ml-12">Isto vocês fazem sempre. É rápido.</p>
+        <p class="text-sm text-hex_gold_dim/80 mb-6 ml-12">Isto vocês fazem sempre. Leva poucos minutos.</p>
 
         <div class="space-y-4 ml-0 md:ml-4">
 
-            <div class="bg-hex_dark_card border border-hex_blue/40 rounded p-5 shadow-hex-blue">
-                <div class="flex items-start justify-between gap-3">
-                    <h3 class="font-bold text-hex_blue flex items-center space-x-2"><i data-lucide="calendar-check" class="w-5 h-5 text-hex_blue"></i><span>Todo fim de noite — o Fechamento Diário</span></h3>
-                    <a href="{% url 'fechamento_diario' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
-                </div>
-                <p class="text-sm text-hex_gold_light/90 mt-2">É o passo mais importante. É onde vocês contam o que vendeu.</p>
-                <ol class="mt-3 space-y-2.5 text-sm text-hex_gold_light/90 list-decimal list-inside marker:text-hex_blue">
-                    <li>Menu <strong>Fechamento Diário</strong>. Confira a <strong>data</strong> (normalmente é hoje).</li>
-                    <li>Pra cada lanche que vendeu, digite <strong>quantos</strong> na coluna certa. Cada canal (iFood, UaiRango, App) tem <strong>3 colunas</strong>:
-                        <div class="mt-2 ml-5 space-y-1 text-xs text-hex_gold_light/80">
-                            <div>• <strong>Pago no app</strong> — o cliente pagou dentro do iFood/UaiRango</div>
-                            <div>• <strong>Dinheiro na entrega</strong> — pagou em dinheiro (ou pix) na porta</div>
-                            <div>• <strong>Maquininha na entrega</strong> — passou cartão na sua maquininha</div>
-                        </div>
-                    </li>
-                    <li>Lá embaixo, quantas <strong>entregas</strong> cada entregador fez naquela noite.</li>
-                    <li>Se deu algum <strong>desconto</strong> geral no dia, coloque o valor.</li>
-                    <li>Clique em <strong>Salvar Fechamento do Dia</strong>.</li>
-                </ol>
-                <p class="text-sm text-hex_success mt-3">Pronto. O sistema baixa o estoque dos lanches, calcula as taxas do iFood/UaiRango/maquininha e paga os motoboys — tudo sozinho.</p>
-                <p class="text-xs text-hex_gold_dim/70 mt-1">Errou? Abra o mesmo dia de novo, arrume o número e salve. Ele recalcula tudo.</p>
+            <!-- Durante a noite -->
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="notebook-pen" class="w-4 h-4 text-hex_gold"></i><span>Durante a noite — anotar as vendas</span></h3>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Não precisa mexer no sistema a cada pedido. Deixe um <strong>papel / caderninho</strong> do lado e, a cada lanche que sai, risque um tracinho anotando <strong>3 coisas</strong>:</p>
+                <ul class="mt-2 text-sm text-hex_gold_light/85 list-disc list-inside marker:text-hex_gold">
+                    <li><strong>Qual lanche</strong> (Barão Nashor, Draven...) e adicionais, se teve.</li>
+                    <li><strong>Por qual canal</strong>: iFood, UaiRango ou app próprio de vocês.</li>
+                    <li><strong>Como o cliente pagou</strong>: pagou dentro do app / dinheiro (ou pix) na entrega / maquininha na entrega.</li>
+                </ul>
+                <p class="text-xs text-hex_gold_dim/70 mt-2">Dica: uma folha por canal já ajuda bastante. No fim da noite você passa tudo pro sistema de uma vez.</p>
             </div>
 
+            <!-- Fechamento -->
+            <div class="bg-hex_dark_card border border-hex_blue/40 rounded p-5 shadow-hex-blue">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-hex_blue flex items-center space-x-2"><i data-lucide="calendar-check" class="w-5 h-5 text-hex_blue"></i><span>Fim da noite — o Fechamento Diário</span></h3>
+                    <a href="{% url 'fechamento_diario' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                </div>
+                <p class="text-sm text-hex_gold_light/90 mt-2">É o passo mais importante do sistema. Pegue o caderninho e vá transcrevendo:</p>
+                <ol class="mt-3 space-y-2.5 text-sm text-hex_gold_light/90 list-decimal list-inside marker:text-hex_blue">
+                    <li>Menu <strong>Fechamento Diário</strong>. Confira lá em cima a <strong>Data do Fechamento</strong> (tem que ser o dia das vendas — normalmente hoje). Se estiver errada, mude e clique em <strong>Ir</strong>.</li>
+                    <li>Cada canal (Aplicativo online, UaiRango, iFood) tem uma <strong>cor de divisória</strong> e <strong>3 colunas</strong>:
+                        <div class="mt-2 ml-5 space-y-1 text-xs text-hex_gold_light/80">
+                            <div>• <strong>Pago no app da plataforma</strong> — o cliente pagou dentro do iFood / UaiRango / app de vocês</div>
+                            <div>• <strong>Dinheiro na entrega</strong> — pagou em dinheiro ou pix na porta</div>
+                            <div>• <strong>Maquininha na entrega</strong> — passou o cartão na maquininha de vocês</div>
+                        </div>
+                    </li>
+                    <li>Para cada lanche vendido, digite a <strong>quantidade</strong> no cruzamento certo (canal + forma de pagamento). Ex.: 3 Barão Nashor pelo iFood pagos no app → digite <strong>3</strong> na coluna "Pago no app" embaixo do iFood, na linha do Barão Nashor.</li>
+                    <li>Use a <strong>busca</strong> ou o filtro de <strong>Categoria</strong> lá em cima para achar o lanche/adicional mais rápido.</li>
+                    <li>Lá embaixo, em <strong>Entregas por Entregador</strong>, ponha quantas entregas cada um fez naquela noite.</li>
+                    <li>Deu algum <strong>desconto geral</strong> no dia (uma promoção, um brinde)? Ponha o valor no campo "Ajuste / Desconto Geral do Dia".</li>
+                    <li>Clique em <strong>Salvar Fechamento do Dia</strong>.</li>
+                </ol>
+                <p class="text-sm text-hex_success mt-3">Pronto. O sistema sozinho: <strong>baixa do estoque</strong> os ingredientes de cada lanche, <strong>calcula as taxas</strong> do iFood/UaiRango/maquininha, <strong>paga os motoboys</strong> e joga tudo no caixa do dia.</p>
+                <p class="text-xs text-hex_gold_dim/70 mt-1">Esqueceu um lanche ou errou o número? Abra <strong>o mesmo dia</strong> de novo, ajuste a quantidade e salve outra vez — ele apaga o antigo e refaz a conta.</p>
+            </div>
+
+            <!-- Comprar insumo -->
             <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
                 <div class="flex items-start justify-between gap-3">
                     <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="shopping-cart" class="w-4 h-4 text-hex_gold"></i><span>Quando comprar insumo</span></h3>
                     <a href="{% url 'estoque_ajustar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
-                <p class="text-sm text-hex_gold_light/85 mt-2">Comprou carne, pão, queijo? Menu <strong>Lançar Entrada/Ajuste</strong> → tipo <strong>"Entrada"</strong> → o insumo, a quantidade (kg, litro, unidade) e quanto pagou. Isso já vira uma <strong>despesa paga</strong> e sobe o estoque.</p>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Comprou carne, pão, queijo, refrigerante? Menu <strong>Lançar Entrada/Ajuste</strong> → tipo <strong>"Entrada (Compra / Reposição)"</strong> → o insumo, a quantidade (kg, litro, unidade) e quanto pagou no total ou por unidade. Isso <strong>já vira uma despesa paga</strong> e sobe o estoque. O custo do insumo se ajusta sozinho pela média.</p>
             </div>
 
+            <!-- Pagar conta -->
             <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
                 <div class="flex items-start justify-between gap-3">
                     <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-hex_gold"></i><span>Quando pagar uma conta</span></h3>
                     <a href="{% url 'despesa_listar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
-                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Custos &amp; Despesas</strong> → aba <strong>Contas a Pagar</strong> → botão <strong>Pagar</strong> na conta → confirme a <strong>data</strong> que pagou. O valor só sai do caixa nesse dia.</p>
-                <p class="text-sm text-hex_gold_light/85 mt-2"><strong>Conta que só vou pagar depois</strong> (um conserto, por ex.): clique em <strong>Lançar Despesa Avulsa</strong>, coloque o valor e a data prevista, deixe em "Previsto". No dia que pagar, é o botão Pagar. <strong>Comprou parcelado?</strong> Preencha o campo "Parcelas".</p>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Custos &amp; Despesas</strong> → aba <strong>Contas a Pagar</strong>. Ache a conta:</p>
+                <ul class="mt-1.5 text-sm text-hex_gold_light/85 list-disc list-inside marker:text-hex_gold">
+                    <li>Valor bate? Clique em <strong>Pagar</strong> → confirme a <strong>data em que pagou</strong> → Confirmar. Sai do caixa nesse dia.</li>
+                    <li>Valor veio diferente (a luz, por ex.)? Primeiro o <strong>lápis (editar)</strong> → corrija o valor → salve. Depois clique em <strong>Pagar</strong>.</li>
+                </ul>
             </div>
 
+            <!-- Autoconsumo / perda -->
             <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
                 <div class="flex items-start justify-between gap-3">
-                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="utensils" class="w-4 h-4 text-hex_gold"></i><span>Comeram um lanche ou estragou algo</span></h3>
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="utensils" class="w-4 h-4 text-hex_gold"></i><span>Comeram um lanche ou algo estragou</span></h3>
                     <a href="{% url 'estoque_ajustar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
-                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Lançar Entrada/Ajuste</strong> → tipo <strong>"Autoconsumo"</strong> (a família comeu) ou <strong>"Perda / Descarte"</strong> (estragou). Só baixa do estoque — não vira despesa nova, porque o insumo já foi pago quando comprou.</p>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Lançar Entrada/Ajuste</strong> → tipo <strong>"Autoconsumo"</strong> (a família / a equipe comeu) ou <strong>"Perda / Descarte"</strong> (estragou, caiu no chão). Só baixa do estoque — <strong>não vira despesa nova</strong>, porque o insumo já foi pago quando comprou. O relatório mostra "autoconsumo" e "perdas" separados, pra vocês verem quanto some por mês.</p>
             </div>
 
+            <!-- Sino -->
             <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
-                <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="bell" class="w-4 h-4 text-hex_gold"></i><span>O sino no topo</span></h3>
-                <p class="text-sm text-hex_gold_light/85 mt-2">Acende quando tem conta atrasada ou vencendo em até 3 dias. Clique nele para ver e pagar.</p>
+                <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="bell" class="w-4 h-4 text-hex_gold"></i><span>O sino no topo da tela</span></h3>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Acende quando tem conta <strong>atrasada</strong> ou <strong>vencendo em até 3 dias</strong>. Clique nele para ver a lista e pagar direto.</p>
             </div>
 
         </div>
@@ -231,7 +318,7 @@
                     <a href="{% url 'dashboard' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
                 <ul class="mt-2 space-y-1.5 text-sm text-hex_gold_light/85 list-disc list-inside marker:text-hex_gold">
-                    <li><strong>Resultado de Caixa do mês</strong> — quanto sobrou de dinheiro esse mês.</li>
+                    <li><strong>Resultado de Caixa do mês</strong> — quanto sobrou de dinheiro esse mês (entrou menos pago).</li>
                     <li><strong>Caixa acumulado</strong> e <strong>Valor do estoque</strong> — a "foto" da empresa; não zera de um mês pro outro.</li>
                     <li><strong>Margem por lanche</strong> — se o preço de cada lanche está bom.</li>
                 </ul>
@@ -241,17 +328,18 @@
                     <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="trending-up" class="w-4 h-4 text-hex_blue"></i><span>Fluxo de Caixa</span></h3>
                     <a href="{% url 'fluxo_caixa_projetado' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
-                <p class="text-sm text-hex_gold_light/85 mt-2">Mostra os próximos 6 meses. Se algum mês aparecer <span class="text-hex_danger font-semibold">em vermelho</span>, é aviso: pode faltar dinheiro pra pagar as contas — hora de segurar uma compra ou vender mais.</p>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Mostra os próximos 6 meses. Se um mês aparecer <span class="text-hex_danger font-semibold">em vermelho</span>, é aviso: pode faltar dinheiro para as contas — hora de segurar uma compra grande ou reforçar as vendas.</p>
             </div>
         </div>
     </section>
 
     <!-- Regras de ouro -->
     <div class="bg-hex_gold/10 border border-hex_gold/40 rounded p-6">
-        <h3 class="font-bold title-hex text-hex_gold text-lg mb-3 flex items-center space-x-2"><i data-lucide="star" class="w-5 h-5 text-hex_gold"></i><span>4 regras de ouro</span></h3>
+        <h3 class="font-bold title-hex text-hex_gold text-lg mb-3 flex items-center space-x-2"><i data-lucide="star" class="w-5 h-5 text-hex_gold"></i><span>5 regras de ouro</span></h3>
         <ul class="space-y-2 text-sm text-hex_gold_light/90 list-disc list-inside marker:text-hex_gold">
             <li>Tudo que vocês mudarem (um preço, uma taxa, o custo de um insumo) <strong>vale daí pra frente</strong>. O passado não muda.</li>
             <li><strong>"Carga Inicial"</strong> só no começo. Depois, toda compra é <strong>"Entrada"</strong>.</li>
+            <li>Conta que se repete todo mês → <strong>Molde</strong>. Gasto de uma vez → <strong>Despesa Avulsa</strong>. Vai pagar depois → deixe <strong>"Previsto"</strong> e pague no dia.</li>
             <li>O preço do lanche <strong>não muda sozinho</strong> — só quando vocês decidirem. O custo dele, sim, acompanha o preço dos insumos.</li>
             <li>Errou? Abre, corrige e salva. Ou apaga e refaz. Sem drama.</li>
         </ul>

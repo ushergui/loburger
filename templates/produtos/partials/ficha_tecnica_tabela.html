@@ -55,5 +55,12 @@
         var alvo = document.getElementById('tabela-precos-canais');
         if (alvo && window.htmx) { htmx.trigger(alvo, 'recalcular-margem'); }
         if (window.lucide) { lucide.createIcons(); }
+        // Confirmação visual: só depois da primeira carga (ou seja, num swap real do HTMX)
+        if (window.__fichaCarregada) {
+            window.dispatchEvent(new CustomEvent('toast', {
+                detail: { message: 'Ficha técnica atualizada e salva.', type: 'success' }
+            }));
+        }
+        window.__fichaCarregada = true;
     })();
 </script>

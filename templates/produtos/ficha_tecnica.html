@@ -21,7 +21,12 @@
             <i data-lucide="chef-hat" class="w-5 h-5 text-hex_gold"></i>
             <span>Ficha Técnica (Montagem da Receita)</span>
         </h2>
-        
+
+        <div class="bg-hex_success/10 border border-hex_success/30 rounded p-3 mb-5 text-xs text-hex_gold_light/90 flex items-start space-x-2">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-hex_success shrink-0 mt-0.5"></i>
+            <span><strong>Não existe botão "Salvar" aqui.</strong> Cada ingrediente ou produto é gravado na hora em que você clica em <strong>Adicionar</strong>, e some na hora em que você clica no <strong>x</strong>. O mesmo vale para os preços ao lado. Quando terminar, é só clicar em <strong>Concluir</strong> lá embaixo.</span>
+        </div>
+
         <!-- Formulário rápido para adicionar ingrediente via HTMX -->
         <form 
             hx-post="{% url 'ficha_tecnica_montar' produto.id %}" 
@@ -106,5 +111,18 @@
             {% include "produtos/partials/precos_canais_tabela.html" %}
         </div>
     </div>
+</div>
+
+<!-- Ação de saída: tudo já está salvo, este botão só leva de volta -->
+<div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-3 bg-hex_dark_card border border-hex_gold/30 p-4 rounded shadow-lg">
+    <p class="text-xs text-hex_gold_dim/70">
+        <i data-lucide="shield-check" class="w-4 h-4 inline text-hex_success"></i>
+        Ficha e preços de <strong class="text-hex_gold_light">{{ produto.nome }}</strong> salvos automaticamente.
+    </p>
+    <a href="{% url 'produto_listar' %}"
+       class="w-full sm:w-auto text-center bg-hex_gold hover:bg-hex_blue text-hex_dark_bg hover:text-white font-bold py-2.5 px-8 rounded transition-all uppercase tracking-wider text-xs border border-hex_gold/40 shadow-hex-gold flex items-center justify-center space-x-2">
+        <i data-lucide="check" class="w-4 h-4"></i>
+        <span>Concluir e voltar ao Cardápio</span>
+    </a>
 </div>
 {% endblock %}

@@ -4,7 +4,7 @@ from django.utils import timezone
 from core.utils import parse_numero_ptbr
 from .models import (
     Despesa, DespesaRecorrente, CATEGORIA_CHOICES, CATEGORIAS_AUTOMATICAS,
-    tipo_por_categoria,
+    FREQUENCIA_CHOICES, tipo_por_categoria,
 )
 
 CATEGORIAS_MANUAIS = [(v, l) for v, l in CATEGORIA_CHOICES if v not in CATEGORIAS_AUTOMATICAS]
@@ -101,9 +101,15 @@ class DespesaForm(ThemeFormMixin, forms.ModelForm):
 
     parcelas = forms.IntegerField(
         required=False, min_value=1, max_value=60, initial=1,
-        label="Parcelas",
-        help_text="Deixe 1 para pagamento único. Para uma compra em Nx, o valor acima é o TOTAL — o sistema divide em N contas previstas, uma por mês.",
+        label="Dividir em quantas vezes?",
+        help_text="1 = pagamento único. Mais de 1 = o valor acima é o TOTAL; o sistema "
+                  "cria uma conta prevista para cada parcela, espaçadas pela frequência abaixo.",
         widget=forms.NumberInput(attrs={'min': 1, 'max': 60}),
+    )
+
+    frequencia_parcelas = forms.ChoiceField(
+        required=False, choices=FREQUENCIA_CHOICES, initial='MENSAL',
+        label="A cada quanto tempo vence uma parcela?",
     )
 
     class Meta:
@@ -139,6 +145,7 @@ class DespesaForm(ThemeFormMixin, forms.ModelForm):
         # Parcelamento só na criação (não na edição de uma despesa existente)
         if self.instance and self.instance.pk:
             self.fields.pop('parcelas', None)
+            self.fields.pop('frequencia_parcelas', None)
 
     def clean(self):
         cleaned_data = super().clean()

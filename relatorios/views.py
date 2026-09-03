@@ -15,7 +15,7 @@ from vendas.models import Pedido, PedidoItem, CanalVenda
 from produtos.models import Produto
 from .models import (
     Despesa, DespesaRecorrente, CATEGORIA_CHOICES, CATEGORIAS_AUTOMATICAS,
-    tipo_por_categoria,
+    FREQUENCIA_CHOICES, tipo_por_categoria, avancar_data,
 )
 from .forms import DespesaForm, DespesaRecorrenteForm
 from . import services
@@ -23,15 +23,6 @@ from . import services
 MESES_PROJECAO_PADRAO = 12
 DIAS_ALERTA_URGENTE = 3   # badge do sino: atrasadas + vence em ≤ 3 dias
 DIAS_ALERTA_LISTA = 7     # o que aparece na lista de "próximas"
-
-
-def _dia_vencimento(mes_ref, dia):
-    """Dia do mês, ajustando para o último dia se o mês não tiver esse dia (ex: 31/fev)."""
-    try:
-        return mes_ref.replace(day=dia)
-    except ValueError:
-        ultimo = calendar.monthrange(mes_ref.year, mes_ref.month)[1]
-        return mes_ref.replace(day=ultimo)
 
 
 def _horizonte_recorrente(rec, hoje):
@@ -517,15 +508,6 @@ def despesa_pagar_lote(request):
     return redirect('despesa_listar')
 
 
-def _add_meses(d, n):
-    """Soma n meses a uma data, ajustando o dia se o mês for menor."""
-    total = d.month - 1 + n
-    ano = d.year + total // 12
-    mes = total % 12 + 1
-    ultimo = calendar.monthrange(ano, mes)[1]
-    return d.replace(year=ano, month=mes, day=min(d.day, ultimo))
-
-
 @login_required
 @gestao_required
 def despesa_criar(request):
@@ -541,6 +523,8 @@ def despesa_criar(request):
                 total = cd['valor']
                 base = (total / parcelas).quantize(Decimal('0.01'))
                 desc_base = cd['descricao']
+                freq = cd.get('frequencia_parcelas') or 'MENSAL'
+                freq_label = dict(FREQUENCIA_CHOICES).get(freq, freq).split(' (')[0].lower()
                 for i in range(1, parcelas + 1):
                     valor_i = base if i < parcelas else (total - base * (parcelas - 1))
                     Despesa.objects.create(
@@ -548,11 +532,11 @@ def despesa_criar(request):
                         credor=cd.get('credor', ''),
                         tipo=tipo_por_categoria(cd['categoria']), categoria=cd['categoria'],
                         valor=valor_i, status='PREVISTO',
-                        data_vencimento=_add_meses(cd['data_vencimento'], i - 1),
+                        data_vencimento=avancar_data(cd['data_vencimento'], freq, i - 1),
                         observacao=cd.get('observacao') or '',
                         grupo_parcelas=grupo, parcela_num=i, parcela_total=parcelas,
                     )
-                messages.success(request, f"'{desc_base}' lançada em {parcelas}x de R$ {base} (parcelas previstas em Contas a Pagar).")
+                messages.success(request, f"'{desc_base}' lançada em {parcelas}x de R$ {base} ({freq_label}) — parcelas previstas em Contas a Pagar.")
             else:
                 despesa = form.save()
                 messages.success(request, f"Despesa '{despesa.descricao}' — R$ {despesa.valor} — cadastrada.")

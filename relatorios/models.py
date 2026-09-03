@@ -60,6 +60,21 @@ FREQUENCIA_MESES = {
 FREQUENCIA_DIAS = {'SEMANAL': 7, 'QUINZENAL': 14}
 
 
+def avancar_data(d, frequencia, passos=1):
+    """A data `passos` intervalos à frente de `d`, respeitando a frequência.
+    Meses: mantém o dia, ajustando para o último dia se o mês for menor."""
+    import calendar as _cal
+    from datetime import timedelta
+    if frequencia in FREQUENCIA_DIAS:
+        return d + timedelta(days=FREQUENCIA_DIAS[frequencia] * passos)
+    meses = FREQUENCIA_MESES.get(frequencia, 1) * passos
+    total = d.month - 1 + meses
+    ano = d.year + total // 12
+    mes = total % 12 + 1
+    ultimo = _cal.monthrange(ano, mes)[1]
+    return d.replace(year=ano, month=mes, day=min(d.day, ultimo))
+
+
 class DespesaRecorrente(models.Model):
     descricao = models.CharField(max_length=150, verbose_name="Descrição da Despesa")
     credor = models.CharField(max_length=120, blank=True, default='', verbose_name="Fornecedor / Credor")
@@ -79,16 +94,7 @@ class DespesaRecorrente(models.Model):
 
     def proxima_data(self, d):
         """A data seguinte, a partir de `d`, respeitando a frequência."""
-        from datetime import timedelta
-        if self.frequencia in FREQUENCIA_DIAS:
-            return d + timedelta(days=FREQUENCIA_DIAS[self.frequencia])
-        meses = FREQUENCIA_MESES.get(self.frequencia, 1)
-        total = d.month - 1 + meses
-        ano = d.year + total // 12
-        mes = total % 12 + 1
-        import calendar as _cal
-        ultimo = _cal.monthrange(ano, mes)[1]
-        return d.replace(year=ano, month=mes, day=min(d.day, ultimo))
+        return avancar_data(d, self.frequencia)
 
 
 class Despesa(models.Model):

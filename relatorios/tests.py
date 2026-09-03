@@ -160,6 +160,30 @@ class ParcelamentoTests(TestCase):
         self.assertTrue(all(p.status == 'PREVISTO' for p in parcelas))
         self.assertTrue(all(p.grupo_parcelas == parcelas[0].grupo_parcelas for p in parcelas))
 
+    def test_parcelas_semanais(self):
+        from django.test import Client
+        c = Client(); c.force_login(self.u)
+        c.post('/relatorios/despesas/novo/', {
+            'descricao': 'Acordo verbal', 'categoria': 'OUTROS', 'valor': '300,00',
+            'data_vencimento': '2026-10-05', 'parcelas': '3',
+            'frequencia_parcelas': 'SEMANAL', 'observacao': '',
+        })
+        ps = list(Despesa.objects.filter(descricao__startswith='Acordo verbal').order_by('parcela_num'))
+        self.assertEqual(len(ps), 3)
+        self.assertEqual([str(p.data_vencimento) for p in ps],
+                         ['2026-10-05', '2026-10-12', '2026-10-19'])
+
+    def test_parcelas_quinzenais(self):
+        from django.test import Client
+        c = Client(); c.force_login(self.u)
+        c.post('/relatorios/despesas/novo/', {
+            'descricao': 'Peca da moto', 'categoria': 'VEICULO', 'valor': '400,00',
+            'data_vencimento': '2026-10-10', 'parcelas': '2',
+            'frequencia_parcelas': 'QUINZENAL', 'observacao': '',
+        })
+        ps = list(Despesa.objects.filter(descricao__startswith='Peca da moto').order_by('parcela_num'))
+        self.assertEqual([str(p.data_vencimento) for p in ps], ['2026-10-10', '2026-10-24'])
+
 
 class LancamentoDespesaTests(TestCase):
     def setUp(self):

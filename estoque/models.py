@@ -12,7 +12,7 @@ class MovimentacaoEstoque(models.Model):
     )
 
     ingrediente = models.ForeignKey('produtos.Ingrediente', on_delete=models.CASCADE, related_name='movimentacoes', verbose_name="Ingrediente / Insumo")
-    quantidade = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Quantidade")
+    quantidade = models.DecimalField(max_digits=12, decimal_places=3, verbose_name="Quantidade")
     tipo = models.CharField(max_length=20, choices=TIPOS_MOVIMENTACAO, verbose_name="Tipo de Movimentação")
     valor_unitario = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True, verbose_name="Custo Unitário da Compra (R$)")
     data_movimentacao = models.DateTimeField(auto_now_add=True, verbose_name="Data / Hora")

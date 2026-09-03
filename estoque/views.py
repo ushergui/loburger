@@ -174,10 +174,14 @@ def estoque_ajustar(request):
             # Salva a atualização física do insumo e a movimentação no banco
             ingrediente.save()
             mov.save()
-            
+
             return redirect('estoque_resumo')
-    ingrediente_selecionado = None
-    if request.method != 'POST':
+        else:
+            # POST inválido: mantém o insumo escolhido visível no formulário
+            messages.error(request, "Não foi possível salvar a movimentação. Confira os campos destacados abaixo.")
+            ingrediente_selecionado = Ingrediente.objects.filter(id=request.POST.get('ingrediente') or 0).first()
+    else:
+        ingrediente_selecionado = None
         ingrediente_id = request.GET.get('ingrediente_id')
         if ingrediente_id:
             ingrediente_selecionado = get_object_or_404(Ingrediente, id=ingrediente_id)
@@ -187,7 +191,7 @@ def estoque_ajustar(request):
             })
         else:
             form = MovimentacaoEstoqueForm()
-        
+
     return render(request, 'estoque/ajuste_form.html', {
         'form': form,
         'titulo': "Lançar Movimentação de Estoque Manual",

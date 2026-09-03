@@ -26,7 +26,17 @@
             unidade_compra: '{% if ingrediente_selecionado %}{{ ingrediente_selecionado.unidade_compra }}{% elif form.instance.ingrediente %}{{ form.instance.ingrediente.unidade_compra }}{% else %}un{% endif %}'
         }" x-init="tipo = document.getElementById('id_tipo').value" @change="tipo = document.getElementById('id_tipo').value">
             {% csrf_token %}
-            
+
+            {% if form.errors %}
+            <div class="bg-red-950/50 border border-red-500/60 text-red-200 text-sm rounded p-4">
+                <p class="font-bold mb-1.5 flex items-center space-x-1.5"><i data-lucide="alert-triangle" class="w-4 h-4"></i><span>Não foi possível salvar. Confira:</span></p>
+                <ul class="list-disc list-inside space-y-0.5 text-xs">
+                    {% for field in form %}{% for erro in field.errors %}<li><strong>{{ field.label }}:</strong> {{ erro }}</li>{% endfor %}{% endfor %}
+                    {% for erro in form.non_field_errors %}<li>{{ erro }}</li>{% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
             <div class="space-y-5">
                 <!-- Ingrediente (Busca AJAX reativa) -->
                 <div class="relative">
@@ -99,25 +109,13 @@
                     </div>
                 </div>
 
-                <!-- Valor Unitário (Custo da Compra) - Reativo via Alpine.js -->
-                <div x-show="tipo === 'ENTRADA'" x-transition class="bg-hex_dark_bg/30 border border-hex_gold/20 p-4 rounded space-y-2 mt-4">
+                <!-- Valor Unitário (Custo da Compra) — obrigatório para Entrada e Carga Inicial -->
+                <div x-show="tipo === 'ENTRADA' || tipo === 'ABERTURA'" x-transition class="bg-hex_dark_bg/30 border border-hex_gold/20 p-4 rounded space-y-2 mt-4">
                     <label for="{{ form.valor_unitario.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_blue font-bold">
                         Custo Unitário da Compra (R$ / <span class="font-mono text-hex_gold" x-text="unidade_compra"></span>) <span class="text-hex_gold font-bold">*</span>
                     </label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold_dim/50 text-xs">R$</span>
-                        <input 
-                            type="number" 
-                            name="valor_unitario" 
-                            id="id_valor_unitario" 
-                            step="0.0001" 
-                            :required="tipo === 'ENTRADA'"
-                            class="w-full bg-hex_dark_bg/80 border border-hex_gold/30 rounded py-2 pl-9 pr-3 text-hex_gold_light focus:outline-none focus:border-hex_blue transition-all"
-                            value="{{ form.valor_unitario.value|default:'' }}"
-                            placeholder="Ex: 3.50"
-                        >
-                    </div>
-                    <p class="text-xxs text-hex_gold_dim/50 mt-1">Informe o preço pago por unidade/quilo/grama/ml nesta compra. O sistema calculará o Custo Médio Ponderado automaticamente.</p>
+                    {{ form.valor_unitario }}
+                    <p class="text-xxs text-hex_gold_dim/50 mt-1">Preço pago por 1 <span x-text="unidade_compra"></span> nesta compra. Pode usar vírgula (ex.: <strong>35,50</strong>). O sistema calcula o Custo Médio Ponderado automaticamente.</p>
                     {% if form.valor_unitario.errors %}
                         <p class="text-red-400 text-xs mt-1">{{ form.valor_unitario.errors.0 }}</p>
                     {% endif %}

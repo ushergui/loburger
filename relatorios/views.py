@@ -34,10 +34,19 @@ def _dia_vencimento(mes_ref, dia):
         return mes_ref.replace(day=ultimo)
 
 
+def _horizonte_recorrente(rec, hoje):
+    """Até quando gerar faturas previstas de uma recorrente."""
+    if rec.frequencia in ('SEMANAL', 'QUINZENAL'):
+        return hoje + timedelta(days=90)     # ~3 meses de contas semanais
+    if rec.frequencia == 'ANUAL':
+        return hoje + timedelta(days=430)
+    return hoje + timedelta(days=370)         # ~12 meses das mensais/bimestrais...
+
+
 def gerar_despesas_fixas_pendentes(meses_a_frente=MESES_PROJECAO_PADRAO, forcar=False):
-    """Gera as faturas PREVISTAS dos moldes fixos: mês atual + N meses à frente.
-    Nunca gera nada para trás. Roda no máximo 1x por dia (guarda em ConfiguracaoFinanceira),
-    a menos que `forcar=True` (usado pelo comando de terminal)."""
+    """Gera as faturas PREVISTAS das despesas recorrentes, do primeiro vencimento
+    até o horizonte de cada frequência. Nunca gera nada muito para trás.
+    Roda no máximo 1x por dia (guarda em ConfiguracaoFinanceira), salvo forcar=True."""
     from vendas.models import ConfiguracaoFinanceira
 
     hoje = timezone.localdate()
@@ -45,35 +54,36 @@ def gerar_despesas_fixas_pendentes(meses_a_frente=MESES_PROJECAO_PADRAO, forcar=
     if not forcar and config.ultima_geracao_recorrentes == hoje:
         return 0
 
-    y, m = hoje.year, hoje.month
-    meses_para_gerar = []
-    for _ in range(meses_a_frente + 1):
-        meses_para_gerar.append(date(y, m, 1))
-        y, m = (y + 1, 1) if m == 12 else (y, m + 1)
-
+    piso = hoje - timedelta(days=31)  # não recria um monte de contas atrasadas fantasma
     criadas = 0
-    for molde in DespesaRecorrente.objects.filter(ativa=True):
-        for mes_ref in meses_para_gerar:
-            data_venc = _dia_vencimento(mes_ref, molde.dia_vencimento)
-            existe = Despesa.objects.filter(
-                despesa_matriz=molde,
-                data_vencimento__year=data_venc.year,
-                data_vencimento__month=data_venc.month,
-            ).exists()
+    for rec in DespesaRecorrente.objects.filter(ativa=True):
+        if not rec.primeiro_vencimento:
+            continue
+        limite = _horizonte_recorrente(rec, hoje)
+        d = rec.primeiro_vencimento
+        guard = 0
+        while d < piso and guard < 800:
+            d = rec.proxima_data(d)
+            guard += 1
+        while d <= limite and guard < 800:
+            existe = Despesa.objects.filter(despesa_matriz=rec, data_vencimento=d).exists()
             if not existe:
                 Despesa.objects.create(
-                    descricao=molde.descricao,
-                    credor=molde.credor,
-                    tipo='FIXO',
-                    categoria=molde.categoria,
-                    valor=molde.valor_base,
+                    descricao=rec.descricao,
+                    credor=rec.credor,
+                    tipo=tipo_por_categoria(rec.categoria),
+                    categoria=rec.categoria,
+                    valor=rec.valor_base,
                     status='PREVISTO',
-                    data_vencimento=data_venc,
-                    despesa_matriz=molde,
+                    data_vencimento=d,
+                    despesa_matriz=rec,
                     origem='RECORRENTE',
-                    observacao=f"Gerada automaticamente pelo molde fixo #{molde.id}.",
+                    forma_pagamento='OUTRO',
+                    observacao=f"Gerada automaticamente pela despesa recorrente #{rec.id}.",
                 )
                 criadas += 1
+            d = rec.proxima_data(d)
+            guard += 1
 
     config.ultima_geracao_recorrentes = hoje
     config.save(update_fields=['ultima_geracao_recorrentes'])
@@ -81,21 +91,14 @@ def gerar_despesas_fixas_pendentes(meses_a_frente=MESES_PROJECAO_PADRAO, forcar=
 
 
 def propagar_molde_para_previstas(molde, a_partir_de=None):
-    """Depois de editar um molde, alinha as faturas PREVISTAS ainda não vencidas
-    (ou a partir de uma data) com o novo valor, credor e dia de vencimento."""
+    """Depois de editar uma recorrente: apaga as faturas PREVISTAS ainda não vencidas
+    e deixa a próxima geração recriá-las com o novo valor / frequência / datas."""
     hoje = timezone.localdate()
     corte = a_partir_de or hoje
-    futuras = Despesa.objects.filter(
+    apagadas = Despesa.objects.filter(
         despesa_matriz=molde, status='PREVISTO', data_vencimento__gte=corte,
-    )
-    for fut in futuras:
-        fut.valor = molde.valor_base
-        fut.credor = molde.credor
-        fut.categoria = molde.categoria
-        fut.descricao = molde.descricao
-        fut.data_vencimento = _dia_vencimento(fut.data_vencimento.replace(day=1), molde.dia_vencimento)
-        fut.save()
-    return futuras.count()
+    ).delete()[0]
+    return apagadas
 
 MESES_PT = {
     1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
@@ -485,6 +488,35 @@ def despesa_marcar_paga(request, id):
     })
 
 
+@login_required
+@gestao_required
+def despesa_pagar_lote(request):
+    """Marca várias contas previstas como pagas de uma vez (ex.: a fatura inteira
+    de um cartão), todas com a mesma data de pagamento."""
+    if request.method == 'POST':
+        ids = request.POST.getlist('ids')
+        data_str = (request.POST.get('data_pagamento') or '').strip()
+        try:
+            dp = datetime.strptime(data_str, '%Y-%m-%d').date() if data_str else timezone.localdate()
+        except ValueError:
+            dp = timezone.localdate()
+        qs = list(Despesa.objects.filter(id__in=ids, status='PREVISTO'))
+        total = sum((d.valor for d in qs), Decimal('0.00'))
+        for d in qs:
+            d.data_pagamento = dp
+            d.status = 'PAGO'
+            d.save()
+        if qs:
+            messages.success(
+                request,
+                f"{len(qs)} conta(s) — R$ {total:.2f} — marcada(s) como paga(s) em "
+                f"{dp.strftime('%d/%m/%Y')}. Debitado do caixa nesse dia."
+            )
+        else:
+            messages.info(request, "Nenhuma conta selecionada.")
+    return redirect('despesa_listar')
+
+
 def _add_meses(d, n):
     """Soma n meses a uma data, ajustando o dia se o mês for menor."""
     total = d.month - 1 + n
@@ -602,16 +634,16 @@ def despesa_editar(request, id):
         if form.is_valid():
             desp = form.save()
 
-            # Se veio de um molde e o usuário pediu, atualiza o molde e as previstas futuras
+            # Se veio de uma recorrente e o usuário pediu, atualiza a recorrente e regenera as previstas
             if form.cleaned_data.get('alterar_futuros') and desp.despesa_matriz:
-                molde = desp.despesa_matriz
-                molde.valor_base = desp.valor
-                molde.credor = desp.credor
-                molde.categoria = desp.categoria
-                molde.dia_vencimento = desp.data_vencimento.day
-                molde.save()
-                n = propagar_molde_para_previstas(molde, a_partir_de=desp.data_vencimento + timedelta(days=1))
-                messages.info(request, f"Molde fixo atualizado e {n} fatura(s) futura(s) realinhada(s).")
+                rec = desp.despesa_matriz
+                rec.valor_base = desp.valor
+                rec.credor = desp.credor
+                rec.categoria = desp.categoria
+                rec.save()
+                propagar_molde_para_previstas(rec, a_partir_de=desp.data_vencimento + timedelta(days=1))
+                gerar_despesas_fixas_pendentes(forcar=True)
+                messages.info(request, "Despesa recorrente atualizada e contas previstas futuras regeradas com o novo valor.")
 
             messages.success(request, f"Despesa '{despesa.descricao}' atualizada.")
             return redirect('despesa_listar')
@@ -646,57 +678,52 @@ def despesa_recorrente_criar(request):
         if form.is_valid():
             form.save()
             n = gerar_despesas_fixas_pendentes(forcar=True)
-            messages.success(request, f"Despesa fixa cadastrada. {n} fatura(s) prevista(s) gerada(s) para os próximos meses.")
+            messages.success(request, f"Despesa recorrente cadastrada. {n} conta(s) prevista(s) já gerada(s) em Contas a Pagar.")
             return redirect('despesa_listar')
     else:
         form = DespesaRecorrenteForm()
-        
+
     return render(request, 'relatorios/despesa_recorrente_form.html', {
         'form': form,
-        'titulo': "Cadastrar Despesa Fixa Recorrente"
+        'titulo': "Cadastrar Despesa Recorrente"
     })
 
 @login_required
 @gestao_required
 def despesa_recorrente_editar(request, id):
-    molde = get_object_or_404(DespesaRecorrente, id=id)
+    rec = get_object_or_404(DespesaRecorrente, id=id)
     if request.method == 'POST':
-        form = DespesaRecorrenteForm(request.POST, instance=molde)
+        form = DespesaRecorrenteForm(request.POST, instance=rec)
         if form.is_valid():
-            molde = form.save()
-            # Realinha as faturas previstas ainda não vencidas com o molde novo
-            n = propagar_molde_para_previstas(molde)
-            if not molde.ativa:
-                # Molde desativado: some com as previstas futuras não vencidas
-                apagadas = Despesa.objects.filter(
-                    despesa_matriz=molde, status='PREVISTO',
-                    data_vencimento__gte=timezone.localdate(),
-                ).delete()[0]
-                messages.info(request, f"Molde desativado. {apagadas} fatura(s) prevista(s) futura(s) removida(s).")
+            rec = form.save()
+            # Apaga as previstas futuras não vencidas e recria pela regra nova
+            apagadas = propagar_molde_para_previstas(rec)
+            if rec.ativa:
+                n = gerar_despesas_fixas_pendentes(forcar=True)
+                messages.info(request, f"{apagadas} conta(s) prevista(s) antiga(s) substituída(s) por {n} nova(s).")
             else:
-                gerar_despesas_fixas_pendentes(forcar=True)
-                messages.info(request, f"{n} fatura(s) prevista(s) realinhada(s) com o molde.")
-            messages.success(request, "Despesa fixa (molde) atualizada.")
+                messages.info(request, f"Recorrente desativada. {apagadas} conta(s) prevista(s) futura(s) removida(s).")
+            messages.success(request, "Despesa recorrente atualizada.")
             return redirect('despesa_listar')
     else:
-        form = DespesaRecorrenteForm(instance=molde)
+        form = DespesaRecorrenteForm(instance=rec)
 
     return render(request, 'relatorios/despesa_recorrente_form.html', {
         'form': form,
-        'titulo': f"Editar Molde: {molde.descricao}"
+        'titulo': f"Editar recorrente: {rec.descricao}"
     })
 
 @login_required
 @gestao_required
 def despesa_recorrente_excluir(request, id):
-    molde = get_object_or_404(DespesaRecorrente, id=id)
+    rec = get_object_or_404(DespesaRecorrente, id=id)
     if request.method == 'POST':
-        Despesa.objects.filter(despesa_matriz=molde, status='PREVISTO').delete()
-        molde.delete()
-        messages.success(request, "Despesa Fixa (Molde) e faturas previstas futuras excluídas com sucesso!")
+        Despesa.objects.filter(despesa_matriz=rec, status='PREVISTO').delete()
+        rec.delete()
+        messages.success(request, "Despesa recorrente e contas previstas futuras excluídas.")
         return redirect('despesa_listar')
-        
-    return render(request, 'relatorios/despesa_recorrente_confirm_delete.html', {'molde': molde})
+
+    return render(request, 'relatorios/despesa_recorrente_confirm_delete.html', {'rec': rec, 'molde': rec})
 
 def _rotular_vencimento(despesa, hoje):
     """Anota rótulo/urgência de uma conta prevista para exibição."""

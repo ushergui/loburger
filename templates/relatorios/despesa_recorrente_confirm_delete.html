@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Excluir Molde - LOL BURGUER{% endblock %}
+{% block title %}Excluir Recorrente - LOL BURGUER{% endblock %}
 
 {% block content %}
 <div class="mb-6 flex items-center space-x-2">
@@ -8,7 +8,7 @@
         <i data-lucide="arrow-left" class="w-6 h-6"></i>
     </a>
     <div>
-        <h1 class="text-2xl font-bold title-hex text-hex_danger">Excluir Molde de Despesa</h1>
+        <h1 class="text-2xl font-bold title-hex text-hex_danger">Excluir Recorrente de Despesa</h1>
         <p class="text-xs uppercase tracking-wider text-hex_blue">Confirmação de Exclusão</p>
     </div>
 </div>
@@ -22,14 +22,14 @@
         <div>
             <h2 class="text-lg font-bold text-white mb-2">Atenção! Ação Irreversível</h2>
             <p class="mb-3 text-sm text-hex_gold_dim/90">
-                Você está prestes a excluir o molde de despesa fixa <strong>"{{ molde.descricao }}"</strong> (Valor Base: R$ {{ molde.valor_base|floatformat:2 }}).
+                Você está prestes a excluir a despesa recorrente <strong>"{{ rec.descricao }}"</strong> (Valor Base: R$ {{ rec.valor_base|floatformat:2 }}).
             </p>
             <p class="mb-1 text-sm text-hex_gold_dim/90 font-semibold text-hex_danger">
                 O que acontecerá:
             </p>
             <ul class="list-disc list-inside text-sm text-hex_gold_dim/90 mb-3 ml-1">
-                <li>O sistema <strong>não gerará</strong> mais faturas mensais para este molde.</li>
-                <li>Todas as faturas futuras geradas por este molde com status <span class="text-amber-500 font-bold">PREVISTO</span> serão <strong>excluídas</strong>.</li>
+                <li>O sistema <strong>não gerará</strong> mais contas para esta recorrente.</li>
+                <li>Todas as faturas futuras geradas por ela com status <span class="text-amber-500 font-bold">PREVISTO</span> serão <strong>excluídas</strong>.</li>
                 <li>Faturas passadas que já foram pagas <strong>serão mantidas</strong> no sistema.</li>
             </ul>
         </div>
@@ -43,7 +43,7 @@
             </a>
             <button type="submit" class="bg-hex_danger/20 hover:bg-hex_danger text-hex_danger hover:text-white font-bold py-2 px-5 rounded transition-all uppercase tracking-wider text-xs border border-hex_danger/50 flex items-center">
                 <i data-lucide="trash-2" class="w-4 h-4 mr-1.5"></i>
-                Sim, Excluir Molde
+                Sim, Excluir Recorrente
             </button>
         </div>
     </form>

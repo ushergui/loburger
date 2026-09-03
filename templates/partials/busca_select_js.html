@@ -1,0 +1,24 @@
+{# Componente Alpine reutilizável: campo de texto que filtra uma lista (json_script).
+   Uso:  <div x-data="buscaSelect('id-do-json-script')"> ... </div>
+   Expõe: q (texto), open (bool), sel (id escolhido), itens, lista (filtrada),
+          escolher(o), limpar()  #}
+<script>
+    document.addEventListener('alpine:init', () => {
+        if (window.Alpine && Alpine.__buscaSelectRegistrado) return;
+        if (window.Alpine) Alpine.__buscaSelectRegistrado = true;
+        Alpine.data('buscaSelect', (dadosId) => ({
+            q: '', open: false, sel: '', itens: [],
+            init() {
+                try { this.itens = JSON.parse(document.getElementById(dadosId).textContent) || []; }
+                catch (e) { this.itens = []; }
+            },
+            get lista() {
+                const t = this.q.trim().toLowerCase();
+                const arr = t ? this.itens.filter(i => i.nome.toLowerCase().includes(t)) : this.itens;
+                return arr.slice(0, 40);
+            },
+            escolher(o) { this.sel = String(o.id); this.q = o.nome; this.open = false; },
+            limpar() { this.sel = ''; this.q = ''; },
+        }));
+    });
+</script>

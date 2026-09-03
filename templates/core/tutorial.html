@@ -140,18 +140,18 @@
                 </div>
                 <p class="text-sm text-hex_gold_light/90 mt-2">Menu <strong>Custos &amp; Despesas</strong>. Existem <strong>dois jeitos</strong> de lançar, e a escolha é simples:</p>
 
-                <!-- 7a: molde / conta fixa -->
+                <!-- 7a: recorrente -->
                 <div class="mt-4 bg-hex_dark_bg/50 border border-hex_dark_border rounded p-4">
-                    <p class="text-sm font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="repeat" class="w-4 h-4 text-hex_blue"></i><span>A) Conta que se repete todo mês → <span class="text-hex_blue">Molde</span></span></p>
-                    <p class="text-sm text-hex_gold_light/85 mt-1">Aluguel, luz, água, internet, gás, MEI/DAS, contador, mensalidade do app próprio, material de limpeza que compra sempre...
-                    <strong>Mesmo que o valor mude um pouco a cada mês</strong> (a luz nunca vem igual), é aqui.</p>
+                    <p class="text-sm font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="repeat" class="w-4 h-4 text-hex_blue"></i><span>A) Conta que se repete → <span class="text-hex_blue">Despesa Recorrente</span></span></p>
+                    <p class="text-sm text-hex_gold_light/85 mt-1">Aluguel, luz, água, internet, gás, MEI/DAS, contador, mensalidade do app próprio, a feira que compra toda semana...
+                    <strong>Mesmo que o valor mude um pouco</strong> (a luz nunca vem igual), é aqui.</p>
                     <ol class="mt-2 space-y-1.5 text-sm text-hex_gold_light/85 list-decimal list-inside marker:text-hex_blue">
-                        <li>Na página, seção <strong>"Despesas Fixas Automáticas (Moldes)"</strong> → botão <strong>Novo Molde</strong>.</li>
-                        <li>Preencha: <strong>Descrição</strong> (ex.: "Energia elétrica"), <strong>Fornecedor / Credor</strong> (ex.: "CEMIG"), <strong>Categoria</strong> (ex.: "Energia Elétrica (luz)"), <strong>Dia do vencimento</strong> (ex.: 15) e o <strong>Valor base previsto</strong> — coloque a <strong>média</strong> dos últimos meses (ex.: 480,00).</li>
-                        <li>Salvar. O sistema <strong>já cria sozinho</strong> as contas previstas dos próximos 12 meses, todo dia 15.</li>
+                        <li>Na página, seção <strong>"Despesas Recorrentes"</strong> → botão <strong>Nova Recorrente</strong>.</li>
+                        <li>Preencha: <strong>Descrição</strong> (ex.: "Energia elétrica"), <strong>Credor</strong> (ex.: "CEMIG"), <strong>Categoria</strong>, o <strong>Valor base</strong> (a média), a <strong>Frequência</strong> (semanal, quinzenal, mensal, bimestral, trimestral, semestral ou anual) e a <strong>Primeira data de vencimento</strong>.</li>
+                        <li>Salvar. O sistema <strong>já cria sozinho</strong> as próximas contas previstas, na frequência que você escolheu.</li>
                     </ol>
                     <p class="text-sm text-hex_gold_light/90 mt-2 bg-hex_blue/10 border border-hex_blue/30 rounded p-2">
-                        <strong>Quando a conta de luz chegar</strong> com o valor real (ex.: R$ 523,90): vá na aba <strong>Contas a Pagar</strong>, ache a linha daquele mês, clique no <strong>lápis (editar)</strong>, troque o valor para 523,90 e salve. Depois é só clicar em <strong>Pagar</strong>. Se quiser que os <strong>próximos meses</strong> também passem a usar esse novo valor, marque a caixinha <em>"Atualizar este novo valor e data para os próximos meses"</em>.
+                        <strong>Quando a conta de luz chegar</strong> com o valor real (ex.: R$ 523,90): aba <strong>Contas a Pagar</strong>, ache a linha do mês, clique no <strong>lápis (editar)</strong>, troque o valor e salve. Depois clique em <strong>Pagar</strong>. Para mudar o valor dos <strong>próximos meses</strong> também, marque <em>"Atualizar este novo valor... para os próximos meses"</em>.
                     </p>
                 </div>
 
@@ -166,17 +166,18 @@
                         <li><strong>Tipo</strong>: "Custo Variável" (muda conforme o movimento, ex.: embalagem) ou "Custo Fixo" (não depende do movimento).</li>
                         <li><strong>Categoria</strong>: a que mais parece (Manutenção, Materiais de Limpeza, Impostos, Outros...).</li>
                         <li><strong>Valor</strong>: quanto é (ex.: 250,00).</li>
-                        <li><strong>Status</strong>:
+                        <li><strong>Data de vencimento / previsão</strong>: quando vence (ou quando planeja pagar).</li>
+                        <li><strong>"Já paguei esta despesa"</strong>:
                             <div class="mt-1 ml-4 space-y-1 text-xs text-hex_gold_light/80">
-                                <div>• <strong>Já paguei</strong> → escolha <em>"Pago"</em> e ponha a <strong>data do pagamento</strong>. Sai do caixa nesse dia.</div>
-                                <div>• <strong>Vou pagar depois</strong> (o cara cobra em 20 dias) → deixe <em>"Previsto"</em> e ponha a <strong>data de vencimento</strong> (a data prevista). Fica na aba <strong>Contas a Pagar</strong>, e o dinheiro <strong>só sai</strong> quando você clicar em <strong>Pagar</strong> lá, no dia certo.</div>
+                                <div>• <strong>Deixe DESMARCADO</strong> se ainda vai pagar (o cara cobra em 20 dias). Entra em <strong>Contas a Pagar</strong> e o dinheiro <strong>só sai</strong> quando você clicar em <strong>Pagar</strong>, no dia certo.</div>
+                                <div>• <strong>Marque</strong> só se o dinheiro já saiu — aí aparece a <strong>data do pagamento</strong> (em branco = hoje).</div>
                             </div>
                         </li>
-                        <li><strong>Parcelado?</strong> No campo <strong>Parcelas</strong> ponha o número de vezes (ex.: 3). O valor que você digitou é o <strong>total</strong>; o sistema cria 3 contas previstas, uma por mês.</li>
+                        <li><strong>Parcelado?</strong> No campo <strong>Parcelas</strong> ponha o número de vezes (ex.: 3). O valor é o <strong>total</strong>; o sistema cria 3 contas previstas, uma por mês.</li>
                         <li>Salvar.</li>
                     </ol>
                 </div>
-                <p class="text-xs text-hex_gold_dim/70 mt-3">Taxas do iFood/UaiRango, maquininha, motoboy e compra de insumo <strong>não</strong> se lança aqui — o sistema cria sozinho (no Fechamento e na entrada de estoque).</p>
+                <p class="text-xs text-hex_gold_dim/70 mt-3">Taxas do iFood/UaiRango, maquininha, motoboy e compra de insumo <strong>não</strong> se lança aqui — o sistema cria sozinho (no Fechamento e ao Registrar Compra).</p>
             </div>
 
             <!-- 8 - ESTOQUE INICIAL (detalhado) -->
@@ -187,7 +188,7 @@
                 </div>
                 <p class="text-sm text-hex_gold_light/90 mt-2">O sistema começa com <strong>estoque zerado</strong>. Antes de abrir a loja, façam uma <strong>contagem física</strong> — abram a geladeira, o freezer, a despensa — e lancem o que tem:</p>
                 <ol class="mt-3 space-y-2 text-sm text-hex_gold_light/90 list-decimal list-inside marker:text-hex_gold">
-                    <li>Menu <strong>Lançar Entrada/Ajuste</strong>.</li>
+                    <li>Menu <strong>Ajuste / Perda / Abertura</strong>.</li>
                     <li><strong>Ingrediente</strong>: escolha o insumo.</li>
                     <li><strong>Tipo</strong>: <strong>"Carga Inicial / Abertura — NÃO gera despesa"</strong>.</li>
                     <li><strong>Quantidade</strong>: quanto tem, <strong>na unidade de compra</strong>. Comprou 5 kg e 450 g de carne? Digite <strong>5,450</strong>. Tem 30 pães? Digite <strong>30</strong>.</li>
@@ -195,7 +196,7 @@
                     <li>Salvar. Repita para <strong>cada</strong> insumo que tem em casa.</li>
                 </ol>
                 <p class="text-sm text-hex_warning mt-3 font-semibold">"Carga Inicial" NÃO é despesa e NÃO mexe no caixa — é só dizer o ponto de partida.</p>
-                <p class="text-xs text-hex_gold_dim/70 mt-1">Errou a quantidade? Faça outra "Carga Inicial" com a diferença, ou use <em>"Perda / Descarte"</em> pra tirar o excesso. Depois que a loja abrir, <strong>toda compra é "Entrada"</strong> (aí sim vira despesa paga).</p>
+                <p class="text-xs text-hex_gold_dim/70 mt-1">Errou a quantidade? Faça outra "Carga Inicial" com a diferença, ou use <em>"Perda / Descarte"</em> pra tirar o excesso. Depois que a loja abrir, <strong>toda compra é registrada no menu "Registrar Compra"</strong> (aí sim vira despesa).</p>
             </div>
 
             <!-- 9 - caixa inicial -->
@@ -266,10 +267,21 @@
             <!-- Comprar insumo -->
             <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
                 <div class="flex items-start justify-between gap-3">
-                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="shopping-cart" class="w-4 h-4 text-hex_gold"></i><span>Quando comprar insumo</span></h3>
-                    <a href="{% url 'estoque_ajustar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                    <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="shopping-cart" class="w-4 h-4 text-hex_gold"></i><span>Voltou do mercado com a notinha</span></h3>
+                    <a href="{% url 'estoque_compra' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
-                <p class="text-sm text-hex_gold_light/85 mt-2">Comprou carne, pão, queijo, refrigerante? Menu <strong>Lançar Entrada/Ajuste</strong> → tipo <strong>"Entrada (Compra / Reposição)"</strong> → o insumo, a quantidade (kg, litro, unidade) e quanto pagou no total ou por unidade. Isso <strong>já vira uma despesa paga</strong> e sobe o estoque. O custo do insumo se ajusta sozinho pela média.</p>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Registrar Compra</strong>. É um <strong>carrinho</strong>:</p>
+                <ol class="mt-2 space-y-1.5 text-sm text-hex_gold_light/85 list-decimal list-inside marker:text-hex_gold">
+                    <li>Lance <strong>um item de cada vez</strong> da nota: insumo, quantidade e quanto pagou por unidade → <strong>Adicionar</strong>. Repita para carne, pão, batata, óleo...</li>
+                    <li>Quando terminar a nota, escolha embaixo <strong>como pagou</strong>:
+                        <div class="mt-1 ml-4 space-y-1 text-xs text-hex_gold_light/80">
+                            <div>• <strong>À vista</strong> (dinheiro/pix/débito) → vira despesa <strong>paga hoje</strong>.</div>
+                            <div>• <strong>Cartão</strong> ou <strong>Boleto</strong> → vira despesa <strong>prevista</strong>. Você informa <strong>qual cartão</strong> ("Cartão Nubank") e o <strong>dia que vence</strong>. Só sai do caixa quando você pagar a fatura.</div>
+                        </div>
+                    </li>
+                    <li><strong>Finalizar e lançar despesa</strong>. O estoque de todos os itens sobe e a despesa (uma só, do total da nota) aparece em Custos &amp; Despesas.</li>
+                </ol>
+                <p class="text-xs text-hex_gold_dim/70 mt-2">Depois, quando a fatura do cartão fechar: em <strong>Contas a Pagar</strong>, marque a caixinha de <strong>todas as compras daquele cartão</strong> e clique em <strong>"Pagar selecionadas"</strong> com a data que pagou. Aí sim desconta do caixa, tudo de uma vez.</p>
             </div>
 
             <!-- Pagar conta -->
@@ -291,7 +303,7 @@
                     <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="utensils" class="w-4 h-4 text-hex_gold"></i><span>Comeram um lanche ou algo estragou</span></h3>
                     <a href="{% url 'estoque_ajustar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
-                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Lançar Entrada/Ajuste</strong> → tipo <strong>"Autoconsumo"</strong> (a família / a equipe comeu) ou <strong>"Perda / Descarte"</strong> (estragou, caiu no chão). Só baixa do estoque — <strong>não vira despesa nova</strong>, porque o insumo já foi pago quando comprou. O relatório mostra "autoconsumo" e "perdas" separados, pra vocês verem quanto some por mês.</p>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Ajuste / Perda / Abertura</strong> → tipo <strong>"Autoconsumo"</strong> (a família / a equipe comeu) ou <strong>"Perda / Descarte"</strong> (estragou, caiu no chão). Só baixa do estoque — <strong>não vira despesa nova</strong>, porque o insumo já foi pago quando comprou. O relatório mostra "autoconsumo" e "perdas" separados, pra vocês verem quanto some por mês.</p>
             </div>
 
             <!-- Sino -->
@@ -338,8 +350,8 @@
         <h3 class="font-bold title-hex text-hex_gold text-lg mb-3 flex items-center space-x-2"><i data-lucide="star" class="w-5 h-5 text-hex_gold"></i><span>5 regras de ouro</span></h3>
         <ul class="space-y-2 text-sm text-hex_gold_light/90 list-disc list-inside marker:text-hex_gold">
             <li>Tudo que vocês mudarem (um preço, uma taxa, o custo de um insumo) <strong>vale daí pra frente</strong>. O passado não muda.</li>
-            <li><strong>"Carga Inicial"</strong> só no começo. Depois, toda compra é <strong>"Entrada"</strong>.</li>
-            <li>Conta que se repete todo mês → <strong>Molde</strong>. Gasto de uma vez → <strong>Despesa Avulsa</strong>. Vai pagar depois → deixe <strong>"Previsto"</strong> e pague no dia.</li>
+            <li><strong>"Carga Inicial"</strong> só no começo. Depois, toda compra passa pelo menu <strong>"Registrar Compra"</strong>.</li>
+            <li>Conta que se repete → <strong>Despesa Recorrente</strong> (semanal, mensal...). Gasto de uma vez → <strong>Despesa Avulsa</strong>. Vai pagar depois → NÃO marque "já paguei" e pague no dia.</li>
             <li>O preço do lanche <strong>não muda sozinho</strong> — só quando vocês decidirem. O custo dele, sim, acompanha o preço dos insumos.</li>
             <li>Errou? Abre, corrige e salva. Ou apaga e refaz. Sem drama.</li>
         </ul>

@@ -161,24 +161,5 @@
 
 {{ ingredientes_json|json_script:"dados-insumos" }}
 {{ produtos_json|json_script:"dados-produtos" }}
-<script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('buscaSelect', (dadosId) => ({
-            q: '', open: false, sel: '', itens: [],
-            init() {
-                try { this.itens = JSON.parse(document.getElementById(dadosId).textContent) || []; }
-                catch (e) { this.itens = []; }
-            },
-            get lista() {
-                const t = this.q.trim().toLowerCase();
-                const arr = t
-                    ? this.itens.filter(i => i.nome.toLowerCase().includes(t))
-                    : this.itens;
-                return arr.slice(0, 40);
-            },
-            escolher(o) { this.sel = String(o.id); this.q = o.nome; this.open = false; },
-            limpar() { this.sel = ''; this.q = ''; },
-        }));
-    });
-</script>
+{% include "partials/busca_select_js.html" %}
 {% endblock %}

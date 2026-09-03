@@ -9,8 +9,8 @@ from .middleware import get_usuario_atual
 
 # app_label.ModelName -> rótulo amigável e campos que interessam no diff
 MODELOS_AUDITADOS = {
-    'relatorios.Despesa': ('Despesa', ['descricao', 'credor', 'valor', 'status', 'categoria', 'data_vencimento', 'data_pagamento']),
-    'relatorios.DespesaRecorrente': ('Despesa fixa (molde)', ['descricao', 'credor', 'valor_base', 'dia_vencimento', 'categoria', 'ativa']),
+    'relatorios.Despesa': ('Despesa', ['descricao', 'credor', 'valor', 'status', 'categoria', 'data_vencimento', 'data_pagamento', 'forma_pagamento']),
+    'relatorios.DespesaRecorrente': ('Despesa recorrente', ['descricao', 'credor', 'valor_base', 'frequencia', 'primeiro_vencimento', 'categoria', 'ativa']),
     'vendas.Pedido': ('Pedido / Venda', ['cliente_nome', 'canal_id', 'modo_pagamento', 'status', 'valor_bruto', 'lucro_liquido']),
     'estoque.MovimentacaoEstoque': ('Movimentação de estoque', ['ingrediente_id', 'tipo', 'quantidade', 'valor_unitario']),
     'produtos.Produto': ('Produto', ['nome', 'categoria', 'status', 'custo_aquisicao']),

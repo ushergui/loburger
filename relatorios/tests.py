@@ -17,48 +17,71 @@ class ContasRecorrentesTests(TestCase):
         ConfiguracaoFinanceira.get_solo()
         self.hoje = timezone.localdate()
 
-    def test_molde_gera_faturas_do_mes_e_futuras(self):
+    def test_mensal_gera_faturas_futuras(self):
         DespesaRecorrente.objects.create(
             descricao='Internet', credor='Vivo', categoria='INTERNET',
-            dia_vencimento=15, valor_base=Decimal('120.00'), ativa=True,
+            frequencia='MENSAL', primeiro_vencimento=self.hoje.replace(day=15),
+            valor_base=Decimal('120.00'), ativa=True,
         )
-        n = gerar_despesas_fixas_pendentes(meses_a_frente=12, forcar=True)
-        self.assertEqual(n, 13)  # mês atual + 12
+        gerar_despesas_fixas_pendentes(forcar=True)
         faturas = Despesa.objects.filter(despesa_matriz__descricao='Internet')
+        self.assertGreaterEqual(faturas.count(), 10)  # ~12 meses à frente
         self.assertTrue(all(f.status == 'PREVISTO' for f in faturas))
         self.assertTrue(all(f.credor == 'Vivo' for f in faturas))
         self.assertTrue(all(f.data_vencimento.day == 15 for f in faturas))
 
+    def test_semanal_gera_varias_por_mes(self):
+        DespesaRecorrente.objects.create(
+            descricao='Feira', categoria='OUTROS', frequencia='SEMANAL',
+            primeiro_vencimento=self.hoje, valor_base=Decimal('80'), ativa=True,
+        )
+        gerar_despesas_fixas_pendentes(forcar=True)
+        faturas = Despesa.objects.filter(despesa_matriz__descricao='Feira')
+        # ~90 dias / 7 ≈ 12-13 contas
+        self.assertGreaterEqual(faturas.count(), 10)
+        datas = sorted(f.data_vencimento for f in faturas)
+        self.assertEqual((datas[1] - datas[0]).days, 7)
+
+    def test_quinzenal(self):
+        DespesaRecorrente.objects.create(
+            descricao='Boleto quinzenal', categoria='OUTROS', frequencia='QUINZENAL',
+            primeiro_vencimento=self.hoje, valor_base=Decimal('200'), ativa=True,
+        )
+        gerar_despesas_fixas_pendentes(forcar=True)
+        datas = sorted(f.data_vencimento for f in Despesa.objects.filter(despesa_matriz__descricao='Boleto quinzenal'))
+        self.assertEqual((datas[1] - datas[0]).days, 14)
+
     def test_geracao_e_idempotente_e_1x_por_dia(self):
         DespesaRecorrente.objects.create(
-            descricao='Aluguel', categoria='OUTROS', dia_vencimento=5,
+            descricao='Aluguel', categoria='OUTROS', frequencia='MENSAL',
+            primeiro_vencimento=self.hoje.replace(day=5),
             valor_base=Decimal('2000'), ativa=True,
         )
         gerar_despesas_fixas_pendentes(forcar=True)
         antes = Despesa.objects.count()
-        # segunda chamada sem forçar: não roda (guarda de 1x/dia)
-        n = gerar_despesas_fixas_pendentes()
+        n = gerar_despesas_fixas_pendentes()  # guarda de 1x/dia
         self.assertEqual(n, 0)
         self.assertEqual(Despesa.objects.count(), antes)
 
-    def test_editar_molde_realinha_previstas_futuras(self):
-        molde = DespesaRecorrente.objects.create(
-            descricao='Energia', categoria='ENERGIA', dia_vencimento=10,
+    def test_editar_recorrente_regera_previstas(self):
+        rec = DespesaRecorrente.objects.create(
+            descricao='Energia', categoria='ENERGIA', frequencia='MENSAL',
+            primeiro_vencimento=self.hoje.replace(day=10),
             valor_base=Decimal('400'), ativa=True,
         )
         gerar_despesas_fixas_pendentes(forcar=True)
-        molde.valor_base = Decimal('480')
-        molde.dia_vencimento = 12
-        molde.save()
-        propagar_molde_para_previstas(molde)
-        futuras = Despesa.objects.filter(despesa_matriz=molde, data_vencimento__gte=self.hoje)
+        rec.valor_base = Decimal('480'); rec.save()
+        propagar_molde_para_previstas(rec)
+        gerar_despesas_fixas_pendentes(forcar=True)
+        futuras = Despesa.objects.filter(despesa_matriz=rec, data_vencimento__gte=self.hoje)
+        self.assertTrue(futuras.exists())
         self.assertTrue(all(f.valor == Decimal('480') for f in futuras))
-        self.assertTrue(all(f.data_vencimento.day == 12 for f in futuras))
 
     def test_previstas_nao_afetam_o_caixa(self):
-        from relatorios import services
+        from relatorios import services  # noqa
         DespesaRecorrente.objects.create(
-            descricao='MEI', categoria='IMPOSTOS', dia_vencimento=20,
+            descricao='MEI', categoria='IMPOSTOS', frequencia='MENSAL',
+            primeiro_vencimento=self.hoje.replace(day=20),
             valor_base=Decimal('75'), ativa=True,
         )
         gerar_despesas_fixas_pendentes(forcar=True)

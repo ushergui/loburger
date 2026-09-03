@@ -9,6 +9,7 @@ urlpatterns = [
     path('despesas/novo/', views.despesa_criar, name='despesa_criar'),
     path('despesas/<int:id>/editar/', views.despesa_editar, name='despesa_editar'),
     path('despesas/<int:id>/pagar/', views.despesa_marcar_paga, name='despesa_marcar_paga'),
+    path('despesas/pagar-lote/', views.despesa_pagar_lote, name='despesa_pagar_lote'),
     path('despesas/<int:id>/excluir/', views.despesa_excluir, name='despesa_excluir'),
     
     path('despesas/recorrente/novo/', views.despesa_recorrente_criar, name='despesa_recorrente_criar'),

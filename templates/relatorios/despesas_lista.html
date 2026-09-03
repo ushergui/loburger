@@ -64,11 +64,11 @@
     {% include "relatorios/partials/despesas_tabela.html" %}
 </div>
 
-<!-- Seção de Moldes Recorrentes -->
+<!-- Seção de Despesas Recorrentes -->
 <div class="mt-8 mb-4 flex items-center justify-between">
-    <h2 class="text-lg font-bold title-hex text-hex_gold">Despesas Fixas Automáticas (Moldes)</h2>
+    <h2 class="text-lg font-bold title-hex text-hex_gold">Despesas Recorrentes (contas que se repetem)</h2>
     <a href="{% url 'despesa_recorrente_criar' %}" class="bg-hex_dark_bg border border-hex_blue/50 text-hex_blue hover:bg-hex_blue hover:text-white font-bold py-1.5 px-3 rounded transition-all uppercase tracking-wider text-[10px] flex items-center">
-        <i data-lucide="plus" class="w-3.5 h-3.5 mr-1"></i> Novo Molde
+        <i data-lucide="plus" class="w-3.5 h-3.5 mr-1"></i> Nova Recorrente
     </a>
 </div>
 
@@ -78,7 +78,8 @@
             <tr class="border-b border-hex_dark_border text-hex_gold uppercase tracking-wider text-[10px] font-semibold bg-hex_dark_bg/40">
                 <th class="py-3 px-4">Descrição</th>
                 <th class="py-3 px-4">Categoria</th>
-                <th class="py-3 px-4">Dia Padrão</th>
+                <th class="py-3 px-4">Frequência</th>
+                <th class="py-3 px-4">Próximo venc.</th>
                 <th class="py-3 px-4">Valor Base</th>
                 <th class="py-3 px-4 text-center">Status</th>
                 <th class="py-3 px-4 text-center">Ações</th>
@@ -89,7 +90,8 @@
             <tr class="hover:bg-hex_dark_bg/30 transition-colors">
                 <td class="py-2.5 px-4 font-medium text-white">{{ rec.descricao }}</td>
                 <td class="py-2.5 px-4">{{ rec.get_categoria_display }}</td>
-                <td class="py-2.5 px-4 font-mono">Dia {{ rec.dia_vencimento }}</td>
+                <td class="py-2.5 px-4">{{ rec.get_frequencia_display }}</td>
+                <td class="py-2.5 px-4 font-mono">{{ rec.primeiro_vencimento|date:"d/m/Y"|default:"—" }}</td>
                 <td class="py-2.5 px-4 font-mono text-hex_gold font-bold">R$ {{ rec.valor_base|floatformat:2 }}</td>
                 <td class="py-2.5 px-4 text-center">
                     {% if rec.ativa %}
@@ -111,8 +113,8 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" class="py-6 text-center text-hex_gold_dim/50 uppercase tracking-widest text-xs">
-                    Nenhum molde de despesa recorrente cadastrado.
+                <td colspan="7" class="py-6 text-center text-hex_gold_dim/50 uppercase tracking-widest text-xs">
+                    Nenhuma despesa recorrente cadastrada.
                 </td>
             </tr>
             {% endfor %}

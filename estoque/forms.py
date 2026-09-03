@@ -13,8 +13,9 @@ class CommaDecimalField(forms.DecimalField):
             return value
         return super().to_python(parse_numero_ptbr(value))
 
+# Compras (ENTRADA) agora passam pela tela "Registrar Compra" (carrinho + forma
+# de pagamento). Aqui ficam só os ajustes que NÃO envolvem pagamento.
 TIPOS_MANUAIS = (
-    ('ENTRADA', 'Entrada (Compra / Reposição) — gera despesa paga'),
     ('ABERTURA', 'Carga Inicial / Abertura — NÃO gera despesa'),
     ('SAIDA_PERDA', 'Saída por Perda / Descarte'),
     ('SAIDA_AUTOCONSUMO', 'Saída por Autoconsumo'),

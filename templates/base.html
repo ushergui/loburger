@@ -233,9 +233,13 @@
                             <i data-lucide="package" class="w-4 h-4 text-hex_gold"></i>
                             <span>Estoque Atual</span>
                         </a>
+                        <a href="{% url 'estoque_compra' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'estoque_compra' %}bg-hex_active text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="shopping-cart" class="w-4 h-4 text-hex_gold"></i>
+                            <span>Registrar Compra</span>
+                        </a>
                         <a href="{% url 'estoque_ajustar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'estoque_ajustar' %}bg-hex_active text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
-                            <i data-lucide="arrow-up-right" class="w-4 h-4 text-hex_gold"></i>
-                            <span>Lançar Entrada/Ajuste</span>
+                            <i data-lucide="sliders-horizontal" class="w-4 h-4 text-hex_gold"></i>
+                            <span>Ajuste / Perda / Abertura</span>
                         </a>
                     </nav>
                 </div>

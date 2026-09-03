@@ -12,10 +12,16 @@
         <p class="text-sm text-hex_gold_dim/70 mt-1">Monitore a quantidade física dos seus ingredientes em tempo real com baixa automática.</p>
     </div>
     
-    <a href="{% url 'estoque_ajustar' %}" class="bg-gradient-to-r from-hex_gold to-hex_gold_dim hover:from-hex_blue hover:to-hex_blue_dark text-hex_dark_bg hover:text-white font-bold py-2.5 px-4 rounded transition-all uppercase tracking-wider text-xs flex items-center justify-center space-x-2 border border-hex_gold/40 shadow-hex-gold hover:shadow-hex-blue">
-        <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
-        <span>Lançar Entrada/Ajuste</span>
-    </a>
+    <div class="flex gap-2">
+        <a href="{% url 'estoque_compra' %}" class="bg-gradient-to-r from-hex_gold to-hex_gold_dim hover:from-hex_blue hover:to-hex_blue_dark text-hex_dark_bg hover:text-white font-bold py-2.5 px-4 rounded transition-all uppercase tracking-wider text-xs flex items-center justify-center space-x-2 border border-hex_gold/40 shadow-hex-gold hover:shadow-hex-blue">
+            <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+            <span>Registrar Compra</span>
+        </a>
+        <a href="{% url 'estoque_ajustar' %}" class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white font-bold py-2.5 px-4 rounded transition-all uppercase tracking-wider text-xs flex items-center justify-center space-x-2">
+            <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+            <span>Ajuste / Perda</span>
+        </a>
+    </div>
 </div>
 
 <!-- Grid de Alertas Rápidos de Estoque Baixo -->

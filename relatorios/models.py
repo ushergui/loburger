@@ -43,20 +43,52 @@ def tipo_por_categoria(categoria):
     """'VARIAVEL' se o gasto acompanha o volume de vendas, senão 'FIXO'."""
     return 'VARIAVEL' if categoria in CATEGORIAS_VARIAVEIS else 'FIXO'
 
+FREQUENCIA_CHOICES = (
+    ('SEMANAL', 'Semanal (toda semana)'),
+    ('QUINZENAL', 'Quinzenal (a cada 15 dias)'),
+    ('MENSAL', 'Mensal (todo mês)'),
+    ('BIMESTRAL', 'Bimestral (a cada 2 meses)'),
+    ('TRIMESTRAL', 'Trimestral (a cada 3 meses)'),
+    ('SEMESTRAL', 'Semestral (a cada 6 meses)'),
+    ('ANUAL', 'Anual (uma vez por ano)'),
+)
+
+# Quantos meses um passo avança (frequências "de dias" tratadas à parte)
+FREQUENCIA_MESES = {
+    'MENSAL': 1, 'BIMESTRAL': 2, 'TRIMESTRAL': 3, 'SEMESTRAL': 6, 'ANUAL': 12,
+}
+FREQUENCIA_DIAS = {'SEMANAL': 7, 'QUINZENAL': 14}
+
+
 class DespesaRecorrente(models.Model):
     descricao = models.CharField(max_length=150, verbose_name="Descrição da Despesa")
     credor = models.CharField(max_length=120, blank=True, default='', verbose_name="Fornecedor / Credor")
     categoria = models.CharField(max_length=20, choices=CATEGORIA_CHOICES, default='OUTROS', verbose_name="Categoria")
-    dia_vencimento = models.IntegerField(verbose_name="Dia Padrão de Vencimento")
+    frequencia = models.CharField(max_length=12, choices=FREQUENCIA_CHOICES, default='MENSAL', verbose_name="Frequência")
+    primeiro_vencimento = models.DateField(null=True, blank=True, verbose_name="Primeiro Vencimento")
+    dia_vencimento = models.IntegerField(null=True, blank=True, verbose_name="Dia Padrão de Vencimento")
     valor_base = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor Base Previsto (R$)")
     ativa = models.BooleanField(default=True, verbose_name="Ativa (Gerar futuras?)")
 
     class Meta:
-        verbose_name = "Despesa Fixa (Molde)"
-        verbose_name_plural = "Despesas Fixas (Moldes)"
+        verbose_name = "Despesa Recorrente"
+        verbose_name_plural = "Despesas Recorrentes"
 
     def __str__(self):
-        return f"{self.descricao} (Dia {self.dia_vencimento})"
+        return f"{self.descricao} ({self.get_frequencia_display()})"
+
+    def proxima_data(self, d):
+        """A data seguinte, a partir de `d`, respeitando a frequência."""
+        from datetime import timedelta
+        if self.frequencia in FREQUENCIA_DIAS:
+            return d + timedelta(days=FREQUENCIA_DIAS[self.frequencia])
+        meses = FREQUENCIA_MESES.get(self.frequencia, 1)
+        total = d.month - 1 + meses
+        ano = d.year + total // 12
+        mes = total % 12 + 1
+        import calendar as _cal
+        ultimo = _cal.monthrange(ano, mes)[1]
+        return d.replace(year=ano, month=mes, day=min(d.day, ultimo))
 
 
 class Despesa(models.Model):
@@ -77,6 +109,13 @@ class Despesa(models.Model):
         ('FECHAMENTO', 'Fechamento diário'),
     )
 
+    FORMA_PAGAMENTO_CHOICES = (
+        ('AVISTA', 'À vista (dinheiro / pix / débito)'),
+        ('CARTAO', 'Cartão de crédito'),
+        ('BOLETO', 'Boleto'),
+        ('OUTRO', 'Outro'),
+    )
+
     descricao = models.CharField(max_length=150, verbose_name="Descrição da Despesa")
     credor = models.CharField(max_length=120, blank=True, default='', verbose_name="Fornecedor / Credor",
         help_text="Quem vai receber (ex: 'Enel', 'João Refrigeração', 'Contador Silva').")
@@ -91,6 +130,7 @@ class Despesa(models.Model):
     observacao = models.TextField(blank=True, null=True, verbose_name="Observações")
 
     origem = models.CharField(max_length=12, choices=ORIGEM_CHOICES, default='MANUAL', verbose_name="Origem do Lançamento")
+    forma_pagamento = models.CharField(max_length=10, choices=FORMA_PAGAMENTO_CHOICES, default='OUTRO', verbose_name="Forma de pagamento")
     data_referencia = models.DateField(null=True, blank=True, verbose_name="Dia de referência",
         help_text="Dia ao qual a despesa automática se refere (fechamento / entrada de estoque).")
 

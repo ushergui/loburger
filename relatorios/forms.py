@@ -42,23 +42,39 @@ class MoneyDecimalField(forms.DecimalField):
 
 class DespesaRecorrenteForm(ThemeFormMixin, forms.ModelForm):
     valor_base = MoneyDecimalField(
-        max_digits=10, 
-        decimal_places=2, 
+        max_digits=10,
+        decimal_places=2,
         label="Valor Base Previsto (R$)",
         widget=forms.TextInput(attrs={'placeholder': 'Ex: 425,00'})
     )
 
     class Meta:
         model = DespesaRecorrente
-        fields = ['descricao', 'credor', 'categoria', 'valor_base', 'dia_vencimento', 'ativa']
+        fields = ['descricao', 'credor', 'categoria', 'valor_base', 'frequencia', 'primeiro_vencimento', 'ativa']
         widgets = {
             'credor': forms.TextInput(attrs={'placeholder': 'Ex: Enel, Sabesp, Vivo, Contador Silva'}),
+            'primeiro_vencimento': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+        }
+        labels = {
+            'primeiro_vencimento': "Primeira data de vencimento",
+        }
+        help_texts = {
+            'primeiro_vencimento': "A data da primeira conta. O sistema repete daí pra frente conforme a frequência.",
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['primeiro_vencimento'].required = True
         if 'categoria' in self.fields:
             self.fields['categoria'].choices = list(CATEGORIAS_MANUAIS)
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        if obj.primeiro_vencimento:
+            obj.dia_vencimento = obj.primeiro_vencimento.day  # compatibilidade
+        if commit:
+            obj.save()
+        return obj
 
 class DespesaForm(ThemeFormMixin, forms.ModelForm):
     valor = MoneyDecimalField(

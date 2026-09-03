@@ -1,0 +1,62 @@
+<div class="flex items-center justify-between px-5 py-3 border-b border-hex_dark_border">
+    <h2 class="text-sm font-bold text-hex_gold uppercase tracking-wider flex items-center space-x-2">
+        <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+        <span>Itens da nota{% if cart %} ({{ cart|length }}){% endif %}</span>
+    </h2>
+    {% if cart %}
+    <form hx-post="{% url 'estoque_compra' %}" hx-target="#carrinho" hx-swap="innerHTML">
+        {% csrf_token %}
+        <input type="hidden" name="acao" value="limpar">
+        <button type="submit" class="text-[10px] uppercase tracking-wider text-hex_danger/80 hover:text-hex_danger">Limpar tudo</button>
+    </form>
+    {% endif %}
+</div>
+
+{% if cart %}
+<div class="overflow-x-auto">
+    <table class="w-full text-left text-xs">
+        <thead>
+            <tr class="text-hex_gold_dim/70 uppercase tracking-wider text-[10px] border-b border-hex_dark_border/60">
+                <th class="py-2 px-4">Insumo</th>
+                <th class="py-2 px-3 text-right">Qtd</th>
+                <th class="py-2 px-3 text-right">R$/un</th>
+                <th class="py-2 px-3 text-right">Subtotal</th>
+                <th class="py-2 px-3 text-center">×</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-hex_dark_border/50 text-hex_gold_light/90">
+            {% for item in cart %}
+            <tr>
+                <td class="py-2.5 px-4 font-medium text-white">{{ item.nome }}</td>
+                <td class="py-2.5 px-3 text-right font-mono">{{ item.q_disp }} {{ item.unidade }}</td>
+                <td class="py-2.5 px-3 text-right font-mono">R$ {{ item.vu_disp }}</td>
+                <td class="py-2.5 px-3 text-right font-mono text-hex_gold">R$ {{ item.sub_disp }}</td>
+                <td class="py-2.5 px-3 text-center">
+                    <form hx-post="{% url 'estoque_compra' %}" hx-target="#carrinho" hx-swap="innerHTML" class="inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="acao" value="remove_item">
+                        <input type="hidden" name="idx" value="{{ forloop.counter0 }}">
+                        <button type="submit" class="text-hex_danger hover:text-white p-1 rounded hover:bg-hex_dark_bg" title="Remover">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="border-t border-hex_gold/30 bg-hex_dark_bg/40 font-bold text-hex_gold">
+                <td colspan="3" class="py-3 px-4 uppercase tracking-wider text-[10px]">Total da nota</td>
+                <td class="py-3 px-3 text-right font-mono text-base text-white">R$ {{ total|floatformat:2 }}</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+{% else %}
+<div class="p-8 text-center text-hex_gold_dim/50 text-xs uppercase tracking-widest">
+    Nenhum item ainda. Use o formulário acima.
+</div>
+{% endif %}
+
+<script>if (window.lucide) lucide.createIcons();</script>

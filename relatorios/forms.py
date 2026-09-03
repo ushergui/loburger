@@ -2,7 +2,10 @@ from decimal import Decimal
 from django import forms
 from django.utils import timezone
 from core.utils import parse_numero_ptbr
-from .models import Despesa, DespesaRecorrente, CATEGORIA_CHOICES, CATEGORIAS_AUTOMATICAS
+from .models import (
+    Despesa, DespesaRecorrente, CATEGORIA_CHOICES, CATEGORIAS_AUTOMATICAS,
+    tipo_por_categoria,
+)
 
 CATEGORIAS_MANUAIS = [(v, l) for v, l in CATEGORIA_CHOICES if v not in CATEGORIAS_AUTOMATICAS]
 
@@ -59,12 +62,21 @@ class DespesaRecorrenteForm(ThemeFormMixin, forms.ModelForm):
 
 class DespesaForm(ThemeFormMixin, forms.ModelForm):
     valor = MoneyDecimalField(
-        max_digits=10, 
-        decimal_places=2, 
+        max_digits=10,
+        decimal_places=2,
         label="Valor (R$)",
         widget=forms.TextInput(attrs={'placeholder': 'Ex: 425,00'})
     )
-    
+
+    # Em vez do dropdown de status: uma decisão simples e explícita.
+    ja_paga = forms.BooleanField(
+        required=False,
+        label="Já paguei esta despesa",
+        help_text="Deixe DESMARCADO se ainda vai pagar: a conta entra em "
+                  "\"Contas a Pagar\" e você confirma o pagamento no dia certo "
+                  "pelo botão Pagar. Marque só se o dinheiro já saiu.",
+    )
+
     alterar_futuros = forms.BooleanField(
         required=False,
         label="Atualizar este novo valor e data para os próximos meses",
@@ -80,15 +92,22 @@ class DespesaForm(ThemeFormMixin, forms.ModelForm):
 
     class Meta:
         model = Despesa
-        fields = ['descricao', 'credor', 'tipo', 'categoria', 'valor', 'status', 'data_vencimento', 'data_pagamento', 'observacao', 'alterar_futuros']
+        # 'tipo' (fixo/variável) sai do formulário — é deduzido da categoria.
+        # 'status' também sai — é decidido pelo checkbox "já paguei".
+        fields = ['descricao', 'credor', 'categoria', 'valor', 'data_vencimento', 'data_pagamento', 'observacao', 'alterar_futuros']
         widgets = {
             'credor': forms.TextInput(attrs={'placeholder': 'Ex: João Refrigeração'}),
             'data_vencimento': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
             'data_pagamento': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
         }
-        
+        labels = {
+            'data_vencimento': "Data de vencimento / previsão de pagamento",
+            'data_pagamento': "Data em que foi paga",
+        }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['data_pagamento'].required = False
         # Categorias automáticas (taxas, motoboy, compras de estoque) não são lançadas à mão
         if 'categoria' in self.fields:
             atual = getattr(self.instance, 'categoria', None)
@@ -96,6 +115,9 @@ class DespesaForm(ThemeFormMixin, forms.ModelForm):
             if atual and atual not in dict(choices):
                 choices.append((atual, dict(CATEGORIA_CHOICES).get(atual, atual)))
             self.fields['categoria'].choices = choices
+        # Ao editar uma despesa já paga, o checkbox já vem marcado
+        if self.instance and self.instance.pk and self.instance.status == 'PAGO':
+            self.fields['ja_paga'].initial = True
         if not self.instance or not self.instance.despesa_matriz:
             self.fields.pop('alterar_futuros', None)
         # Parcelamento só na criação (não na edição de uma despesa existente)
@@ -104,16 +126,25 @@ class DespesaForm(ThemeFormMixin, forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        status = cleaned_data.get('status')
+        ja_paga = cleaned_data.get('ja_paga')
         data_pagamento = cleaned_data.get('data_pagamento')
-        
-        # Se informou data de pagamento, garante que o status fique como PAGO
-        if data_pagamento and status != 'PAGO':
+
+        if ja_paga:
             cleaned_data['status'] = 'PAGO'
-            
-        # Se marcou como PAGO e não informou data, define hoje como data de pagamento
-        if status == 'PAGO' and not data_pagamento:
-            cleaned_data['data_pagamento'] = timezone.localdate()
-            
+            cleaned_data['data_pagamento'] = data_pagamento or timezone.localdate()
+        else:
+            # Ainda não foi paga: nunca vai para o histórico de pagas
+            cleaned_data['status'] = 'PREVISTO'
+            cleaned_data['data_pagamento'] = None
+
         return cleaned_data
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.status = self.cleaned_data['status']
+        obj.data_pagamento = self.cleaned_data['data_pagamento']
+        obj.tipo = tipo_por_categoria(self.cleaned_data.get('categoria'))
+        if commit:
+            obj.save()
+        return obj
 

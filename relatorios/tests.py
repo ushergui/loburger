@@ -138,6 +138,47 @@ class ParcelamentoTests(TestCase):
         self.assertTrue(all(p.grupo_parcelas == parcelas[0].grupo_parcelas for p in parcelas))
 
 
+class LancamentoDespesaTests(TestCase):
+    def setUp(self):
+        ConfiguracaoFinanceira.get_solo()
+        from django.contrib.auth import get_user_model
+        from django.test import Client
+        self.u = get_user_model().objects.create_user('g', password='x', role='GESTAO')
+        self.c = Client(); self.c.force_login(self.u)
+
+    def test_sem_marcar_paga_fica_prevista_e_nao_vai_pro_historico(self):
+        """O bug: lancar sem data de pagamento nao pode virar 'paga hoje'."""
+        r = self.c.post('/relatorios/despesas/novo/', {
+            'descricao': 'Combustivel do carro', 'credor': 'Posto', 'categoria': 'VEICULO',
+            'valor': '300,00', 'data_vencimento': '2026-09-15', 'observacao': '',
+        })
+        self.assertEqual(r.status_code, 302)
+        d = Despesa.objects.get(descricao='Combustivel do carro')
+        self.assertEqual(d.status, 'PREVISTO')
+        self.assertIsNone(d.data_pagamento)
+        self.assertEqual(d.tipo, 'VARIAVEL')  # deduzido de VEICULO
+        # aparece em Contas a Pagar, nao em Pagas
+        self.assertContains(self.c.get('/relatorios/despesas/?vista=a_pagar'), 'Combustivel do carro')
+        self.assertNotContains(self.c.get('/relatorios/despesas/?vista=pagas'), 'Combustivel do carro')
+
+    def test_marcando_ja_paga_sem_data_usa_hoje(self):
+        r = self.c.post('/relatorios/despesas/novo/', {
+            'descricao': 'Gás', 'categoria': 'GAS', 'valor': '120,00',
+            'data_vencimento': '2026-09-03', 'ja_paga': 'on', 'observacao': '',
+        })
+        self.assertEqual(r.status_code, 302)
+        d = Despesa.objects.get(descricao='Gás')
+        self.assertEqual(d.status, 'PAGO')
+        self.assertEqual(d.data_pagamento, timezone.localdate())
+
+    def test_categoria_fixa_deduz_tipo_fixo(self):
+        self.c.post('/relatorios/despesas/novo/', {
+            'descricao': 'Contador', 'categoria': 'CONTADOR', 'valor': '600,00',
+            'data_vencimento': '2026-10-10', 'observacao': '',
+        })
+        self.assertEqual(Despesa.objects.get(descricao='Contador').tipo, 'FIXO')
+
+
 class FluxoCaixaTests(TestCase):
     def setUp(self):
         ConfiguracaoFinanceira.get_solo()

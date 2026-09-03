@@ -30,6 +30,19 @@ CATEGORIAS_AUTOMATICAS = ('TAXA_PLATAFORMA', 'TAXA_MAQUININHA', 'ENTREGA', 'FORN
 # mas saem do caixa acumulado.
 CATEGORIAS_NAO_OPERACIONAIS = ('RETIRADA_SOCIOS',)
 
+# Categorias cujo gasto acompanha o movimento de vendas (custo variável).
+# Todo o resto é tratado como custo fixo. Usado para classificar automaticamente,
+# sem pedir isso ao usuário no formulário.
+CATEGORIAS_VARIAVEIS = (
+    'FORNECEDORES', 'TAXA_PLATAFORMA', 'TAXA_MAQUININHA', 'ENTREGA',
+    'GAS', 'VEICULO', 'LIMPEZA', 'MARKETING',
+)
+
+
+def tipo_por_categoria(categoria):
+    """'VARIAVEL' se o gasto acompanha o volume de vendas, senão 'FIXO'."""
+    return 'VARIAVEL' if categoria in CATEGORIAS_VARIAVEIS else 'FIXO'
+
 class DespesaRecorrente(models.Model):
     descricao = models.CharField(max_length=150, verbose_name="Descrição da Despesa")
     credor = models.CharField(max_length=120, blank=True, default='', verbose_name="Fornecedor / Credor")

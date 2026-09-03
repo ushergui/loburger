@@ -13,7 +13,10 @@ import calendar
 from core.decorators import gestao_required
 from vendas.models import Pedido, PedidoItem, CanalVenda
 from produtos.models import Produto
-from .models import Despesa, DespesaRecorrente, CATEGORIA_CHOICES, CATEGORIAS_AUTOMATICAS
+from .models import (
+    Despesa, DespesaRecorrente, CATEGORIA_CHOICES, CATEGORIAS_AUTOMATICAS,
+    tipo_por_categoria,
+)
 from .forms import DespesaForm, DespesaRecorrenteForm
 from . import services
 
@@ -511,7 +514,7 @@ def despesa_criar(request):
                     Despesa.objects.create(
                         descricao=f"{desc_base} ({i}/{parcelas})",
                         credor=cd.get('credor', ''),
-                        tipo=cd['tipo'], categoria=cd['categoria'],
+                        tipo=tipo_por_categoria(cd['categoria']), categoria=cd['categoria'],
                         valor=valor_i, status='PREVISTO',
                         data_vencimento=_add_meses(cd['data_vencimento'], i - 1),
                         observacao=cd.get('observacao') or '',

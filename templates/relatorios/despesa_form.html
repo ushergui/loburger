@@ -14,9 +14,16 @@
 </div>
 
 <div class="max-w-2xl bg-hex_dark_card border border-hex_dark_border p-6 rounded shadow-md">
-    <form method="POST" class="space-y-5">
+    <form method="POST" class="space-y-5"
+          x-data="{ jaPaga: {{ form.ja_paga.value|yesno:'true,false,false' }} }">
         {% csrf_token %}
-        
+
+        {% if form.non_field_errors %}
+        <div class="bg-red-950/50 border border-red-500/60 text-red-200 text-sm rounded p-3">
+            {{ form.non_field_errors.as_text }}
+        </div>
+        {% endif %}
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Descrição -->
             <div class="col-span-1 md:col-span-2">
@@ -24,9 +31,7 @@
                     {{ form.descricao.label }}
                 </label>
                 {{ form.descricao }}
-                {% if form.descricao.errors %}
-                    <p class="text-xxs text-hex_danger mt-1">{{ form.descricao.errors.as_text }}</p>
-                {% endif %}
+                {% if form.descricao.errors %}<p class="text-xxs text-hex_danger mt-1">{{ form.descricao.errors.as_text }}</p>{% endif %}
             </div>
 
             <!-- Credor / Fornecedor -->
@@ -39,37 +44,14 @@
                 {% if form.credor.errors %}<p class="text-xxs text-hex_danger mt-1">{{ form.credor.errors.as_text }}</p>{% endif %}
             </div>
 
-            <!-- Tipo de Custo -->
-            <div>
-                <label for="{{ form.tipo.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">
-                    {{ form.tipo.label }}
-                </label>
-                {{ form.tipo }}
-                {% if form.tipo.errors %}
-                    <p class="text-xxs text-hex_danger mt-1">{{ form.tipo.errors.as_text }}</p>
-                {% endif %}
-            </div>
-
             <!-- Categoria -->
             <div>
                 <label for="{{ form.categoria.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">
                     {{ form.categoria.label }}
                 </label>
                 {{ form.categoria }}
-                {% if form.categoria.errors %}
-                    <p class="text-xxs text-hex_danger mt-1">{{ form.categoria.errors.as_text }}</p>
-                {% endif %}
-            </div>
-            
-            <!-- Status -->
-            <div>
-                <label for="{{ form.status.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">
-                    {{ form.status.label }}
-                </label>
-                {{ form.status }}
-                {% if form.status.errors %}
-                    <p class="text-xxs text-hex_danger mt-1">{{ form.status.errors.as_text }}</p>
-                {% endif %}
+                <p class="text-[9px] text-hex_gold_dim/70 mt-1 uppercase tracking-wider">O sistema usa a categoria para separar custo fixo de variável nos relatórios.</p>
+                {% if form.categoria.errors %}<p class="text-xxs text-hex_danger mt-1">{{ form.categoria.errors.as_text }}</p>{% endif %}
             </div>
 
             <!-- Valor -->
@@ -79,36 +61,41 @@
                 </label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold_dim/50 text-xs">R$</span>
-                    <div class="[&_input]:pl-9">
-                        {{ form.valor }}
-                    </div>
+                    <div class="[&_input]:pl-9">{{ form.valor }}</div>
                 </div>
-                {% if form.valor.errors %}
-                    <p class="text-xxs text-hex_danger mt-1">{{ form.valor.errors.as_text }}</p>
-                {% endif %}
+                {% if form.valor.errors %}<p class="text-xxs text-hex_danger mt-1">{{ form.valor.errors.as_text }}</p>{% endif %}
             </div>
 
-            <!-- Data de Vencimento -->
-            <div>
+            <!-- Data de Vencimento / Previsão -->
+            <div class="col-span-1 md:col-span-2">
                 <label for="{{ form.data_vencimento.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">
                     {{ form.data_vencimento.label }}
                 </label>
                 {{ form.data_vencimento }}
-                {% if form.data_vencimento.errors %}
-                    <p class="text-xxs text-hex_danger mt-1">{{ form.data_vencimento.errors.as_text }}</p>
-                {% endif %}
+                <p class="text-[9px] text-hex_gold_dim/70 mt-1 uppercase tracking-wider">O dia em que a conta vence (ou que você planeja pagar).</p>
+                {% if form.data_vencimento.errors %}<p class="text-xxs text-hex_danger mt-1">{{ form.data_vencimento.errors.as_text }}</p>{% endif %}
             </div>
 
-            <!-- Data de Pagamento -->
-            <div>
-                <label for="{{ form.data_pagamento.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">
-                    {{ form.data_pagamento.label }}
+            <!-- Já foi paga? -->
+            <div class="col-span-1 md:col-span-2 bg-hex_dark_bg/40 border border-hex_gold/25 p-4 rounded">
+                <label class="flex items-start space-x-3 cursor-pointer">
+                    <input type="checkbox" name="ja_paga" x-model="jaPaga"
+                        class="h-4 w-4 mt-0.5 rounded border-hex_gold/40 bg-hex_dark_bg text-hex_blue focus:ring-hex_blue">
+                    <span>
+                        <span class="block text-sm font-semibold text-hex_gold_light">{{ form.ja_paga.label }}</span>
+                        <span class="block text-xs text-hex_gold_dim/70 mt-1">{{ form.ja_paga.help_text }}</span>
+                    </span>
                 </label>
-                {{ form.data_pagamento }}
-                <p class="text-[9px] text-hex_gold_dim/70 mt-1 uppercase tracking-wider">Opcional, se status for Pago</p>
-                {% if form.data_pagamento.errors %}
-                    <p class="text-xxs text-hex_danger mt-1">{{ form.data_pagamento.errors.as_text }}</p>
-                {% endif %}
+
+                <!-- Data do pagamento — só quando já foi paga -->
+                <div x-show="jaPaga" x-transition class="mt-3 pl-7">
+                    <label for="{{ form.data_pagamento.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">
+                        {{ form.data_pagamento.label }}
+                    </label>
+                    {{ form.data_pagamento }}
+                    <p class="text-[9px] text-hex_gold_dim/70 mt-1 uppercase tracking-wider">Debita do caixa nesse dia. Em branco = hoje.</p>
+                    {% if form.data_pagamento.errors %}<p class="text-xxs text-hex_danger mt-1">{{ form.data_pagamento.errors.as_text }}</p>{% endif %}
+                </div>
             </div>
 
             <!-- Observações -->
@@ -117,14 +104,13 @@
                     {{ form.observacao.label }}
                 </label>
                 {{ form.observacao }}
-                {% if form.observacao.errors %}
-                    <p class="text-xxs text-hex_danger mt-1">{{ form.observacao.errors.as_text }}</p>
-                {% endif %}
+                {% if form.observacao.errors %}<p class="text-xxs text-hex_danger mt-1">{{ form.observacao.errors.as_text }}</p>{% endif %}
             </div>
-            
+
             <!-- Parcelamento (só na criação) -->
             {% if 'parcelas' in form.fields %}
-            <div class="col-span-1 md:col-span-2 mt-2 bg-hex_gold/5 border border-hex_gold/25 p-4 rounded flex items-start space-x-3">
+            <div class="col-span-1 md:col-span-2 mt-2 bg-hex_gold/5 border border-hex_gold/25 p-4 rounded flex items-start space-x-3"
+                 x-show="!jaPaga" x-transition>
                 <div class="w-24 shrink-0">
                     <label for="{{ form.parcelas.id_for_label }}" class="block text-xs uppercase tracking-wider text-hex_gold mb-1.5 font-semibold">Parcelas</label>
                     {{ form.parcelas }}
@@ -138,9 +124,7 @@
             <!-- Alterar Futuros (Se aplicável) -->
             {% if 'alterar_futuros' in form.fields %}
             <div class="col-span-1 md:col-span-2 mt-2 bg-hex_blue/10 border border-hex_blue/30 p-4 rounded flex items-start space-x-3">
-                <div class="pt-1">
-                    {{ form.alterar_futuros }}
-                </div>
+                <div class="pt-1">{{ form.alterar_futuros }}</div>
                 <div>
                     <label for="{{ form.alterar_futuros.id_for_label }}" class="block text-sm font-semibold text-hex_blue cursor-pointer">
                         {{ form.alterar_futuros.label }}
@@ -161,30 +145,4 @@
         </div>
     </form>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const statusSelect = document.getElementById('{{ form.status.id_for_label }}');
-    const dataPagamentoInput = document.getElementById('{{ form.data_pagamento.id_for_label }}');
-
-    if (statusSelect && dataPagamentoInput) {
-        // Quando muda status para PAGO, se data de pagamento estiver vazia, preenche hoje
-        statusSelect.addEventListener('change', function() {
-            if (this.value === 'PAGO' && !dataPagamentoInput.value) {
-                const hoje = new Date().toISOString().split('T')[0];
-                dataPagamentoInput.value = hoje;
-            } else if (this.value === 'PREVISTO') {
-                dataPagamentoInput.value = '';
-            }
-        });
-
-        // Quando digita uma data de pagamento, marca status como PAGO automaticamente
-        dataPagamentoInput.addEventListener('change', function() {
-            if (this.value) {
-                statusSelect.value = 'PAGO';
-            }
-        });
-    }
-});
-</script>
 {% endblock %}

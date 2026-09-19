@@ -22,6 +22,20 @@
         </div>
     </div>
 
+    <!-- Antes de começar: limpar testes -->
+    <div class="bg-hex_warning/10 border border-hex_warning/40 rounded p-5 shadow-md">
+        <h2 class="font-bold text-hex_warning flex items-center space-x-2"><i data-lucide="clipboard-check" class="w-5 h-5"></i><span>Antes de tudo: revise o que já está lançado</span></h2>
+        <p class="text-sm text-hex_gold_light/90 mt-2">Durante os testes do sistema foram lançados <strong>alguns exemplos</strong> (contas, compras). Passe o olho e deixe só o que é <strong>real</strong>:</p>
+        <ol class="mt-3 space-y-2 text-sm text-hex_gold_light/90 list-decimal list-inside marker:text-hex_warning">
+            <li>Menu <strong>Custos &amp; Despesas</strong>. Olhe as duas abas: <strong>Contas a Pagar</strong> e <strong>Pagas (Histórico)</strong>.</li>
+            <li><strong>Lançamento de teste?</strong> Clique na <strong>lixeira</strong> da linha → <strong>Confirmar Exclusão</strong>. Se for uma <em>compra do carrinho</em>, o estoque dos itens também volta ao que era.</li>
+            <li><strong>Lançamento real, mas com data ou valor errado?</strong> Clique no <strong>lápis</strong> (ou no <strong>ícone de carrinho</strong>, se for compra) e corrija.</li>
+            <li>Uma conta marcada como <strong>paga</strong> que na verdade ainda não foi? Abra o lápis dela e <strong>desmarque "Já paguei esta despesa"</strong> — ela volta para Contas a Pagar.</li>
+            <li>Dê uma olhada também em <strong>Movimentações Estoque</strong>: se aparecer entrada ou ajuste de teste, corrija com um lançamento em <strong>Ajuste / Perda / Abertura</strong>.</li>
+        </ol>
+        <p class="text-xs text-hex_gold_dim/70 mt-3">Nada aqui é definitivo: tudo o que for apagado ou mudado fica registrado no menu <em>Auditoria</em>.</p>
+    </div>
+
     <!-- Índice -->
     <div class="bg-hex_dark_card border border-hex_dark_border p-5 rounded shadow-md">
         <p class="text-xxs uppercase tracking-widest text-hex_gold_dim/70 font-mono mb-3">O que tem neste guia</p>
@@ -110,7 +124,7 @@
                 <ul class="mt-2 text-sm text-hex_gold_light/85 list-disc list-inside marker:text-hex_gold">
                     <li>O <strong>nome</strong> está certo? Falta algum insumo que vocês usam? (botão <em>Novo Ingrediente</em>).</li>
                     <li>A <strong>unidade de compra</strong> bate com como vocês compram? Carne em <em>kg</em>, molho e refrigerante em <em>litro</em>, pão e ovo em <em>unidade</em>.</li>
-                    <li>O <strong>preço</strong> está perto do que vocês pagam hoje? Não precisa ser exato — quando fizerem a primeira compra de verdade (Passo 8), o sistema corrige sozinho.</li>
+                    <li>O <strong>preço</strong> está perto do que vocês pagam hoje? Não precisa ser exato — quando fizerem a primeira compra de verdade (menu <strong>Registrar Compra</strong>), o sistema corrige o custo sozinho, pela média.</li>
                 </ul>
             </div>
 
@@ -124,7 +138,7 @@
                 <ol class="mt-3 space-y-2 text-sm text-hex_gold_light/85 list-decimal list-inside marker:text-hex_gold">
                     <li>Clique num lanche → <strong>Ficha Técnica / Receita</strong>.</li>
                     <li>Confira <strong>quantos gramas / unidades</strong> de cada ingrediente entram. Comece pelo <strong>Barão Nashor</strong>, que já está certinho, e use ele de régua para os outros (carne 170 g, fatia de queijo 35 g, molho 30 ml, pão 1 un...).</li>
-                    <li>Faltou um ingrediente na receita? Use <strong>"Adicionar ingrediente"</strong>. Sobrou? Clique na lixeira do item.</li>
+                    <li>Faltou um ingrediente na receita? Em <strong>"Selecionar Insumo"</strong> digite parte do nome (a lista vai filtrando), escolha, ponha a quantidade e clique em <strong>Adicionar</strong>. Sobrou? Clique no <strong>X</strong> da linha. Tudo grava na hora, sem botão Salvar — quando terminar, clique em <strong>Concluir e voltar ao Cardápio</strong>.</li>
                     <li>Do lado direito, em <strong>Preços por canal</strong>, coloque o <strong>preço de venda</strong> em cada canal — é o preço que o cliente vê no app do iFood, do UaiRango e no de vocês.</li>
                     <li><strong>Combo?</strong> Na ficha do combo use <strong>"Adicionar produto"</strong> para colocar o lanche e a batata que já existem; o refrigerante entra como ingrediente (com o "custo de aquisição" = quanto vocês pagam na lata/garrafa).</li>
                     <li><strong>Adicionais</strong> (bacon, cheddar, troca de pão, molho extra...): já estão cadastrados na categoria <em>"Adicionais"</em> com preço nos 3 canais. Só confira os valores.</li>
@@ -138,7 +152,7 @@
                     <h3 class="font-bold text-hex_gold flex items-center space-x-2"><i data-lucide="wallet" class="w-4 h-4 text-hex_gold"></i><span>Passo 7 — Cadastrar as contas / despesas</span></h3>
                     <a href="{% url 'despesa_listar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
-                <p class="text-sm text-hex_gold_light/90 mt-2">Menu <strong>Custos &amp; Despesas</strong>. Existem <strong>dois jeitos</strong> de lançar, e a escolha é simples:</p>
+                <p class="text-sm text-hex_gold_light/90 mt-2">Menu <strong>Custos &amp; Despesas</strong>. Existem <strong>dois jeitos</strong> de lançar uma conta, e a escolha é simples (a compra de insumo do mercado é outra coisa — vai no menu <strong>Registrar Compra</strong>, na Parte 2):</p>
 
                 <!-- 7a: recorrente -->
                 <div class="mt-4 bg-hex_dark_bg/50 border border-hex_dark_border rounded p-4">
@@ -163,8 +177,7 @@
                         <li>Botão <strong>Lançar Despesa Avulsa</strong> (no alto da página).</li>
                         <li><strong>Descrição</strong>: o que foi (ex.: "Conserto da chapa").</li>
                         <li><strong>Fornecedor / Credor</strong>: quem recebe (ex.: "João Refrigeração").</li>
-                        <li><strong>Tipo</strong>: "Custo Variável" (muda conforme o movimento, ex.: embalagem) ou "Custo Fixo" (não depende do movimento).</li>
-                        <li><strong>Categoria</strong>: a que mais parece (Manutenção, Materiais de Limpeza, Impostos, Outros...).</li>
+                        <li><strong>Categoria</strong>: a que mais parece (Manutenção, Materiais de Limpeza, Impostos, Outros...). O sistema decide sozinho se é custo fixo ou variável.</li>
                         <li><strong>Valor</strong>: quanto é (ex.: 250,00).</li>
                         <li><strong>Data de vencimento / previsão</strong>: quando vence (ou quando planeja pagar).</li>
                         <li><strong>"Já paguei esta despesa"</strong>:
@@ -173,9 +186,19 @@
                                 <div>• <strong>Marque</strong> só se o dinheiro já saiu — aí aparece a <strong>data do pagamento</strong> (em branco = hoje).</div>
                             </div>
                         </li>
-                        <li><strong>Parcelado?</strong> No campo <strong>Parcelas</strong> ponha o número de vezes (ex.: 3). O valor é o <strong>total</strong>; o sistema cria 3 contas previstas, uma por mês.</li>
+                        <li><strong>Parcelado?</strong> Em <strong>"Dividir em quantas vezes?"</strong> ponha o número (ex.: 3). Aparece então <strong>"A cada quanto tempo vence uma parcela?"</strong>: semanal, quinzenal, mensal, bimestral... O valor que você digitou é o <strong>total</strong>; o sistema cria as contas previstas, uma para cada parcela, nas datas certas.</li>
                         <li>Salvar.</li>
                     </ol>
+                </div>
+
+                <!-- 7c: dívidas que já existem -->
+                <div class="mt-3 bg-hex_warning/10 border border-hex_warning/30 rounded p-4">
+                    <p class="text-sm font-bold text-hex_warning flex items-center space-x-2"><i data-lucide="receipt" class="w-4 h-4"></i><span>C) Já estão devendo alguma coisa? Lance assim</span></p>
+                    <ul class="mt-2 space-y-1.5 text-sm text-hex_gold_light/90 list-disc list-inside marker:text-hex_warning">
+                        <li><strong>Conta ou serviço a pagar</strong> (conserto, aluguel atrasado...): <strong>Despesa Avulsa</strong>, com <em>"Já paguei"</em> <strong>desmarcado</strong> e a data em que vence. Se estiver parcelado, ponha o <strong>total que ainda falta</strong> e quantas parcelas restam.</li>
+                        <li><strong>Compra de insumo no cartão/boleto que já entrou no estoque</strong>: também <strong>Despesa Avulsa</strong>, categoria <em>"Fornecedores / Insumos"</em>. <strong>Não use "Registrar Compra"</strong> nesse caso — ele soma o estoque de novo e duplicaria tudo.</li>
+                        <li><strong>Compra que ainda não entrou no estoque</strong>: aí sim, use <strong>Registrar Compra</strong> (Parte 2).</li>
+                    </ul>
                 </div>
                 <p class="text-xs text-hex_gold_dim/70 mt-3">Taxas do iFood/UaiRango, maquininha, motoboy e compra de insumo <strong>não</strong> se lança aqui — o sistema cria sozinho (no Fechamento e ao Registrar Compra).</p>
             </div>
@@ -295,7 +318,25 @@
                 <ul class="mt-1.5 text-sm text-hex_gold_light/85 list-disc list-inside marker:text-hex_gold">
                     <li>Valor bate? Clique em <strong>Pagar</strong> → confirme a <strong>data em que pagou</strong> → Confirmar. Sai do caixa nesse dia.</li>
                     <li>Valor veio diferente (a luz, por ex.)? Primeiro o <strong>lápis (editar)</strong> → corrija o valor → salve. Depois clique em <strong>Pagar</strong>.</li>
+                    <li><strong>Vários de uma vez</strong> (a fatura inteira do cartão): marque a <strong>caixinha</strong> de cada conta — as compras no cartão têm o selo <em>Cartão</em>, as de boleto o selo <em>Boleto</em> — e clique em <strong>Pagar selecionadas</strong>, com a data em que pagou.</li>
                 </ul>
+            </div>
+
+            <!-- Corrigir lançamento -->
+            <div class="bg-hex_dark_card border border-hex_dark_border rounded p-5 shadow-md">
+                <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="pencil" class="w-4 h-4 text-hex_gold"></i><span>Lançou errado? Como corrigir cada coisa</span></h3>
+                <div class="mt-3 overflow-x-auto">
+                    <table class="text-xs w-full border border-hex_dark_border rounded">
+                        <thead><tr class="bg-hex_dark_bg/50 text-hex_gold uppercase text-[10px]"><th class="p-2 text-left">O que foi</th><th class="p-2 text-left">Como corrigir</th></tr></thead>
+                        <tbody class="text-hex_gold_light/85">
+                            <tr class="border-t border-hex_dark_border"><td class="p-2 font-semibold">Despesa avulsa</td><td class="p-2"><strong>Lápis</strong> para corrigir valor/data; <strong>lixeira</strong> para apagar.</td></tr>
+                            <tr class="border-t border-hex_dark_border"><td class="p-2 font-semibold">Compra do mercado (carrinho)</td><td class="p-2"><strong>Ícone de carrinho</strong> na linha → reabre a nota inteira: mude quantidade/valor, tire ou ponha itens e <strong>finalize de novo</strong>. A <strong>lixeira</strong> apaga a compra e devolve o estoque.</td></tr>
+                            <tr class="border-t border-hex_dark_border"><td class="p-2 font-semibold">Recorrente (luz, aluguel...)</td><td class="p-2">Para mudar a regra (valor, frequência, data): <strong>lápis</strong> na lista "Despesas Recorrentes". Para acertar só um mês: lápis na conta daquele mês.</td></tr>
+                            <tr class="border-t border-hex_dark_border"><td class="p-2 font-semibold">Vendas do dia</td><td class="p-2">Abra o <strong>Fechamento Diário</strong> daquele dia, ajuste as quantidades e salve de novo.</td></tr>
+                            <tr class="border-t border-hex_dark_border"><td class="p-2 font-semibold">Estoque (carga inicial, perda)</td><td class="p-2">Faça outro lançamento em <strong>Ajuste / Perda / Abertura</strong> que compense a diferença.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Autoconsumo / perda -->

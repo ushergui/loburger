@@ -33,13 +33,19 @@
         </div>
         <div class="flex justify-between mb-1.5">
             <span class="text-hex_gold_dim/60 uppercase">Vencimento/Pagamento:</span>
-            <span>{{ despesa.data_pagamento|date:"d/m/Y" }}</span>
+            <span>{{ despesa.data_pagamento|default_if_none:despesa.data_vencimento|date:"d/m/Y" }}</span>
         </div>
         <div class="flex justify-between border-t border-hex_dark_border pt-1.5 mt-1.5 font-bold">
             <span class="text-hex_gold_dim/60 uppercase">Valor:</span>
             <span class="text-hex_gold text-sm">R$ {{ despesa.valor|floatformat:2 }}</span>
         </div>
     </div>
+
+    {% if despesa.origem == 'ESTOQUE' and despesa.grupo_compra %}
+    <div class="bg-hex_warning/10 border border-hex_warning/30 rounded p-3 mb-5 text-xs text-hex_gold_light/90">
+        Esta despesa veio do <strong>carrinho de compra</strong>. Ao excluir, o <strong>estoque dos itens também volta</strong> ao que era antes da compra.
+    </div>
+    {% endif %}
 
     <form method="POST" class="flex items-center justify-end space-x-3">
         {% csrf_token %}

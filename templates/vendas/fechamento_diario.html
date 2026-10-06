@@ -18,13 +18,34 @@
             name="data" 
             id="data" 
             value="{{ data_fechamento }}" 
-            onchange="this.form.submit()" 
             class="bg-hex_dark_bg border border-hex_gold/40 text-white text-base rounded px-3 py-2 focus:outline-none focus:border-hex_blue font-mono cursor-pointer"
         >
         <button type="submit" class="bg-hex_gold hover:bg-hex_blue text-hex_dark_bg hover:text-white px-4 py-2 rounded text-sm font-bold uppercase transition-all shadow-md">
             Ir
         </button>
     </form>
+    <script>
+        // Vai para a data escolhida, mas só depois que a pessoa termina de digitar e a data está completa.
+        // (enviar a cada tecla mandava data vazia/parcial e a tela voltava para hoje)
+        (function () {
+            var campo = document.getElementById('data');
+            var espera = null;
+            function irParaData() {
+                var v = campo.value;
+                var ano = parseInt(v.slice(0, 4), 10);
+                if (/^\d{4}-\d{2}-\d{2}$/.test(v) && ano >= 2000 && ano <= 2100) {
+                    campo.form.submit();
+                }
+            }
+            campo.addEventListener('change', function () {
+                clearTimeout(espera);
+                espera = setTimeout(irParaData, 900);
+            });
+            campo.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') { clearTimeout(espera); }
+            });
+        })();
+    </script>
 </div>
 
 <!-- Filtros e Pesquisa -->

@@ -97,6 +97,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.environ.get('LOLBURGUER_DB_PATH', str(BASE_DIR / 'db.sqlite3')),
+        # espera até 30 s por uma trava de escrita antes de dar "banco bloqueado" (padrão: 5 s)
+        'OPTIONS': {'timeout': 30},
     }
 }
 

@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
+from django.db import transaction
 from django.db.models import Q, Sum, Case, When, Value, IntegerField
 from django.core.paginator import Paginator
 from django.utils import timezone
@@ -467,86 +468,89 @@ def fechamento_diario(request):
     entregas_salvas = {e.entregador_id: e.quantidade for e in EntregaDiaria.objects.filter(data=data_fechamento)}
 
     if request.method == 'POST':
-        desconto_dia = _parse_decimal(request.POST.get('desconto_dia', '0'))
+        # Tudo numa transação só: uma única trava de escrita no SQLite (evita 'banco bloqueado')
+        # e, se algo falhar no meio, nada fica pela metade (os pedidos antigos não são perdidos).
+        with transaction.atomic():
+            desconto_dia = _parse_decimal(request.POST.get('desconto_dia', '0'))
 
-        # Entregas por entregador
-        for ent in entregadores:
-            try:
-                q = int(request.POST.get(f'entrega_{ent.id}', 0) or 0)
-            except ValueError:
-                q = 0
-            EntregaDiaria.objects.update_or_create(
-                data=data_fechamento, entregador=ent, defaults={'quantidade': max(q, 0)},
+            # Entregas por entregador
+            for ent in entregadores:
+                try:
+                    q = int(request.POST.get(f'entrega_{ent.id}', 0) or 0)
+                except ValueError:
+                    q = 0
+                EntregaDiaria.objects.update_or_create(
+                    data=data_fechamento, entregador=ent, defaults={'quantidade': max(q, 0)},
+                )
+                entregas_salvas[ent.id] = max(q, 0)
+
+            # Coleta qtd_<produto_id>_<canal_id>_<modo>
+            vendas_postadas = {}
+            sem_preco = set()
+            for key, val in request.POST.items():
+                if not key.startswith('qtd_'):
+                    continue
+                v = val.strip()
+                if not v.isdigit() or int(v) <= 0:
+                    continue
+                partes = key.split('_')
+                if len(partes) != 4:
+                    continue
+                _, pid, cid, modo = partes
+                if modo not in dict(modos):
+                    continue
+                prod_obj = Produto.objects.filter(id=int(pid)).first()
+                if not prod_obj:
+                    continue
+                preco_unit = precos_matriz.get(int(pid), {}).get(int(cid), Decimal('0.00'))
+                if preco_unit <= 0:
+                    sem_preco.add(prod_obj.nome)
+                vendas_postadas.setdefault((int(cid), modo), []).append((prod_obj, int(v), preco_unit))
+
+            # Recria os pedidos do dia do zero (estorna estoque dos antigos)
+            for ped_antigo in Pedido.objects.filter(
+                data_criacao__date=data_fechamento, cliente_nome__icontains='Fechamento Diário',
+            ):
+                ped_antigo.status = 'CANCELADO'
+                ped_antigo.save()
+                ped_antigo.delete()
+
+            modos_dict = dict(modos)
+            n = 0
+            desconto_restante = desconto_dia
+            for (canal_id, modo), itens_lista in vendas_postadas.items():
+                canal_obj = CanalVenda.objects.filter(id=canal_id).first()
+                if not canal_obj:
+                    continue
+                # O desconto do dia é aplicado uma única vez (no primeiro pedido criado)
+                desconto_pedido = desconto_restante
+                desconto_restante = Decimal('0.00')
+
+                novo = Pedido.objects.create(
+                    cliente_nome=f"Fechamento Diário ({modos_dict.get(modo, modo)})",
+                    canal=canal_obj, modo_pagamento=modo, status='CONCLUIDO',
+                    desconto=desconto_pedido,
+                )
+                # data_criacao é auto_now_add — força a data do fechamento via update
+                Pedido.objects.filter(id=novo.id).update(
+                    data_criacao=timezone.make_aware(datetime.combine(data_fechamento, datetime.now().time()))
+                )
+                novo.refresh_from_db()
+                for prod_obj, qtd, preco_unit in itens_lista:
+                    PedidoItem.objects.create(pedido=novo, produto=prod_obj, quantidade=qtd, preco_unitario=preco_unit)
+                novo.recalcular_valores_financeiros(save=True)
+                novo.processar_baixa_estoque()
+                n += 1
+
+            # Mantém compatibilidade com FechamentoDiarioInfo (nº de entregas do dia)
+            total_entregas = sum(entregas_salvas.values())
+            FechamentoDiarioInfo.objects.update_or_create(
+                data=data_fechamento,
+                defaults={'quantidade_entregas': total_entregas, 'taxa_entrega': config.taxa_entrega},
             )
-            entregas_salvas[ent.id] = max(q, 0)
 
-        # Coleta qtd_<produto_id>_<canal_id>_<modo>
-        vendas_postadas = {}
-        sem_preco = set()
-        for key, val in request.POST.items():
-            if not key.startswith('qtd_'):
-                continue
-            v = val.strip()
-            if not v.isdigit() or int(v) <= 0:
-                continue
-            partes = key.split('_')
-            if len(partes) != 4:
-                continue
-            _, pid, cid, modo = partes
-            if modo not in dict(modos):
-                continue
-            prod_obj = Produto.objects.filter(id=int(pid)).first()
-            if not prod_obj:
-                continue
-            preco_unit = precos_matriz.get(int(pid), {}).get(int(cid), Decimal('0.00'))
-            if preco_unit <= 0:
-                sem_preco.add(prod_obj.nome)
-            vendas_postadas.setdefault((int(cid), modo), []).append((prod_obj, int(v), preco_unit))
-
-        # Recria os pedidos do dia do zero (estorna estoque dos antigos)
-        for ped_antigo in Pedido.objects.filter(
-            data_criacao__date=data_fechamento, cliente_nome__icontains='Fechamento Diário',
-        ):
-            ped_antigo.status = 'CANCELADO'
-            ped_antigo.save()
-            ped_antigo.delete()
-
-        modos_dict = dict(modos)
-        n = 0
-        desconto_restante = desconto_dia
-        for (canal_id, modo), itens_lista in vendas_postadas.items():
-            canal_obj = CanalVenda.objects.filter(id=canal_id).first()
-            if not canal_obj:
-                continue
-            # O desconto do dia é aplicado uma única vez (no primeiro pedido criado)
-            desconto_pedido = desconto_restante
-            desconto_restante = Decimal('0.00')
-
-            novo = Pedido.objects.create(
-                cliente_nome=f"Fechamento Diário ({modos_dict.get(modo, modo)})",
-                canal=canal_obj, modo_pagamento=modo, status='CONCLUIDO',
-                desconto=desconto_pedido,
-            )
-            # data_criacao é auto_now_add — força a data do fechamento via update
-            Pedido.objects.filter(id=novo.id).update(
-                data_criacao=timezone.make_aware(datetime.combine(data_fechamento, datetime.now().time()))
-            )
-            novo.refresh_from_db()
-            for prod_obj, qtd, preco_unit in itens_lista:
-                PedidoItem.objects.create(pedido=novo, produto=prod_obj, quantidade=qtd, preco_unitario=preco_unit)
-            novo.recalcular_valores_financeiros(save=True)
-            novo.processar_baixa_estoque()
-            n += 1
-
-        # Mantém compatibilidade com FechamentoDiarioInfo (nº de entregas do dia)
-        total_entregas = sum(entregas_salvas.values())
-        FechamentoDiarioInfo.objects.update_or_create(
-            data=data_fechamento,
-            defaults={'quantidade_entregas': total_entregas, 'taxa_entrega': config.taxa_entrega},
-        )
-
-        # Gera as despesas automáticas do dia (taxas + motoboy)
-        qtd_despesas = sincronizar_despesas_fechamento(data_fechamento)
+            # Gera as despesas automáticas do dia (taxas + motoboy)
+            qtd_despesas = sincronizar_despesas_fechamento(data_fechamento)
 
         msg = (f"Fechamento de {data_fechamento.strftime('%d/%m/%Y')} gravado: "
                f"{n} combinações de canal/pagamento, {qtd_despesas} lançamentos automáticos de despesa.")

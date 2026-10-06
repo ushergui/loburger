@@ -15,7 +15,14 @@
         <tbody class="divide-y divide-hex_dark_border text-sm text-hex_gold_light/90">
             {% for ing in page_obj %}
                 <tr class="hover:bg-hex_dark_bg/30 transition-colors">
-                    <td class="p-4 font-medium">{{ ing.nome }}</td>
+                    <td class="p-4 font-medium">
+                        {{ ing.nome }}
+                        {% if not ing.unidades_coerentes %}
+                            <a href="{% url 'ingrediente_editar' ing.id %}" title="{{ ing.aviso_unidades }}" class="block mt-1 text-[10px] font-bold uppercase tracking-wider text-red-400 hover:text-red-300">
+                                ⚠ Unidades erradas — clique para corrigir
+                            </a>
+                        {% endif %}
+                    </td>
                     <td class="p-4 text-xs">
                         <span class="bg-hex_dark_bg border border-hex_gold/20 px-2 py-0.5 rounded text-hex_gold_dim uppercase">
                             {{ ing.get_categoria_display }}

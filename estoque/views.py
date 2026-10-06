@@ -411,9 +411,11 @@ def estoque_contagem(request):
             'sistema_qtd_txt': _plain(qtd_atual, 3),
             'sistema_custo_txt': _plain(custo_atual, 4),
             'qtd_bonita': _n(qtd_atual, 3),
+            # unidades de compra/consumo que não combinam: a conversão seria errada, então a linha fica travada
+            'bloqueado': not ing.unidades_coerentes,
             'erro': '',
         }
-        if postado:
+        if postado and not linha['bloqueado']:
             linha['qtd_txt'] = (request.POST.get(f'qtd_{ing.id}') or '').strip()
             linha['custo_txt'] = (request.POST.get(f'custo_{ing.id}') or '').strip()
             linha['nova_qtd'] = None
@@ -438,6 +440,8 @@ def estoque_contagem(request):
         n_qtd = n_custo = 0
         with transaction.atomic():
             for l in linhas:
+                if l['bloqueado']:
+                    continue
                 ing = l['ing']
                 fator = ing.obter_fator_conversao
                 # 1) custo primeiro, para a carga entrar já no custo corrigido

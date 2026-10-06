@@ -176,6 +176,13 @@ class Command(BaseCommand):
             valor = ((i.estoque_atual or 0) * (i.custo_unitario or 0))
             w(f"     - {i.nome}: {i.estoque_display}  a  {_brl(i.custo_por_unidade_compra)} cada  =  {_brl(valor)}")
 
+        tortos = [i for i in Ingrediente.objects.all() if not i.unidades_coerentes]
+        if tortos:
+            w("")
+            w(self.style.WARNING("Insumos com unidades que não combinam (corrija em Ingredientes / Insumos):"))
+            for i in tortos:
+                w(f"     - {i.nome}: compra em {i.unidade_compra}, ficha em {i.unidade_medida}")
+
         w("")
         if aplicar:
             w(self.style.SUCCESS("Pronto. Backup feito em: " + backup))

@@ -52,7 +52,7 @@
                             Unidade de Consumo (Ficha) <span class="text-hex_gold font-bold">*</span>
                         </label>
                         {{ form.unidade_medida }}
-                        <p class="text-xxs text-hex_gold_dim/50 mt-1">Como este ingrediente será medido nos lanches (ex: g).</p>
+                        <p class="text-xxs text-hex_gold_dim/50 mt-1">Como este ingrediente será medido nos lanches (ex: g). Carne, queijo, bacon: <strong>g</strong>. Molho líquido, óleo: <strong>ml</strong>. Pão, ovo, embalagem: <strong>un</strong>.</p>
                         {% if form.unidade_medida.errors %}
                             <p class="text-red-400 text-xs mt-1">{{ form.unidade_medida.errors.0 }}</p>
                         {% endif %}
@@ -64,7 +64,7 @@
                             Unidade de Compra (Entrada) <span class="text-hex_gold font-bold">*</span>
                         </label>
                         {{ form.unidade_compra }}
-                        <p class="text-xxs text-hex_gold_dim/50 mt-1">Como você compra este ingrediente no mercado (ex: kg).</p>
+                        <p class="text-xxs text-hex_gold_dim/50 mt-1">Como você compra no mercado. O sistema só deixa combinar: <strong>g → kg</strong>, <strong>ml → l</strong>, <strong>un → un</strong> (a lista se ajusta sozinha).</p>
                         {% if form.unidade_compra.errors %}
                             <p class="text-red-400 text-xs mt-1">{{ form.unidade_compra.errors.0 }}</p>
                         {% endif %}
@@ -110,4 +110,24 @@
         </form>
     </div>
 </div>
+
+<script>
+    // A unidade de compra só aceita o que combina com a unidade de consumo da ficha técnica.
+    (function () {
+        var COMPRAS = {g: ['kg', 'g'], kg: ['kg'], ml: ['l', 'ml'], l: ['l'], un: ['un']};
+        var medida = document.getElementById('id_unidade_medida');
+        var compra = document.getElementById('id_unidade_compra');
+        if (!medida || !compra) { return; }
+        function ajustar() {
+            var ok = COMPRAS[medida.value] || [];
+            Array.prototype.forEach.call(compra.options, function (o) {
+                o.disabled = ok.indexOf(o.value) < 0;
+                o.hidden = o.disabled;
+            });
+            if (ok.indexOf(compra.value) < 0 && ok.length) { compra.value = ok[0]; }
+        }
+        medida.addEventListener('change', ajustar);
+        ajustar();
+    })();
+</script>
 {% endblock %}

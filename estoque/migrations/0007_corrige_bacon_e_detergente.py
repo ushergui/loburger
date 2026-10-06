@@ -4,9 +4,10 @@
    98 kg (ABERTURA, sem observação) e a saída de 196 kg por autoconsumo marcada
    "cadastro errado". Só remove as linhas do HISTÓRICO: o estoque atual do bacon NÃO
    é alterado (a quantidade certa se acerta em "Contagem de Estoque").
-2) BALDE DE MANTEIGA: estava como medida "ml" e compra "kg" (cadastro torto). São 3
-   baldes comprados a R$ 142 cada (nota de R$ 426), então as duas unidades viram "un".
-   Estoque e custo ficam como estão.
+2) DETERGENTE: estava com consumo "un" e compra "ml" (não combinam). Foram 20 frascos a
+   R$ 2,96 (nota de R$ 59,20), então a compra vira "un". Estoque e custo ficam como estão.
+   (O BALDE DE MANTEIGA também tem unidades que não combinam, mas o peso do balde só a
+   gestão sabe — ele é corrigido na tela de Ingredientes e recontado na Contagem.)
 
 É segura em qualquer banco: só age se encontrar exatamente esses registros; se não
 encontrar (outro banco, ou já corrigido), não faz nada.
@@ -34,10 +35,10 @@ def corrigir(apps, schema_editor):
         ).filter(Q(observacao='') | Q(observacao__isnull=True)).delete()
         saida.delete()
 
-    # 2) balde de manteiga: unidades coerentes
+    # 2) detergente: compra em unidade, como o consumo
     Ingrediente.objects.filter(
-        nome='BALDE DE MANTEIGA', unidade_medida='ml', unidade_compra='kg',
-    ).update(unidade_medida='un', unidade_compra='un')
+        nome='DETERGENTE', unidade_medida='un', unidade_compra='ml',
+    ).update(unidade_compra='un')
 
 
 class Migration(migrations.Migration):

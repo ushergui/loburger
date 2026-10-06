@@ -56,6 +56,11 @@
                     <td class="py-2.5 px-4 font-medium text-white">
                         {{ l.ing.nome }}
                         {% if l.erro %}<span class="block text-[10px] text-hex_danger font-normal">{{ l.erro }}</span>{% endif %}
+                        {% if l.bloqueado %}
+                            <a href="{% url 'ingrediente_editar' l.ing.id %}" class="block text-[10px] font-bold uppercase tracking-wider text-hex_danger hover:underline">
+                                ⚠ Unidades erradas ({{ l.ing.unidade_compra }} x {{ l.ing.unidade_medida }}) — corrija o cadastro antes de contar
+                            </a>
+                        {% endif %}
                     </td>
                     <td class="py-2.5 px-3 text-right font-mono whitespace-nowrap {% if l.qtd_atual <= 0 %}text-hex_danger{% endif %}">
                         {{ l.qtd_bonita }} <span class="text-hex_gold_dim/60">{{ l.unidade }}</span>
@@ -63,7 +68,7 @@
                     <td class="py-2 px-3">
                         <div class="flex items-center space-x-1.5">
                             <input type="text" inputmode="decimal" name="qtd_{{ l.ing.id }}" x-model="q"
-                                   id="qtd_{{ l.ing.id }}" aria-label="Quantidade real de {{ l.ing.nome }}"
+                                   id="qtd_{{ l.ing.id }}" {% if l.bloqueado %}disabled{% endif %} aria-label="Quantidade real de {{ l.ing.nome }}"
                                    class="w-28 bg-hex_dark_bg border border-hex_gold/30 rounded py-1.5 px-2 text-xs text-hex_gold_light font-mono text-right focus:outline-none focus:border-hex_blue">
                             <span class="text-hex_gold_dim/60 text-[10px]">{{ l.unidade }}</span>
                         </div>
@@ -72,7 +77,7 @@
                         <div class="flex items-center space-x-1.5">
                             <span class="text-hex_gold_dim/60 text-[10px]">R$</span>
                             <input type="text" inputmode="decimal" name="custo_{{ l.ing.id }}" x-model="c"
-                                   id="custo_{{ l.ing.id }}" aria-label="Custo de 1 {{ l.unidade }} de {{ l.ing.nome }}"
+                                   id="custo_{{ l.ing.id }}" {% if l.bloqueado %}disabled{% endif %} aria-label="Custo de 1 {{ l.unidade }} de {{ l.ing.nome }}"
                                    class="w-24 bg-hex_dark_bg border border-hex_gold/30 rounded py-1.5 px-2 text-xs text-hex_gold_light font-mono text-right focus:outline-none focus:border-hex_blue">
                             <span class="text-hex_gold_dim/60 text-[10px]">/ {{ l.unidade }}</span>
                         </div>

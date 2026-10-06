@@ -316,7 +316,7 @@ class CorrecaoBaconBaldeTests(TestCase):
     def _corrigir(self):
         import importlib
         from django.apps import apps
-        mod = importlib.import_module('estoque.migrations.0007_corrige_bacon_e_balde')
+        mod = importlib.import_module('estoque.migrations.0007_corrige_bacon_e_detergente')
         mod.corrigir(apps, None)
 
     def setUp(self):
@@ -349,15 +349,96 @@ class CorrecaoBaconBaldeTests(TestCase):
         self._corrigir()
         self.assertEqual(MovimentacaoEstoque.objects.count(), 2)
 
-    def test_balde_vira_unidade_e_mantem_estoque_e_custo(self):
+    def test_balde_nao_e_alterado_peso_so_a_gestao_sabe(self):
         self._corrigir()
         self.balde.refresh_from_db()
-        self.assertEqual((self.balde.unidade_medida, self.balde.unidade_compra), ('un', 'un'))
-        self.assertEqual(self.balde.estoque_atual, Decimal('3.00'))
-        self.assertEqual(self.balde.custo_unitario, Decimal('142.0000'))
+        self.assertEqual((self.balde.unidade_medida, self.balde.unidade_compra), ('ml', 'kg'))
+
+    def test_detergente_compra_vira_unidade_e_mantem_estoque_e_custo(self):
+        det = Ingrediente.objects.create(
+            nome='DETERGENTE', unidade_medida='un', unidade_compra='ml',
+            custo_unitario=Decimal('2.96'), estoque_atual=Decimal('20'))
+        self._corrigir()
+        det.refresh_from_db()
+        self.assertEqual((det.unidade_medida, det.unidade_compra), ('un', 'un'))
+        self.assertEqual(det.estoque_atual, Decimal('20.00'))
+        self.assertEqual(det.custo_unitario, Decimal('2.9600'))
 
     def test_rodar_duas_vezes_e_seguro(self):
         self._movs_bacon()
         self._corrigir()
         self._corrigir()
         self.assertEqual(MovimentacaoEstoque.objects.count(), 1)
+
+
+class UnidadesCombinamTests(TestCase):
+    """A unidade de compra tem que combinar com a de consumo (g-kg, ml-l, un-un)."""
+
+    def setUp(self):
+        self.user = Usuario.objects.create_user(username='ges3', password='x', role='GESTAO')
+        self.client.force_login(self.user)
+
+    def _dados(self, **extra):
+        d = {'nome': 'MANTEIGA', 'unidade_medida': 'g', 'unidade_compra': 'kg',
+             'fornecedor': '', 'estoque_minimo': '0', 'categoria': 'OUTROS'}
+        d.update(extra)
+        return d
+
+    def test_pares_validos(self):
+        for compra, medida in [('kg', 'g'), ('g', 'g'), ('kg', 'kg'), ('l', 'ml'), ('ml', 'ml'), ('l', 'l'), ('un', 'un')]:
+            ing = Ingrediente(nome='X', unidade_compra=compra, unidade_medida=medida)
+            self.assertTrue(ing.unidades_coerentes, (compra, medida))
+            ing.full_clean(exclude=['custo_unitario', 'estoque_atual', 'estoque_minimo'])
+
+    def test_pares_invalidos(self):
+        for compra, medida in [('kg', 'ml'), ('l', 'g'), ('un', 'g'), ('g', 'un'), ('ml', 'l'), ('g', 'kg'), ('ml', 'un')]:
+            self.assertFalse(Ingrediente(nome='X', unidade_compra=compra, unidade_medida=medida).unidades_coerentes,
+                             (compra, medida))
+
+    def test_cadastro_recusa_combinacao_errada(self):
+        resp = self.client.post(reverse('ingrediente_criar'), self._dados(unidade_medida='ml', unidade_compra='kg'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'não combinam')
+        self.assertFalse(Ingrediente.objects.filter(nome='MANTEIGA').exists())
+
+    def test_cadastro_aceita_combinacao_certa(self):
+        resp = self.client.post(reverse('ingrediente_criar'), self._dados())
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(Ingrediente.objects.filter(nome='MANTEIGA').exists())
+
+    def test_nao_troca_unidade_de_consumo_de_insumo_que_esta_em_ficha(self):
+        from produtos.models import Produto, FichaTecnicaItem
+        ing = Ingrediente.objects.create(nome='CARNE', unidade_medida='g', unidade_compra='kg')
+        prod = Produto.objects.create(nome='LANCHE', categoria='BURGER')
+        FichaTecnicaItem.objects.create(produto=prod, ingrediente=ing, quantidade=Decimal('150'))
+        resp = self.client.post(reverse('ingrediente_editar', args=[ing.pk]),
+                                self._dados(nome='CARNE', unidade_medida='kg', unidade_compra='kg'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'ficha(s) técnica(s)')
+        ing.refresh_from_db()
+        self.assertEqual(ing.unidade_medida, 'g')
+
+    def test_troca_permitida_se_nao_esta_em_ficha(self):
+        ing = Ingrediente.objects.create(nome='BALDE', unidade_medida='ml', unidade_compra='kg')  # cadastro torto antigo
+        resp = self.client.post(reverse('ingrediente_editar', args=[ing.pk]),
+                                self._dados(nome='BALDE', unidade_medida='g', unidade_compra='kg'))
+        self.assertEqual(resp.status_code, 302)
+        ing.refresh_from_db()
+        self.assertEqual((ing.unidade_medida, ing.unidade_compra), ('g', 'kg'))
+
+    def test_lista_avisa_insumo_com_unidades_erradas(self):
+        Ingrediente.objects.create(nome='BALDE', unidade_medida='ml', unidade_compra='kg')
+        resp = self.client.get(reverse('ingrediente_listar'))
+        self.assertContains(resp, 'Unidades erradas')
+
+    def test_contagem_trava_linha_com_unidades_erradas(self):
+        torto = Ingrediente.objects.create(
+            nome='BALDE', unidade_medida='ml', unidade_compra='kg',
+            custo_unitario=Decimal('142'), estoque_atual=Decimal('3'))
+        resp = self.client.get(reverse('estoque_contagem'))
+        self.assertContains(resp, 'corrija o cadastro antes de contar')
+        # mesmo que alguém force o POST, a linha é ignorada
+        self.client.post(reverse('estoque_contagem'), {f'qtd_{torto.id}': '50', f'custo_{torto.id}': '1'})
+        torto.refresh_from_db()
+        self.assertEqual(torto.estoque_atual, Decimal('3.00'))
+        self.assertEqual(MovimentacaoEstoque.objects.count(), 0)

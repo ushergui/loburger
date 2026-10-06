@@ -36,6 +36,53 @@ class Ingrediente(models.Model):
     def __str__(self):
         return f"{self.nome} ({self.get_unidade_medida_display()})"
 
+    # Amarra a unidade de COMPRA à unidade de CONSUMO (a da ficha técnica): peso com peso,
+    # volume com volume, unidade com unidade. Só estas combinações têm conversão certa.
+    # consumo -> compras permitidas
+    COMPRAS_POR_CONSUMO = {
+        'g': ('kg', 'g'),
+        'kg': ('kg',),
+        'ml': ('l', 'ml'),
+        'l': ('l',),
+        'un': ('un',),
+    }
+    _NOME_UNIDADE = {'g': 'gramas (g)', 'kg': 'quilos (kg)', 'ml': 'mililitros (ml)',
+                     'l': 'litros (l)', 'un': 'unidades (un)'}
+
+    @property
+    def unidades_coerentes(self):
+        return self.unidade_compra in self.COMPRAS_POR_CONSUMO.get(self.unidade_medida, ())
+
+    @property
+    def aviso_unidades(self):
+        """Texto de erro quando a compra e o consumo não combinam (vazio se estiver ok)."""
+        if self.unidades_coerentes:
+            return ''
+        ok = ' ou '.join(self._NOME_UNIDADE[u] for u in self.COMPRAS_POR_CONSUMO.get(self.unidade_medida, ()))
+        return (f"Unidades que não combinam: se a ficha técnica usa {self._NOME_UNIDADE.get(self.unidade_medida, self.unidade_medida)}, "
+                f"a compra só pode ser em {ok}.")
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        super().clean()
+        erros = {}
+        if not self.unidades_coerentes:
+            erros['unidade_compra'] = self.aviso_unidades
+        # Mudar a unidade de consumo de um insumo que já está em ficha técnica
+        # bagunçaria todas as quantidades (150 g virariam 150 kg).
+        if self.pk:
+            antiga = Ingrediente.objects.filter(pk=self.pk).values_list('unidade_medida', flat=True).first()
+            if antiga and antiga != self.unidade_medida:
+                n = FichaTecnicaItem.objects.filter(ingrediente_id=self.pk).count()
+                if n:
+                    erros['unidade_medida'] = (
+                        f"Este insumo já está em {n} ficha(s) técnica(s) medida(s) em {self._NOME_UNIDADE.get(antiga, antiga)}. "
+                        "Trocar a unidade de consumo mudaria todas as quantidades. "
+                        "Se a unidade está errada de verdade, tire o insumo das fichas, troque e coloque de novo."
+                    )
+        if erros:
+            raise ValidationError(erros)
+
     @property
     def status_estoque(self):
         # Retorna o status baseado nos limites mínimo e atual

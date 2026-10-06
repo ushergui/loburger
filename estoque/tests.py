@@ -308,3 +308,56 @@ class PagarLoteTravaTests(TestCase):
         resp = self.client.get(reverse('despesa_listar'))
         self.assertNotContains(resp, f'name="ids" value="{longe.id}"')
         self.assertContains(resp, 'Para pagar adiantado')
+
+
+class CorrecaoBaconBaldeTests(TestCase):
+    """Migration de dados 0007: só age se achar exatamente os registros errados."""
+
+    def _corrigir(self):
+        import importlib
+        from django.apps import apps
+        mod = importlib.import_module('estoque.migrations.0007_corrige_bacon_e_balde')
+        mod.corrigir(apps, None)
+
+    def setUp(self):
+        self.bacon = Ingrediente.objects.create(
+            nome='BACON', unidade_medida='g', unidade_compra='kg',
+            custo_unitario=Decimal('0.0346'), estoque_atual=Decimal('32870'))
+        self.balde = Ingrediente.objects.create(
+            nome='BALDE DE MANTEIGA', unidade_medida='ml', unidade_compra='kg',
+            custo_unitario=Decimal('142'), estoque_atual=Decimal('3'))
+
+    def _movs_bacon(self, com_saida_errada=True):
+        MovimentacaoEstoque.objects.create(ingrediente=self.bacon, tipo='ABERTURA',
+                                           quantidade=Decimal('98000'), observacao='')
+        if com_saida_errada:
+            MovimentacaoEstoque.objects.create(ingrediente=self.bacon, tipo='SAIDA_AUTOCONSUMO',
+                                               quantidade=Decimal('196000'), observacao='cadastro errado')
+        MovimentacaoEstoque.objects.create(ingrediente=self.bacon, tipo='ABERTURA',
+                                           quantidade=Decimal('36000'), observacao='Carga inicial.')
+
+    def test_apaga_o_par_errado_e_nao_mexe_no_estoque(self):
+        self._movs_bacon()
+        self._corrigir()
+        tipos = list(MovimentacaoEstoque.objects.values_list('tipo', 'quantidade'))
+        self.assertEqual(tipos, [('ABERTURA', Decimal('36000.000'))])  # a carga legítima fica
+        self.bacon.refresh_from_db()
+        self.assertEqual(self.bacon.estoque_atual, Decimal('32870.00'))
+
+    def test_sem_a_saida_errada_nao_apaga_nada(self):
+        self._movs_bacon(com_saida_errada=False)
+        self._corrigir()
+        self.assertEqual(MovimentacaoEstoque.objects.count(), 2)
+
+    def test_balde_vira_unidade_e_mantem_estoque_e_custo(self):
+        self._corrigir()
+        self.balde.refresh_from_db()
+        self.assertEqual((self.balde.unidade_medida, self.balde.unidade_compra), ('un', 'un'))
+        self.assertEqual(self.balde.estoque_atual, Decimal('3.00'))
+        self.assertEqual(self.balde.custo_unitario, Decimal('142.0000'))
+
+    def test_rodar_duas_vezes_e_seguro(self):
+        self._movs_bacon()
+        self._corrigir()
+        self._corrigir()
+        self.assertEqual(MovimentacaoEstoque.objects.count(), 1)

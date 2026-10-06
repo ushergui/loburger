@@ -237,9 +237,15 @@
                             <i data-lucide="shopping-cart" class="w-4 h-4 text-hex_gold"></i>
                             <span>Registrar Compra</span>
                         </a>
+                        {% if user.role == 'GESTAO' %}
+                        <a href="{% url 'estoque_contagem' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'estoque_contagem' %}bg-hex_active text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
+                            <i data-lucide="clipboard-check" class="w-4 h-4 text-hex_gold"></i>
+                            <span>Contagem de Estoque</span>
+                        </a>
+                        {% endif %}
                         <a href="{% url 'estoque_ajustar' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded text-sm font-medium transition-all hover:bg-hex_dark_bg/80 hover:text-hex_gold_light {% if request.resolver_match.url_name == 'estoque_ajustar' %}bg-hex_active text-hex_gold_light border-l-4 border-hex_gold font-bold shadow-[0_0_10px_rgba(200,170,110,0.15)]{% else %}text-hex_gold_dim/80{% endif %}">
                             <i data-lucide="sliders-horizontal" class="w-4 h-4 text-hex_gold"></i>
-                            <span>Ajuste / Perda / Abertura</span>
+                            <span>Perda / Abertura / Baixa</span>
                         </a>
                     </nav>
                 </div>

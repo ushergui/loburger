@@ -23,6 +23,7 @@ from . import services
 MESES_PROJECAO_PADRAO = 12
 DIAS_ALERTA_URGENTE = 3   # badge do sino: atrasadas + vence em ≤ 3 dias
 DIAS_ALERTA_LISTA = 7     # o que aparece na lista de "próximas"
+DIAS_LIMITE_PAGAR_LOTE = 15  # "Pagar selecionadas" só aceita contas que vencem em até 15 dias
 
 
 def _horizonte_recorrente(rec, hoje):
@@ -445,6 +446,8 @@ def despesa_listar(request):
         'total_atrasadas': total_atrasadas,
         'total_urgentes': total_urgentes,
         'hoje': hoje,
+        'limite_lote': hoje + timedelta(days=DIAS_LIMITE_PAGAR_LOTE),
+        'dias_limite_lote': DIAS_LIMITE_PAGAR_LOTE,
         'categorias': CATEGORIA_CHOICES,
         'tipos': Despesa.TIPO_CHOICES,
         'recorrentes': DespesaRecorrente.objects.all(),
@@ -494,7 +497,12 @@ def despesa_pagar_lote(request):
             dp = datetime.strptime(data_str, '%Y-%m-%d').date() if data_str else timezone.localdate()
         except ValueError:
             dp = timezone.localdate()
-        qs = list(Despesa.objects.filter(id__in=ids, status='PREVISTO'))
+        candidatas = list(Despesa.objects.filter(id__in=ids, status='PREVISTO'))
+        # Trava de segurança: conta que só vence daqui a muito tempo não é paga em lote
+        # (evita marcar "todas" e debitar do caixa meses que ainda nem chegaram).
+        limite = timezone.localdate() + timedelta(days=DIAS_LIMITE_PAGAR_LOTE)
+        qs = [d for d in candidatas if d.data_vencimento <= limite]
+        puladas = [d for d in candidatas if d.data_vencimento > limite]
         total = sum((d.valor for d in qs), Decimal('0.00'))
         for d in qs:
             d.data_pagamento = dp
@@ -506,8 +514,15 @@ def despesa_pagar_lote(request):
                 f"{len(qs)} conta(s) — R$ {total:.2f} — marcada(s) como paga(s) em "
                 f"{dp.strftime('%d/%m/%Y')}. Debitado do caixa nesse dia."
             )
-        else:
+        elif not puladas:
             messages.info(request, "Nenhuma conta selecionada.")
+        if puladas:
+            messages.warning(
+                request,
+                f"{len(puladas)} conta(s) NÃO foram pagas porque só vencem daqui a mais de "
+                f"{DIAS_LIMITE_PAGAR_LOTE} dias (a primeira em {min(d.data_vencimento for d in puladas).strftime('%d/%m/%Y')}). "
+                "Se for pagar adiantado de propósito, use o botão de pagar na própria linha."
+            )
     return redirect('despesa_listar')
 
 

@@ -31,7 +31,8 @@
             <li><strong>Lançamento de teste?</strong> Clique na <strong>lixeira</strong> da linha → <strong>Confirmar Exclusão</strong>. Se for uma <em>compra do carrinho</em>, o estoque dos itens também volta ao que era.</li>
             <li><strong>Lançamento real, mas com data ou valor errado?</strong> Clique no <strong>lápis</strong> (ou no <strong>ícone de carrinho</strong>, se for compra) e corrija.</li>
             <li>Uma conta marcada como <strong>paga</strong> que na verdade ainda não foi? Abra o lápis dela e <strong>desmarque "Já paguei esta despesa"</strong> — ela volta para Contas a Pagar.</li>
-            <li>Dê uma olhada também em <strong>Movimentações Estoque</strong>: se aparecer entrada ou ajuste de teste, corrija com um lançamento em <strong>Ajuste / Perda / Abertura</strong>.</li>
+            <li>Dê uma olhada também em <strong>Movimentações Estoque</strong>: se o estoque de algum insumo estiver errado, acerte em <strong>Contagem de Estoque</strong> (digite a quantidade real). Se o <strong>valor do estoque</strong> no Dashboard estiver absurdo, quase sempre é o <strong>custo</strong> de um insumo digitado como preço do pacote — corrija na mesma tela.</li>
+            <li><strong>Caixa no vermelho sem motivo?</strong> Olhe a aba <strong>Pagas</strong>: estoque inicial lançado como <em>compra</em> ou contas de meses futuros marcadas como pagas fazem o caixa ficar negativo. Peça ao suporte para rodar o <strong>acertar_inicio</strong> (ele só limpa isso, sem apagar o estoque).</li>
         </ol>
         <p class="text-xs text-hex_gold_dim/70 mt-3">Nada aqui é definitivo: tudo o que for apagado ou mudado fica registrado no menu <em>Auditoria</em>.</p>
     </div>
@@ -206,20 +207,19 @@
             <!-- 8 - ESTOQUE INICIAL (detalhado) -->
             <div class="bg-hex_dark_card border border-hex_gold/40 rounded p-5 shadow-hex-gold">
                 <div class="flex items-start justify-between gap-3">
-                    <h3 class="font-bold text-hex_gold flex items-center space-x-2"><i data-lucide="package-open" class="w-4 h-4 text-hex_gold"></i><span>Passo 8 — Lançar o estoque que vocês têm HOJE</span></h3>
-                    <a href="{% url 'estoque_ajustar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                    <h3 class="font-bold text-hex_gold flex items-center space-x-2"><i data-lucide="package-open" class="w-4 h-4 text-hex_gold"></i><span>Passo 8 — Dizer ao sistema o estoque que vocês têm HOJE</span></h3>
+                    <a href="{% url 'estoque_contagem' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
-                <p class="text-sm text-hex_gold_light/90 mt-2">O sistema começa com <strong>estoque zerado</strong>. Antes de abrir a loja, façam uma <strong>contagem física</strong> — abram a geladeira, o freezer, a despensa — e lancem o que tem:</p>
+                <p class="text-sm text-hex_gold_light/90 mt-2">Antes de abrir a loja, façam uma <strong>contagem física</strong> — abram a geladeira, o freezer, a despensa — e digitem <strong>o que tem hoje</strong>. Não precisa lembrar o que foi pago antes: o sistema só quer saber o <strong>ponto de partida</strong>.</p>
                 <ol class="mt-3 space-y-2 text-sm text-hex_gold_light/90 list-decimal list-inside marker:text-hex_gold">
-                    <li>Menu <strong>Ajuste / Perda / Abertura</strong>.</li>
-                    <li><strong>Ingrediente</strong>: escolha o insumo.</li>
-                    <li><strong>Tipo</strong>: <strong>"Carga Inicial / Abertura — NÃO gera despesa"</strong>.</li>
-                    <li><strong>Quantidade</strong>: quanto tem, <strong>na unidade de compra</strong>. Comprou 5 kg e 450 g de carne? Digite <strong>5,450</strong>. Tem 30 pães? Digite <strong>30</strong>.</li>
-                    <li><strong>Valor unitário</strong>: quanto custa <strong>1 kg / 1 litro / 1 unidade</strong> hoje (ex.: carne 45,00 o kg).</li>
-                    <li>Salvar. Repita para <strong>cada</strong> insumo que tem em casa.</li>
+                    <li>Menu <strong>Contagem de Estoque</strong>. Aparece uma planilha com <strong>todos os insumos</strong> (use a busca para achar rápido).</li>
+                    <li>Na coluna <strong>"Tenho de verdade"</strong>, digite a quantidade que existe agora. Comprou 5 kg e 450 g de carne? Digite <strong>5,45</strong>. Tem 30 pães? <strong>30</strong>. Use <strong>vírgula</strong> para decimais.</li>
+                    <li>Na coluna <strong>"Custo de 1 unid."</strong>, confira o preço de <strong>1 kg / 1 litro / 1 unidade</strong> (ex.: carne 45,00 o kg). Se um pacote com 1.000 saquinhos custou R$ 45, o custo de <strong>1 saquinho</strong> é <strong>0,045</strong> — e não 45.</li>
+                    <li>As linhas que você mexer ficam <strong>amarelas</strong>. As que você não tocar continuam como estão.</li>
+                    <li>Clique em <strong>Salvar contagem</strong>. Pode fazer aos poucos e repetir quantas vezes precisar.</li>
                 </ol>
-                <p class="text-sm text-hex_warning mt-3 font-semibold">"Carga Inicial" NÃO é despesa e NÃO mexe no caixa — é só dizer o ponto de partida.</p>
-                <p class="text-xs text-hex_gold_dim/70 mt-1">Errou a quantidade? Faça outra "Carga Inicial" com a diferença, ou use <em>"Perda / Descarte"</em> pra tirar o excesso. Depois que a loja abrir, <strong>toda compra é registrada no menu "Registrar Compra"</strong> (aí sim vira despesa).</p>
+                <p class="text-sm text-hex_warning mt-3 font-semibold">A contagem NÃO é despesa e NÃO mexe no caixa — é só dizer o ponto de partida.</p>
+                <p class="text-xs text-hex_gold_dim/70 mt-1"><strong>Nunca</strong> use "Registrar Compra" para o que vocês já têm: aquilo vira despesa paga e o caixa fica negativo. Também não use o "Ajuste" para acertar quantidade — ele <strong>só diminui</strong> o estoque. Para acertar para mais ou para menos, é sempre a <strong>Contagem de Estoque</strong>. Depois que a loja abrir, <strong>toda compra nova é registrada em "Registrar Compra"</strong> (aí sim vira despesa).</p>
             </div>
 
             <!-- 9 - caixa inicial -->
@@ -333,7 +333,7 @@
                             <tr class="border-t border-hex_dark_border"><td class="p-2 font-semibold">Compra do mercado (carrinho)</td><td class="p-2"><strong>Ícone de carrinho</strong> na linha → reabre a nota inteira: mude quantidade/valor, tire ou ponha itens e <strong>finalize de novo</strong>. A <strong>lixeira</strong> apaga a compra e devolve o estoque.</td></tr>
                             <tr class="border-t border-hex_dark_border"><td class="p-2 font-semibold">Recorrente (luz, aluguel...)</td><td class="p-2">Para mudar a regra (valor, frequência, data): <strong>lápis</strong> na lista "Despesas Recorrentes". Para acertar só um mês: lápis na conta daquele mês.</td></tr>
                             <tr class="border-t border-hex_dark_border"><td class="p-2 font-semibold">Vendas do dia</td><td class="p-2">Abra o <strong>Fechamento Diário</strong> daquele dia, ajuste as quantidades e salve de novo.</td></tr>
-                            <tr class="border-t border-hex_dark_border"><td class="p-2 font-semibold">Estoque (carga inicial, perda)</td><td class="p-2">Faça outro lançamento em <strong>Ajuste / Perda / Abertura</strong> que compense a diferença.</td></tr>
+                            <tr class="border-t border-hex_dark_border"><td class="p-2 font-semibold">Quantidade ou custo de estoque errado</td><td class="p-2">Menu <strong>Contagem de Estoque</strong>: digite a quantidade real (e o custo de 1 unidade) e salve. O sistema acerta a diferença sozinho, sem gerar despesa.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -345,7 +345,7 @@
                     <h3 class="font-bold text-hex_gold_light flex items-center space-x-2"><i data-lucide="utensils" class="w-4 h-4 text-hex_gold"></i><span>Comeram um lanche ou algo estragou</span></h3>
                     <a href="{% url 'estoque_ajustar' %}" class="text-xs text-hex_blue hover:underline shrink-0 font-mono flex items-center space-x-1"><span>Abrir</span><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
                 </div>
-                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Ajuste / Perda / Abertura</strong> → tipo <strong>"Autoconsumo"</strong> (a família / a equipe comeu) ou <strong>"Perda / Descarte"</strong> (estragou, caiu no chão). Só baixa do estoque — <strong>não vira despesa nova</strong>, porque o insumo já foi pago quando comprou. O relatório mostra "autoconsumo" e "perdas" separados, pra vocês verem quanto some por mês.</p>
+                <p class="text-sm text-hex_gold_light/85 mt-2">Menu <strong>Perda / Abertura / Baixa</strong> → tipo <strong>"Autoconsumo"</strong> (a família / a equipe comeu) ou <strong>"Perda / Descarte"</strong> (estragou, caiu no chão). Só baixa do estoque — <strong>não vira despesa nova</strong>, porque o insumo já foi pago quando comprou. O relatório mostra "autoconsumo" e "perdas" separados, pra vocês verem quanto some por mês.</p>
             </div>
 
             <!-- Sino -->
@@ -392,7 +392,7 @@
         <h3 class="font-bold title-hex text-hex_gold text-lg mb-3 flex items-center space-x-2"><i data-lucide="star" class="w-5 h-5 text-hex_gold"></i><span>5 regras de ouro</span></h3>
         <ul class="space-y-2 text-sm text-hex_gold_light/90 list-disc list-inside marker:text-hex_gold">
             <li>Tudo que vocês mudarem (um preço, uma taxa, o custo de um insumo) <strong>vale daí pra frente</strong>. O passado não muda.</li>
-            <li><strong>"Carga Inicial"</strong> só no começo. Depois, toda compra passa pelo menu <strong>"Registrar Compra"</strong>.</li>
+            <li>O estoque que vocês <strong>já têm</strong> entra pela <strong>Contagem de Estoque</strong> (só no começo, ou quando conferirem a prateleira). Depois, toda compra passa pelo menu <strong>"Registrar Compra"</strong>.</li>
             <li>Conta que se repete → <strong>Despesa Recorrente</strong> (semanal, mensal...). Gasto de uma vez → <strong>Despesa Avulsa</strong>. Vai pagar depois → NÃO marque "já paguei" e pague no dia.</li>
             <li>O preço do lanche <strong>não muda sozinho</strong> — só quando vocês decidirem. O custo dele, sim, acompanha o preço dos insumos.</li>
             <li>Errou? Abre, corrige e salva. Ou apaga e refaz. Sem drama.</li>

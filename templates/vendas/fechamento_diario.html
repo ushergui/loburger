@@ -69,7 +69,10 @@
 </div>
 
 <!-- Form Principal de Fechamento -->
-<form method="POST" action="{% url 'fechamento_diario' %}?data={{ data_fechamento }}">
+<form method="POST" action="{% url 'fechamento_diario' %}?data={{ data_fechamento }}"
+      x-data="{ salvando: false }"
+      @submit="if (salvando) { $event.preventDefault(); return; } salvando = true"
+      @pageshow.window="salvando = false">
     {% csrf_token %}
     <input type="hidden" name="data" value="{{ data_fechamento }}">
 
@@ -142,9 +145,9 @@
         <a href="{% url 'fechamento_diario' %}" class="bg-hex_dark_bg border border-hex_gold/30 hover:border-hex_gold text-hex_gold hover:text-white font-semibold py-2.5 px-5 rounded transition-all uppercase tracking-wider text-xs">
             Descartar Alterações
         </a>
-        <button type="submit" class="bg-hex_gold hover:bg-hex_blue text-hex_dark_bg hover:text-white font-bold py-3 px-8 rounded transition-all uppercase tracking-wider text-xs border border-hex_gold/35 flex items-center space-x-2 shadow-hex-gold">
+        <button type="submit" :disabled="salvando" :class="salvando ? 'opacity-60 cursor-wait' : ''" class="bg-hex_gold hover:bg-hex_blue text-hex_dark_bg hover:text-white font-bold py-3 px-8 rounded transition-all uppercase tracking-wider text-xs border border-hex_gold/35 flex items-center space-x-2 shadow-hex-gold">
             <i data-lucide="check-circle-2" class="w-5 h-5"></i>
-            <span>Salvar Fechamento do Dia</span>
+            <span x-text="salvando ? 'Salvando… aguarde' : 'Salvar Fechamento do Dia'">Salvar Fechamento do Dia</span>
         </button>
     </div>
 </form>

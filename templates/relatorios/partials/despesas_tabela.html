@@ -24,7 +24,8 @@
                 {% if vista == 'a_pagar' %}
                     <th class="py-3.5 px-3 w-8">
                         <input type="checkbox"
-                               @change="sel = $event.target.checked ? [...document.querySelectorAll('input[name=ids]')].map(c => c.value) : []"
+                               title="Marca só as contas que vencem em até {{ dias_limite_lote }} dias"
+                               @change="sel = $event.target.checked ? [...document.querySelectorAll('input[name=ids]:not(:disabled)')].map(c => c.value) : []"
                                class="rounded border-hex_gold/40 bg-hex_dark_bg text-hex_blue">
                     </th>
                 {% endif %}
@@ -40,8 +41,14 @@
                 <tr class="hover:bg-hex_dark_bg/30 transition-colors {% if desp.urgencia == 'atrasada' %}bg-hex_danger/10{% elif desp.urgencia == 'hoje' %}bg-hex_warning/10{% endif %}">
                     {% if vista == 'a_pagar' %}
                     <td class="py-3 px-3 text-center">
+                        {% if desp.data_vencimento > limite_lote %}
+                        <input type="checkbox" disabled
+                               title="Só vence em {{ desp.data_vencimento|date:'d/m/Y' }} (mais de {{ dias_limite_lote }} dias). Para pagar adiantado, use o botão de pagar desta linha."
+                               class="rounded border-hex_gold/20 bg-hex_dark_bg opacity-30 cursor-not-allowed">
+                        {% else %}
                         <input type="checkbox" name="ids" value="{{ desp.id }}" x-model="sel"
                                class="rounded border-hex_gold/40 bg-hex_dark_bg text-hex_blue">
+                        {% endif %}
                     </td>
                     {% endif %}
                     <td class="py-3 px-4 font-mono whitespace-nowrap">

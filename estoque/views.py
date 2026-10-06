@@ -1,3 +1,5 @@
+import re
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -7,6 +9,7 @@ from django.utils.formats import number_format
 from decimal import Decimal
 
 from core.decorators import gestao_required
+from core.utils import parse_numero_ptbr
 
 
 def _n(valor, casas=3):
@@ -344,3 +347,139 @@ def estoque_buscar_ingredientes(request):
     })
 
 
+
+
+# ==========================================
+# CONTAGEM DE ESTOQUE (acertar para a quantidade real)
+# ==========================================
+
+def _plain(valor, casas):
+    """Número para dentro de um campo de digitação: vírgula decimal e SEM separador de
+    milhar (1000 e não 1.000 — o ponto único seria lido como decimal)."""
+    q = Decimal(valor).quantize(Decimal('1.' + '0' * casas)).normalize()
+    return format(q, 'f').replace('.', ',')
+
+
+_MILHAR = re.compile(r'^[1-9]\d{0,2}(\.\d{3})+$')
+
+
+def _parse_qtd_contagem(texto):
+    """Quantidade digitada: vírgula = decimal; "1.000" (ponto com grupos de 3 dígitos,
+    sem vírgula) = mil. Para casas decimais, use a vírgula (2,5)."""
+    t = (texto or '').replace(' ', '')
+    if _MILHAR.match(t):
+        t = t.replace('.', '')
+    return parse_numero_ptbr(t)
+
+
+def _unidade_contagem(ing):
+    """Unidade em que o estoque é mostrado/digitado (a mesma de estoque_display)."""
+    return ing.unidade_compra if ing.obter_fator_conversao > 1 else ing.unidade_medida
+
+
+@login_required
+@gestao_required
+def estoque_contagem(request):
+    """Planilha de contagem: a pessoa digita o que TEM de verdade na prateleira
+    (e, se quiser, corrige o custo) e o sistema acerta a diferença sozinho.
+
+    Regras de negócio (diferente do 'Ajuste', que só SUBTRAI):
+    - quantidade maior que a do sistema -> entra como Carga Inicial (ABERTURA), no
+      custo atual do insumo; NÃO gera despesa e NÃO mexe no caixa;
+    - quantidade menor -> baixa por Ajuste de Inventário; também não gera despesa;
+    - custo corrigido -> vira o novo custo do insumo (por unidade de compra/consumo).
+    Tudo em uma transação: se alguma linha estiver inválida, nada é gravado."""
+    from django.db import transaction
+
+    ingredientes = list(Ingrediente.objects.all().order_by('nome'))
+    linhas = []
+    erros = []
+    postado = request.method == 'POST'
+
+    for ing in ingredientes:
+        fator = ing.obter_fator_conversao
+        qtd_atual = ((ing.estoque_atual or Decimal('0')) / fator).quantize(Decimal('0.001'))
+        custo_atual = ((ing.custo_unitario or Decimal('0')) * fator).quantize(Decimal('0.0001'))
+        linha = {
+            'ing': ing,
+            'unidade': _unidade_contagem(ing),
+            'qtd_atual': qtd_atual,
+            'custo_atual': custo_atual,
+            'qtd_txt': _plain(qtd_atual, 3),
+            'custo_txt': _plain(custo_atual, 4),
+            # o que o sistema tem hoje (não muda mesmo se a tela voltar com erro)
+            'sistema_qtd_txt': _plain(qtd_atual, 3),
+            'sistema_custo_txt': _plain(custo_atual, 4),
+            'qtd_bonita': _n(qtd_atual, 3),
+            'erro': '',
+        }
+        if postado:
+            linha['qtd_txt'] = (request.POST.get(f'qtd_{ing.id}') or '').strip()
+            linha['custo_txt'] = (request.POST.get(f'custo_{ing.id}') or '').strip()
+            linha['nova_qtd'] = None
+            linha['novo_custo'] = None
+            if linha['qtd_txt']:
+                v = _parse_qtd_contagem(linha['qtd_txt'])
+                if v is None or v < 0:
+                    linha['erro'] = 'Quantidade inválida (use número, sem negativo).'
+                else:
+                    linha['nova_qtd'] = v.quantize(Decimal('0.001'))
+            if linha['custo_txt'] and not linha['erro']:
+                v = parse_numero_ptbr(linha['custo_txt'])
+                if v is None or v < 0:
+                    linha['erro'] = 'Custo inválido.'
+                else:
+                    linha['novo_custo'] = v.quantize(Decimal('0.0001'))
+            if linha['erro']:
+                erros.append(f"{ing.nome}: {linha['erro']}")
+        linhas.append(linha)
+
+    if postado and not erros:
+        n_qtd = n_custo = 0
+        with transaction.atomic():
+            for l in linhas:
+                ing = l['ing']
+                fator = ing.obter_fator_conversao
+                # 1) custo primeiro, para a carga entrar já no custo corrigido
+                nc = l.get('novo_custo')
+                if nc is not None and nc != l['custo_atual']:
+                    ing.custo_unitario = (nc / fator)
+                    ing.save()
+                    n_custo += 1
+                # 2) quantidade: acerta a diferença
+                nq = l.get('nova_qtd')
+                if nq is not None and nq != l['qtd_atual']:
+                    nova_base = (nq * fator).quantize(Decimal('0.01'))
+                    atual_base = ing.estoque_atual or Decimal('0')
+                    diff = nova_base - atual_base
+                    if diff == 0:
+                        continue
+                    if diff > 0:
+                        MovimentacaoEstoque.objects.create(
+                            ingrediente=ing, quantidade=diff, tipo='ABERTURA',
+                            valor_unitario=ing.custo_unitario, responsavel=request.user,
+                            observacao='Contagem de estoque (acerto para mais).',
+                            custo_medio_antes=ing.custo_unitario,
+                        )
+                    else:
+                        MovimentacaoEstoque.objects.create(
+                            ingrediente=ing, quantidade=-diff, tipo='AJUSTE',
+                            responsavel=request.user,
+                            observacao='Contagem de estoque (acerto para menos).',
+                        )
+                    ing.estoque_atual = nova_base
+                    ing.save()
+                    n_qtd += 1
+        if n_qtd or n_custo:
+            messages.success(
+                request,
+                f"Contagem salva: {n_qtd} quantidade(s) e {n_custo} custo(s) acertados. "
+                "Nenhuma despesa foi criada e o caixa não mudou."
+            )
+        else:
+            messages.info(request, "Nada mudou: as quantidades e custos digitados são iguais aos do sistema.")
+        return redirect('estoque_contagem')
+    if postado and erros:
+        messages.error(request, "Nada foi salvo. Corrija: " + " | ".join(erros[:5]))
+
+    return render(request, 'estoque/contagem.html', {'linhas': linhas})

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Contagem de Estoque - LOL BURGUER{% endblock %}
+
+{% block content %}
+<div class="mb-5 flex items-start space-x-2">
+    <a href="{% url 'estoque_resumo' %}" class="text-hex_gold hover:text-white transition-colors mt-1" title="Voltar ao estoque">
+        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+    </a>
+    <div>
+        <h1 class="text-2xl font-bold title-hex text-hex_gold">Contagem de Estoque</h1>
+        <p class="text-xs uppercase tracking-wider text-hex_blue">Acerte o sistema com o que você tem de verdade na prateleira</p>
+    </div>
+</div>
+
+<div class="bg-hex_blue/10 border border-hex_blue/30 rounded p-4 mb-5 text-xs text-hex_gold_light/90 space-y-1.5 max-w-4xl">
+    <p><strong class="text-hex_gold">Como usar:</strong> conte o que existe hoje e digite na coluna <strong>"Tenho de verdade"</strong>. Só mexa nas linhas que estão diferentes — as que você não tocar ficam como estão.</p>
+    <p><strong class="text-hex_gold">Isto NÃO é compra:</strong> o que você digitar aqui <strong>não gera despesa</strong> e <strong>não mexe no caixa</strong>. É só para o sistema saber o que você já tem.</p>
+    <p><strong class="text-hex_gold">Custo:</strong> é o preço de <strong>1 unidade</strong> (1 kg, 1 litro ou 1 unidade — o que aparece ao lado). Se um pacote de 1.000 sacos custou R$ 45, o custo de 1 saco é <strong>0,045</strong>, e não 45. Os palpites podem ser aproximados; depois as compras de verdade vão ajustando o custo.</p>
+    <p><strong class="text-hex_gold">Números:</strong> use <strong>vírgula</strong> para casas decimais (<code>2,5</code> kg). O ponto separa milhar (<code>1.000</code> unidades).</p>
+    <p>Nada é gravado até clicar em <strong>Salvar contagem</strong>. Se alguma linha estiver inválida, nada é salvo.</p>
+</div>
+
+<form method="POST" id="form-contagem" class="max-w-4xl"
+      x-data="{ busca: '', alterados: 0, salvando: false }"
+      @input="$nextTick(() => alterados = $el.querySelectorAll('tr[data-mudou=true]').length)"
+      @submit="if (salvando) { $event.preventDefault(); return; } salvando = true"
+      @pageshow.window="salvando = false">
+    {% csrf_token %}
+
+    <div class="relative mb-3">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-hex_gold_dim/40">
+            <i data-lucide="search" class="w-4 h-4"></i>
+        </span>
+        <input type="text" x-model="busca" id="busca-contagem" placeholder="Procurar insumo pelo nome..."
+               class="w-full bg-hex_dark_bg border border-hex_gold/25 rounded py-2 pl-9 pr-4 text-xs text-hex_gold_light focus:outline-none focus:border-hex_blue placeholder-hex_gold_light/30">
+    </div>
+
+    <div class="bg-hex_dark_card border border-hex_dark_border rounded shadow-md overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+            <thead>
+                <tr class="border-b border-hex_dark_border text-hex_gold uppercase tracking-wider text-[10px] font-semibold bg-hex_dark_bg/40">
+                    <th class="py-3 px-4">Insumo</th>
+                    <th class="py-3 px-3 text-right">No sistema</th>
+                    <th class="py-3 px-3">Tenho de verdade</th>
+                    <th class="py-3 px-3">Custo de 1 unid. (R$)</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-hex_dark_border text-hex_gold_light/90">
+                {% for l in linhas %}
+                <tr x-data="{ q: '{{ l.qtd_txt|escapejs }}', c: '{{ l.custo_txt|escapejs }}', q0: '{{ l.sistema_qtd_txt|escapejs }}', c0: '{{ l.sistema_custo_txt|escapejs }}' }"
+                    x-show="busca === '' || '{{ l.ing.nome|escapejs|lower }}'.includes(busca.toLowerCase())"
+                    :data-mudou="(q !== q0 || c !== c0) ? 'true' : 'false'"
+                    :class="(q !== q0 || c !== c0) ? 'bg-hex_warning/10' : ''"
+                    class="hover:bg-hex_dark_bg/30 transition-colors {% if l.erro %}bg-hex_danger/10{% endif %}">
+                    <td class="py-2.5 px-4 font-medium text-white">
+                        {{ l.ing.nome }}
+                        {% if l.erro %}<span class="block text-[10px] text-hex_danger font-normal">{{ l.erro }}</span>{% endif %}
+                    </td>
+                    <td class="py-2.5 px-3 text-right font-mono whitespace-nowrap {% if l.qtd_atual <= 0 %}text-hex_danger{% endif %}">
+                        {{ l.qtd_bonita }} <span class="text-hex_gold_dim/60">{{ l.unidade }}</span>
+                    </td>
+                    <td class="py-2 px-3">
+                        <div class="flex items-center space-x-1.5">
+                            <input type="text" inputmode="decimal" name="qtd_{{ l.ing.id }}" x-model="q"
+                                   id="qtd_{{ l.ing.id }}" aria-label="Quantidade real de {{ l.ing.nome }}"
+                                   class="w-28 bg-hex_dark_bg border border-hex_gold/30 rounded py-1.5 px-2 text-xs text-hex_gold_light font-mono text-right focus:outline-none focus:border-hex_blue">
+                            <span class="text-hex_gold_dim/60 text-[10px]">{{ l.unidade }}</span>
+                        </div>
+                    </td>
+                    <td class="py-2 px-3">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="text-hex_gold_dim/60 text-[10px]">R$</span>
+                            <input type="text" inputmode="decimal" name="custo_{{ l.ing.id }}" x-model="c"
+                                   id="custo_{{ l.ing.id }}" aria-label="Custo de 1 {{ l.unidade }} de {{ l.ing.nome }}"
+                                   class="w-24 bg-hex_dark_bg border border-hex_gold/30 rounded py-1.5 px-2 text-xs text-hex_gold_light font-mono text-right focus:outline-none focus:border-hex_blue">
+                            <span class="text-hex_gold_dim/60 text-[10px]">/ {{ l.unidade }}</span>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="py-8 text-center text-hex_gold_dim/60">Nenhum insumo cadastrado ainda.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="flex items-center justify-between gap-4 bg-hex_dark_card border border-hex_gold/30 p-4 rounded shadow-lg sticky bottom-4 z-10 mt-4">
+        <span class="text-xs text-hex_gold_light">
+            <strong class="text-hex_gold" x-text="alterados"></strong> linha(s) alterada(s) (destacadas em amarelo)
+        </span>
+        <button type="submit" :disabled="salvando" :class="salvando ? 'opacity-60 cursor-wait' : ''"
+                class="bg-hex_gold hover:bg-hex_blue text-hex_dark_bg hover:text-white font-bold py-2.5 px-6 rounded transition-all uppercase tracking-wider text-xs border border-hex_gold/35 flex items-center space-x-2">
+            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+            <span x-text="salvando ? 'Salvando… aguarde' : 'Salvar contagem'">Salvar contagem</span>
+        </button>
+    </div>
+</form>
+{% endblock %}

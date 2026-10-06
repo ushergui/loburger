@@ -19,7 +19,7 @@ TIPOS_MANUAIS = (
     ('ABERTURA', 'Carga Inicial / Abertura — NÃO gera despesa'),
     ('SAIDA_PERDA', 'Saída por Perda / Descarte'),
     ('SAIDA_AUTOCONSUMO', 'Saída por Autoconsumo'),
-    ('AJUSTE', 'Ajuste Geral de Inventário'),
+    ('AJUSTE', 'Baixa por ajuste (SÓ diminui o estoque — para acertar a quantidade use "Contagem de Estoque")'),
 )
 
 

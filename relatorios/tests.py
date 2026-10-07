@@ -1,5 +1,5 @@
 from decimal import Decimal
-from datetime import timedelta
+from datetime import date, timedelta
 
 from django.test import TestCase
 from django.utils import timezone
@@ -217,6 +217,39 @@ class LancamentoDespesaTests(TestCase):
         d = Despesa.objects.get(descricao='Gás')
         self.assertEqual(d.status, 'PAGO')
         self.assertEqual(d.data_pagamento, timezone.localdate())
+
+    def test_pagar_boleto_de_insumo_que_ja_esta_no_estoque(self):
+        """Boleto de insumo que nunca foi lançado: Despesa Avulsa 'Fornecedores / Insumos' + já paguei.
+        Entra no caixa (e nas 'compras de insumo' do mês), mas NÃO mexe no estoque."""
+        from produtos.models import Ingrediente
+        from estoque.models import MovimentacaoEstoque
+        from relatorios import services
+        carne = Ingrediente.objects.create(nome='CARNE', unidade_medida='g', unidade_compra='kg',
+                                           estoque_atual=Decimal('5000'), custo_unitario=Decimal('0.04'))
+        r = self.c.post('/relatorios/despesas/novo/', {
+            'descricao': 'Boleto Frigorífico', 'credor': 'Frigorífico', 'categoria': 'FORNECEDORES',
+            'valor': '800,00', 'data_vencimento': '2026-10-06', 'ja_paga': 'on',
+            'data_pagamento': '2026-10-06', 'observacao': '',
+        })
+        self.assertEqual(r.status_code, 302)
+        d = Despesa.objects.get(descricao='Boleto Frigorífico')
+        self.assertEqual((d.status, d.categoria, d.origem), ('PAGO', 'FORNECEDORES', 'MANUAL'))
+        carne.refresh_from_db()
+        self.assertEqual(carne.estoque_atual, Decimal('5000.00'))
+        self.assertEqual(MovimentacaoEstoque.objects.count(), 0)
+        resumo = services.resumo_financeiro(date(2026, 10, 1), date(2026, 10, 31))
+        self.assertEqual(resumo['compras_insumo'], Decimal('800.00'))
+
+    def test_avulsa_oferece_fornecedores_mas_nao_taxas(self):
+        html = self.c.get('/relatorios/despesas/novo/').content.decode()
+        self.assertIn('value="FORNECEDORES"', html)
+        self.assertNotIn('value="TAXA_MAQUININHA"', html)
+        self.assertNotIn('value="ENTREGA"', html)
+        self.assertIn('Pagando boleto ou nota de insumo', html)
+
+    def test_recorrente_continua_sem_fornecedores(self):
+        html = self.c.get('/relatorios/despesas/recorrente/novo/').content.decode()
+        self.assertNotIn('value="FORNECEDORES"', html)
 
     def test_categoria_fixa_deduz_tipo_fixo(self):
         self.c.post('/relatorios/despesas/novo/', {

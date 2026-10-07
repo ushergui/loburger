@@ -8,6 +8,9 @@ from .models import (
 )
 
 CATEGORIAS_MANUAIS = [(v, l) for v, l in CATEGORIA_CHOICES if v not in CATEGORIAS_AUTOMATICAS]
+# A Despesa Avulsa também aceita "Fornecedores / Insumos": é como se paga, por exemplo, o boleto de uma
+# compra de insumo que JÁ está no estoque (sem somar estoque de novo). Taxas e motoboy seguem automáticos.
+CATEGORIAS_AVULSA = [(v, l) for v, l in CATEGORIA_CHOICES if v not in CATEGORIAS_AUTOMATICAS or v == 'FORNECEDORES']
 
 class ThemeFormMixin:
     # Mixin para injetar estilos Tailwind / Hextech nos campos automaticamente
@@ -133,7 +136,7 @@ class DespesaForm(ThemeFormMixin, forms.ModelForm):
         # Categorias automáticas (taxas, motoboy, compras de estoque) não são lançadas à mão
         if 'categoria' in self.fields:
             atual = getattr(self.instance, 'categoria', None)
-            choices = list(CATEGORIAS_MANUAIS)
+            choices = list(CATEGORIAS_AVULSA)
             if atual and atual not in dict(choices):
                 choices.append((atual, dict(CATEGORIA_CHOICES).get(atual, atual)))
             self.fields['categoria'].choices = choices

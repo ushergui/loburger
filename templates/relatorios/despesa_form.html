@@ -51,6 +51,10 @@
                 </label>
                 {{ form.categoria }}
                 <p class="text-[9px] text-hex_gold_dim/70 mt-1 uppercase tracking-wider">O sistema usa a categoria para separar custo fixo de variável nos relatórios.</p>
+                <p class="text-xs text-hex_gold_light/80 mt-2 bg-hex_blue/10 border border-hex_blue/25 rounded px-3 py-2">
+                    <strong>Pagando boleto ou nota de insumo</strong> (carne, pão, embalagem…) que <strong>já está no estoque</strong>? Escolha <strong>Fornecedores / Insumos</strong> e marque <strong>"Já paguei"</strong>.
+                    Se a mercadoria <strong>ainda não entrou</strong> no estoque, use o menu <strong>Registrar Compra</strong>, para o estoque também subir.
+                </p>
                 {% if form.categoria.errors %}<p class="text-xxs text-hex_danger mt-1">{{ form.categoria.errors.as_text }}</p>{% endif %}
             </div>
 

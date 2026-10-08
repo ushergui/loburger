@@ -9,6 +9,7 @@ urlpatterns = [
     
     # Fechamento Diário de Vendas em Lote
     path('fechamento-diario/', views.fechamento_diario, name='fechamento_diario'),
+    path('fechamento-diario/celula/', views.fechamento_celula, name='fechamento_celula'),
 
     # Canais de Venda
     path('canais/', views.canal_listar, name='canal_listar'),

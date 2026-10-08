@@ -11,6 +11,11 @@
     .fc-div-app   { border-left: 3px solid rgba(10, 200, 185, 0.60); }
     .fc-div-uai   { border-left: 3px solid rgba(255, 140, 0, 0.80); }
     .fc-div-ifood { border-left: 3px solid rgba(234, 29, 44, 0.75); }
+
+    /* Estados do salvamento automático de cada campo */
+    input[data-autosave].af-salvando { border-color: rgba(232, 169, 46, 0.95) !important; }
+    input[data-autosave].af-salvo    { border-color: rgba(52, 196, 148, 0.95) !important; box-shadow: 0 0 0 2px rgba(52, 196, 148, 0.25); }
+    input[data-autosave].af-erro     { border-color: rgba(239, 90, 110, 1) !important; box-shadow: 0 0 0 2px rgba(239, 90, 110, 0.35); }
 </style>
 
 <div class="overflow-x-auto overflow-y-auto max-h-[65vh] relative custom-scrollbar">
@@ -43,7 +48,8 @@
 
         <tbody class="divide-y divide-hex_dark_border text-hex_gold_light/90">
             {% for linha in linhas %}
-                <tr class="hover:bg-hex_blue/15 border-l-2 border-l-transparent hover:border-l-hex_gold transition-all duration-200 group">
+                <tr data-nome="{{ linha.produto.nome }}" data-cat="{{ linha.produto.categoria }}" x-show="mostra($el)"
+                    class="hover:bg-hex_blue/15 border-l-2 border-l-transparent hover:border-l-hex_gold transition-all duration-200 group">
                     <td class="py-3 px-4 font-sans align-middle text-left whitespace-nowrap bg-hex_dark_card">
                         <div class="flex items-center space-x-3">
                             {% if linha.produto.foto %}
@@ -62,7 +68,7 @@
                     {% for cel in linha.celulas %}
                         <td class="py-2.5 px-1.5 text-center align-middle transition-colors fc-col-{{ cel.grupo_css }} group-hover:bg-hex_blue/20 {% if cel.inicio_grupo %}fc-div-{{ cel.grupo_css }}{% else %}border-l border-hex_dark_border{% endif %}">
                             <input type="number" min="0" inputmode="numeric"
-                                   name="{{ cel.name }}"
+                                   name="{{ cel.name }}" data-autosave data-ultimo="{{ cel.qtd }}"
                                    value="{{ cel.qtd }}"
                                    placeholder="0"
                                    title="Preço: R$ {{ cel.preco|floatformat:2 }}"

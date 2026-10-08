@@ -316,6 +316,9 @@ class FechamentoDiarioInfo(models.Model):
     data = models.DateField(unique=True, verbose_name="Data do Fechamento")
     quantidade_entregas = models.PositiveIntegerField(default=0, verbose_name="Quantidade de Entregas")
     taxa_entrega = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('9.00'), verbose_name="Taxa de Entrega (R$)")
+    # Desconto/abatimento do dia inteiro (aplicado uma vez, no primeiro pedido do dia). Fica aqui para
+    # poder ser salvo mesmo antes de existir qualquer venda lançada. Nulo = dia antigo (usa o dos pedidos).
+    desconto_dia = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Desconto do dia (R$)")
     
     class Meta:
         verbose_name = "Informação do Fechamento Diário"

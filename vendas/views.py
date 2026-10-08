@@ -19,7 +19,10 @@ from .forms import (
     CanalVendaForm, TaxaFormaPagamentoFormSet, FormaPagamentoForm,
     EntregadorForm, ConfiguracaoFinanceiraForm,
 )
-from .services import sincronizar_despesas_fechamento
+from .services import (
+    sincronizar_despesas_fechamento, desconto_do_dia_leitura, FechamentoErro,
+    salvar_celula_fechamento, salvar_entrega_fechamento, salvar_desconto_fechamento, resumo_do_dia,
+)
 
 # ==========================================
 # CANAIS DE VENDA (GESTÃO)
@@ -464,6 +467,8 @@ def fechamento_diario(request):
             vendas_gravadas.setdefault(item.produto_id, {})
             vendas_gravadas[item.produto_id][chave] = vendas_gravadas[item.produto_id].get(chave, 0) + item.quantidade
 
+    desconto_dia = desconto_do_dia_leitura(data_fechamento)
+
     entregadores = list(Entregador.objects.filter(ativo=True))
     entregas_salvas = {e.entregador_id: e.quantidade for e in EntregaDiaria.objects.filter(data=data_fechamento)}
 
@@ -593,6 +598,7 @@ def fechamento_diario(request):
         'linhas': linhas,
         'num_modos': len(modos),
         'desconto_dia': desconto_dia,
+        'total_bruto_dia': resumo_do_dia(data_fechamento)['total_bruto'],
         'entregadores': [{'obj': e, 'qtd': entregas_salvas.get(e.id, 0)} for e in entregadores],
         'taxa_entrega': config.taxa_entrega,
         'total_entregas_salvo': total_entregas_salvo,
@@ -679,4 +685,38 @@ def configuracao_financeira(request):
         form = ConfiguracaoFinanceiraForm(instance=config)
     return render(request, 'vendas/configuracao_financeira.html', {'form': form, 'titulo': "Configuração Financeira"})
 
+
+@login_required
+def fechamento_celula(request):
+    """Salva UM campo do Fechamento Diário (a tela chama isto sozinha ao sair de cada campo).
+    Recebe: data (AAAA-MM-DD), campo (nome do input) e valor. Devolve JSON."""
+    from django.http import JsonResponse
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'erro': 'Método inválido.'}, status=405)
+    try:
+        data = datetime.strptime(request.POST.get('data', ''), '%Y-%m-%d').date()
+    except ValueError:
+        return JsonResponse({'ok': False, 'erro': 'Data inválida. Recarregue a página.'}, status=400)
+
+    campo = request.POST.get('campo', '')
+    valor = request.POST.get('valor', '')
+    try:
+        if campo.startswith('qtd_'):
+            partes = campo.split('_')                      # qtd_<produto>_<canal>_<modo>
+            if len(partes) != 4 or not partes[1].isdigit() or not partes[2].isdigit():
+                raise FechamentoErro("Campo inválido.")
+            resultado = salvar_celula_fechamento(
+                data, int(partes[1]), int(partes[2]), partes[3], valor, responsavel=request.user)
+        elif campo.startswith('entrega_'):
+            ident = campo.split('_', 1)[1]
+            if not ident.isdigit():
+                raise FechamentoErro("Campo inválido.")
+            resultado = salvar_entrega_fechamento(data, int(ident), valor)
+        elif campo == 'desconto_dia':
+            resultado = salvar_desconto_fechamento(data, valor)
+        else:
+            raise FechamentoErro("Campo desconhecido.")
+    except FechamentoErro as e:
+        return JsonResponse({'ok': False, 'erro': str(e)}, status=400)
+    return JsonResponse({'ok': True, **resultado})
 
